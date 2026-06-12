@@ -1,0 +1,10 @@
+/* Lumi — globální vstup stylů.
+   Tokeny jsou převzaté 1:1 z Lumi design systemu (fonts.css je nahrazen
+   <link> v index.html — substituce Google Fonts deklarovaná v DS). */
+@import "./tokens/colors.css";
+@import "./tokens/typography.css";
+@import "./tokens/spacing.css";
+@import "./tokens/motion.css";
+@import "./tokens/base.css";
+@import "./ds.css";
+@import "./app.css";

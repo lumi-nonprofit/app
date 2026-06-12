@@ -1,0 +1,193 @@
+/* ============================================================
+   Lumi — styly aplikace (chrome, navigace, vlastní prvky).
+   Převzato z prototypu „Lumi Prototyp.html“; rozměry vázané na
+   iOS rám (status bar, home indicator) jsou nahrazené safe-area
+   insety, aby aplikace seděla na reálných zařízeních.
+   ============================================================ */
+
+html, body { margin: 0; min-height: 100%; }
+
+/* aplikace = mobilní sloupec; na širších displejích zarovnaný na střed */
+.app {
+  position: relative;
+  max-width: 430px;
+  margin-inline: auto;
+  min-height: 100dvh;
+  background: var(--surface-page);
+  font-family: var(--font-body);
+}
+
+/* ---------- obrazovka se scrollnem ---------- */
+.app-scroll {
+  box-sizing: border-box;
+  min-height: 100dvh;
+  /* dole: tab bar + safe area — poslední karta nezajíždí pod navigaci */
+  padding: calc(20px + env(safe-area-inset-top, 0px)) 20px calc(110px + env(safe-area-inset-bottom, 0px));
+  display: flex; flex-direction: column; gap: 14px;
+}
+
+/* ---------- onboarding (bez tab baru) ---------- */
+.ob-screen {
+  min-height: 100dvh;
+  display: flex; flex-direction: column;
+  background: var(--surface-page);
+}
+.ob-top {
+  padding: calc(24px + env(safe-area-inset-top, 0px)) 24px 0;
+  display: flex; align-items: center; justify-content: space-between;
+  min-height: 44px;
+}
+.ob-body {
+  flex: 1;
+  padding: 18px 24px calc(40px + env(safe-area-inset-bottom, 0px));
+  display: flex; flex-direction: column;
+}
+
+/* ---------- mikropopisek (kicker) ---------- */
+.lumi-kicker {
+  font-family: var(--font-body); font-size: 11px; font-weight: 600;
+  letter-spacing: var(--tracking-label); text-transform: uppercase;
+  color: var(--ink-700); margin-bottom: 4px;
+}
+
+/* ---------- tab bar (Check-in = zvýrazněný střed) ---------- */
+.ltab {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+  max-width: 430px; margin-inline: auto;
+  display: flex; align-items: flex-end; justify-content: space-around;
+  padding: 10px 8px max(24px, env(safe-area-inset-bottom, 0px));
+  background: rgba(251, 247, 239, 0.88);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border-subtle);
+}
+.ltab button { -webkit-tap-highlight-color: transparent; }
+.ltab-item {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  min-width: 56px; min-height: 48px; justify-content: flex-end;
+  background: none; border: none; cursor: pointer; padding: 4px; border-radius: 12px;
+  font-family: var(--font-body);
+}
+.ltab-item:active { transform: scale(0.96); }
+.ltab-item:focus-visible, .ltab-center:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.ltab-label { font-size: 11px; }
+.ltab-center {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  background: none; border: none; cursor: pointer; padding: 0 6px 4px; border-radius: 16px;
+  font-family: var(--font-body);
+}
+.ltab-plus {
+  width: 54px; height: 54px; border-radius: 50%; margin-top: -30px;
+  background: var(--surface-ink); color: var(--text-on-ink);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow-raised);
+  transition: box-shadow var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+}
+.ltab-center:hover .ltab-plus { background: var(--ink-700); }
+.ltab-center:active .ltab-plus { transform: scale(0.95); }
+.ltab-center--active .ltab-plus { box-shadow: var(--shadow-raised), var(--shadow-glow); }
+
+/* ---------- CTA s přístupným disabled stavem ---------- */
+.lumi-cta {
+  width: 100%; min-height: 52px; border-radius: var(--radius-pill);
+  border: 1.5px solid transparent; cursor: pointer;
+  font-family: var(--font-body); font-size: 17px; font-weight: 600;
+  background: var(--surface-ink); color: var(--text-on-ink);
+  transition: background var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+.lumi-cta:hover { background: var(--ink-700); }
+.lumi-cta:active { transform: scale(0.98); }
+.lumi-cta:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.lumi-cta--secondary { background: var(--surface-card); color: var(--text-strong); border-color: var(--border-strong); }
+.lumi-cta--secondary:hover { background: var(--cream-100); }
+/* disabled: obrys + snížená sytost, ne světle šedý text */
+.lumi-cta[aria-disabled="true"] {
+  background: var(--surface-sunken); color: var(--ink-700); border-color: var(--border-strong);
+  cursor: default;
+}
+.lumi-cta[aria-disabled="true"]:hover { background: var(--surface-sunken); }
+.lumi-cta[aria-disabled="true"]:active { transform: none; }
+
+/* ---------- check-in kvadranty ---------- */
+.lumi-quad {
+  border: 1.5px solid transparent; border-radius: var(--radius-md);
+  padding: 14px; min-height: 96px; box-sizing: border-box;
+  display: flex; flex-direction: column; justify-content: space-between; gap: 10px;
+  cursor: pointer; text-align: left; font-family: var(--font-body);
+  transition: box-shadow var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+.lumi-quad:hover { filter: brightness(0.985); }
+.lumi-quad:active { transform: scale(0.98); }
+.lumi-quad:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.lumi-quad--selected { border-color: var(--sun-400); box-shadow: var(--shadow-glow); }
+
+/* ---------- onboarding výběrové karty ---------- */
+.lumi-opt {
+  display: flex; align-items: center; gap: 14px; padding: 18px; min-height: 64px;
+  background: var(--surface-card); border: 1.5px solid transparent;
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-card);
+  cursor: pointer; font-family: var(--font-body);
+  transition: box-shadow var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+.lumi-opt:active { transform: scale(0.99); }
+.lumi-opt:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.lumi-opt--selected { border-color: var(--sun-400); box-shadow: var(--shadow-card), var(--shadow-glow); }
+.lumi-opt__radio {
+  width: 24px; height: 24px; border-radius: 50%; flex: none; box-sizing: border-box;
+  border: 2px solid var(--border-strong); display: flex; align-items: center; justify-content: center;
+}
+.lumi-opt--selected .lumi-opt__radio { border-color: var(--sun-500); }
+.lumi-opt__dot { width: 12px; height: 12px; border-radius: 50%; background: var(--sun-500); }
+
+/* ---------- slider intenzity ---------- */
+.lumi-range {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 44px; background: transparent; margin: 0; cursor: pointer;
+}
+.lumi-range::-webkit-slider-runnable-track {
+  height: 6px; border-radius: 3px;
+  background: linear-gradient(to right, var(--sun-400) var(--range-fill, 50%), var(--cream-200) var(--range-fill, 50%));
+}
+.lumi-range::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 26px; height: 26px; border-radius: 50%;
+  background: #fff; border: 2.5px solid var(--sun-500); box-sizing: border-box;
+  margin-top: -10px; box-shadow: var(--shadow-card);
+}
+.lumi-range:focus-visible { outline: none; }
+.lumi-range:focus-visible::-webkit-slider-thumb { box-shadow: var(--focus-ring); }
+.lumi-range::-moz-range-track { height: 6px; border-radius: 3px; background: var(--cream-200); }
+.lumi-range::-moz-range-progress { height: 6px; border-radius: 3px; background: var(--sun-400); }
+.lumi-range::-moz-range-thumb {
+  width: 26px; height: 26px; border-radius: 50%; background: #fff;
+  border: 2.5px solid var(--sun-500); box-sizing: border-box; box-shadow: var(--shadow-card);
+}
+.lumi-range:focus-visible::-moz-range-thumb { box-shadow: var(--focus-ring); }
+
+/* ---------- segmented control (období) ---------- */
+.lumi-seg { display: inline-flex; background: var(--surface-sunken); border-radius: var(--radius-pill); padding: 3px; gap: 2px; }
+.lumi-seg__btn {
+  border: none; background: transparent; padding: 6px 13px; min-height: 32px;
+  border-radius: var(--radius-pill); font-family: var(--font-body); font-size: 13px; font-weight: 600;
+  color: var(--ink-700); cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.lumi-seg__btn--on { background: var(--surface-card); box-shadow: var(--shadow-card); color: var(--text-strong); }
+.lumi-seg__btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+/* ---------- dechový kruh (vlastní verze DS BreathCircle s neutrálním labelem) ---------- */
+.lumi-breath { display: flex; flex-direction: column; align-items: center; gap: 18px; font-family: var(--font-body); }
+.lumi-breath__circle {
+  border-radius: 50%; background: var(--sun-300); position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+.lumi-breath__halo { position: absolute; inset: -16%; border-radius: 50%; background: var(--sun-200); opacity: 0.5; z-index: -1; }
+.lumi-breath__label { font-family: var(--font-display); font-weight: 600; color: var(--ink-900); font-size: 17px; }
+@media (prefers-reduced-motion: no-preference) {
+  .lumi-breath--active .lumi-breath__circle { animation: lumi-breathe var(--dur-breath, 4s) ease-in-out infinite alternate; }
+  .lumi-breath--active .lumi-breath__halo { animation: lumi-breathe-halo var(--dur-breath, 4s) ease-in-out infinite alternate; }
+}
+@keyframes lumi-breathe { from { transform: scale(0.72); } to { transform: scale(1); } }
+@keyframes lumi-breathe-halo { from { transform: scale(0.6); opacity: 0.25; } to { transform: scale(1); opacity: 0.5; } }
+.lumi-breath-btn { background: none; border: none; cursor: pointer; border-radius: 50%; padding: 8px; }
+.lumi-breath-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-lg); }

@@ -1,0 +1,13 @@
+{
+  "name": "Lumi",
+  "short_name": "Lumi",
+  "description": "Aplikace pro podporu duševní pohody — česky a zdarma.",
+  "lang": "cs",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FBF7EF",
+  "theme_color": "#FBF7EF",
+  "icons": [
+    { "src": "/lumi-mark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

@@ -1,0 +1,93 @@
+/* ============================================================
+   Lumi — color tokens
+   Warm light: cream surfaces, honey-gold glow, deep warm ink.
+   Mood palette follows the RULER quadrants (energy × pleasantness).
+   ============================================================ */
+:root {
+  /* --- base: cream neutrals (warm paper) --- */
+  --cream-0: #FFFEFB;
+  --cream-50: #FBF7EF;
+  --cream-100: #F5EDDF;
+  --cream-200: #EADDC6;
+  --cream-300: #D9C6A6;
+
+  /* --- base: ink (warm charcoal) --- */
+  --ink-900: #2B2722;
+  --ink-800: #3A342C;
+  --ink-700: #544C41;
+  --ink-500: #7A7060;
+  --ink-400: #998E7C;
+
+  /* --- base: sun (primary, "the glow") --- */
+  --sun-100: #FCEFD3;
+  --sun-200: #F8DEA4;
+  --sun-300: #F2C76C;
+  --sun-400: #E8AC43;
+  --sun-500: #D89426;
+  --sun-600: #B4761A;
+  --sun-700: #8C5A12;
+
+  /* --- base: sage (growth, calm-pleasant) --- */
+  --sage-100: #E7EEDD;
+  --sage-300: #B5C9A2;
+  --sage-500: #7E9A6B;
+  --sage-700: #55704A;
+
+  /* --- base: lake (rest, low-energy) --- */
+  --lake-100: #E3EAF2;
+  --lake-300: #A8BDD3;
+  --lake-500: #6E8DAD;
+  --lake-700: #48617C;
+
+  /* --- base: lilac (sleep, evening) --- */
+  --lilac-100: #ECE8F5;
+  --lilac-300: #C3B8DF;
+  --lilac-500: #9483BE;
+  --lilac-700: #675693;
+
+  /* --- base: clay (tension, crisis — warm, never alarming red) --- */
+  --clay-100: #F7E2DA;
+  --clay-300: #E2A893;
+  --clay-500: #C26F52;
+  --clay-700: #94492F;
+
+  /* --- mood quadrants (RULER) --- */
+  --mood-energized: var(--sun-400);   /* high energy, pleasant   */
+  --mood-tense: var(--clay-500);      /* high energy, unpleasant */
+  --mood-calm: var(--sage-500);       /* low energy, pleasant    */
+  --mood-low: var(--lake-500);        /* low energy, unpleasant  */
+  --mood-energized-soft: var(--sun-100);
+  --mood-tense-soft: var(--clay-100);
+  --mood-calm-soft: var(--sage-100);
+  --mood-low-soft: var(--lake-100);
+
+  /* --- semantic: surfaces --- */
+  --surface-page: var(--cream-50);
+  --surface-card: #FFFFFF;
+  --surface-sunken: var(--cream-100);
+  --surface-ink: var(--ink-900);
+
+  /* --- semantic: text --- */
+  --text-strong: var(--ink-900);
+  --text-body: var(--ink-800);
+  --text-muted: var(--ink-500);
+  --text-faint: var(--ink-400);
+  --text-on-ink: #FFF8EC;
+  --text-on-accent: #FFFFFF;
+
+  /* --- semantic: accent & status --- */
+  --accent: var(--sun-500);
+  --accent-strong: var(--sun-600);
+  --accent-soft: var(--sun-100);
+  --positive: var(--sage-500);
+  --positive-soft: var(--sage-100);
+  --info: var(--lake-500);
+  --info-soft: var(--lake-100);
+  --danger: var(--clay-700);
+  --danger-soft: var(--clay-100);
+
+  /* --- semantic: lines & focus --- */
+  --border-subtle: rgba(74, 62, 42, 0.10);
+  --border-strong: rgba(74, 62, 42, 0.18);
+  --focus-ring: 0 0 0 3px rgba(216, 148, 38, 0.35);
+}

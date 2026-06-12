@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "Lumi",
+    "slug": "lumi",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "plugins": [
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#FBF7EF"
+        }
+      ]
+    ],
+    "icon": "./assets/icon.png",
+    "ios": {
+      "supportsTablet": false
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FBF7EF"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/favicon.png",
+      "name": "Lumi",
+      "shortName": "Lumi",
+      "lang": "cs",
+      "themeColor": "#FBF7EF",
+      "backgroundColor": "#FBF7EF",
+      "description": "Lumi — aplikace pro podporu duševní pohody. Check-in emocí, klidová cvičení a pomoc v krizi. Česky a zdarma."
+    }
+  }
+}

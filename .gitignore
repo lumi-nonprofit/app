@@ -9,3 +9,6 @@ web-build/
 *.key
 *.mobileprovision
 .DS_Store
+
+# Claude Code session state
+.claude/scheduled_tasks.lock

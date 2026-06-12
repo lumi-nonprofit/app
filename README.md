@@ -45,13 +45,13 @@ Spodní navigace: **Dnes · Klid · Check-in (+) · Přehledy · Pomoc**.
 Prototyp přepínal varianty obrazovek ručně (tweaks panel); v aplikaci je
 řídí skutečná data:
 
-| Navržená varianta | Kdy nastane |
-| --- | --- |
-| Dnes — první den | žádné WHO-5 měření → místo procenta výzva k prvnímu dotazníku |
-| Check-in — disabled tlačítko | dokud není vybrán stav (krok 1) / aspoň jedno slovo (krok 2) |
-| Přehledy — prázdný týden | 0–1 záznam v aktuálním týdnu → povzbuzení bez viny |
-| Přehledy — WHO-5 pod 50 % | poslední skóre < 50 → empatická věta + tiché tlačítko na Pomoc |
-| Dnes — shrnutí zápisu | existuje dnešní záznam |
+| Navržená varianta            | Kdy nastane                                                    |
+| ---------------------------- | -------------------------------------------------------------- |
+| Dnes — první den             | žádné WHO-5 měření → místo procenta výzva k prvnímu dotazníku  |
+| Check-in — disabled tlačítko | dokud není vybrán stav (krok 1) / aspoň jedno slovo (krok 2)   |
+| Přehledy — prázdný týden     | 0–1 záznam v aktuálním týdnu → povzbuzení bez viny             |
+| Přehledy — WHO-5 pod 50 %    | poslední skóre < 50 → empatická věta + tiché tlačítko na Pomoc |
+| Dnes — shrnutí zápisu        | existuje dnešní záznam                                         |
 
 ## Klíčová rozhodnutí (převzatá z handoff prototypu)
 

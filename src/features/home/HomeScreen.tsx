@@ -98,7 +98,12 @@ export default function HomeScreen() {
               <Text style={[styles.ringText, styles.ringTextEmpty]}>
                 Krátký dotazník (5 otázek) ti nastaví výchozí bod. Bez známek, bez porovnávání.
               </Text>
-              <Button variant="secondary" size="sm" onPress={openStats} style={styles.selfStart}>
+              <Button
+                variant="secondary"
+                size="sm"
+                onPress={() => router.push("/measure/who5")}
+                style={styles.selfStart}
+              >
                 Vyplnit první dotazník
               </Button>
             </View>

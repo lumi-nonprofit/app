@@ -40,6 +40,7 @@ function RootNavigator() {
       <Stack.Protected guard={state.onboarded}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="checkin" options={{ presentation: "modal" }} />
+        <Stack.Screen name="measure/[type]" options={{ presentation: "modal" }} />
       </Stack.Protected>
       <Stack.Protected guard={!state.onboarded}>
         <Stack.Screen name="onboarding" />

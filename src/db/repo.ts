@@ -120,6 +120,30 @@ export function writeProfile(db: LumiDb, patch: Partial<ProfileSettings>): void 
   }
 }
 
+/* ---------- obecné preference (settings mimo profil) ---------- */
+
+export function getSetting<T>(db: LumiDb, key: string): T | null {
+  const row = db.select().from(settings).where(eq(settings.key, key)).get();
+  if (!row) return null;
+  try {
+    return JSON.parse(row.value) as T;
+  } catch {
+    return null;
+  }
+}
+
+export function setSetting(db: LumiDb, key: string, value: unknown): void {
+  const json = JSON.stringify(value ?? null);
+  db.insert(settings)
+    .values({ key, value: json })
+    .onConflictDoUpdate({ target: settings.key, set: { value: json } })
+    .run();
+}
+
+export function newMeasurementId(type: MeasurementType): string {
+  return `${type}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
 /** Které profilové klíče už v settings existují (kvůli idempotentní migraci). */
 export function existingProfileKeys(db: LumiDb): Set<string> {
   return new Set(

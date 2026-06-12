@@ -5,17 +5,19 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { Badge, Button, Card, Icon, ProgressRing, Switch } from "../../ds/index";
+import { Badge, Button, Card, Icon, ListItem, ProgressRing, Switch } from "../../ds/index";
 import Screen from "../../components/Screen";
-import { LumiHeader } from "../../components/Header";
+import { LumiHeader, SectionLabel } from "../../components/Header";
 import MoodShape from "../../components/MoodShape";
 import { palette, colors, radius, font, leading, shadow, type } from "../../theme";
 import {
   INTENSITY_LABELS,
   MOODS,
   MOOD_BY_ID,
+  WHO5_CADENCE_DAYS,
   buildMonth,
   buildWeek,
+  daysBetween,
   latestWho5,
   toISODate,
   weekEntryCount,
@@ -24,6 +26,8 @@ import {
 import type { WeekDay } from "../../model";
 import { useAppStore } from "../../store";
 import { useEntries, useMeasurements } from "../../db/hooks";
+import type { Measurement } from "../../db/repo";
+import { gad7Band, phq9Band, trendText, type Band } from "../measure/scoring";
 import BackupCard from "./BackupCard";
 
 type Period = "týden" | "měsíc";
@@ -80,6 +84,20 @@ function MoodLegend() {
   );
 }
 
+/** Podtitulek karty hlubšího screeningu: poslední pásmo + trend, nikdy diagnóza. */
+function deepSubtitle(
+  list: Measurement[],
+  questionCount: number,
+  band: (s: number) => Band,
+): string {
+  if (!list.length) return `Krátký dotazník (${questionCount} otázek) · dobrovolný`;
+  const last = list[list.length - 1];
+  const prev = list.length > 1 ? list[list.length - 2].score : null;
+  const trend = trendText(last.score, prev);
+  const suffix = trend ? ` · ${trend.charAt(0).toLowerCase()}${trend.slice(1)}` : "";
+  return `Naposledy: ${band(last.score).label}${suffix}`;
+}
+
 export default function StatsScreen() {
   const { state, patch } = useAppStore();
   const router = useRouter();
@@ -90,11 +108,17 @@ export default function StatsScreen() {
   const who5 = useMeasurements("who5");
   const share = state.share;
 
+  const phq9 = useMeasurements("phq9");
+  const gad7 = useMeasurements("gad7");
+
   const [period, setPeriod] = React.useState<Period>("týden");
   const week = buildWeek(entries);
   const empty = weekEntryCount(entries) <= 1;
   const measurement = latestWho5(who5);
   const low = measurement ? measurement.score < 50 : false;
+  const who5Due = measurement
+    ? daysBetween(measurement.date, toISODate()) >= WHO5_CADENCE_DAYS
+    : false;
 
   return (
     <Screen>
@@ -113,6 +137,8 @@ export default function StatsScreen() {
                 key={p}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: period === p }}
+                /* vizuálně 32 pt, hitSlop dorovnává dotykový cíl na ≥ 44 pt */
+                hitSlop={{ top: 6, bottom: 6 }}
                 style={[styles.segBtn, period === p ? styles.segBtnOn : null]}
                 onPress={() => setPeriod(p)}
               >
@@ -192,29 +218,81 @@ export default function StatsScreen() {
           <View style={styles.wellBody}>
             <Text style={styles.wellTitle}>Wellbeing index</Text>
             {!measurement ? (
-              <Text style={styles.wellText}>
-                Krátký dotazník (5 otázek) ti nastaví výchozí bod. Bez známek, bez porovnávání.
-              </Text>
+              <View>
+                <Text style={[styles.wellText, styles.wellTextSpaced]}>
+                  Krátký dotazník (5 otázek) ti nastaví výchozí bod. Bez známek, bez porovnávání.
+                </Text>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onPress={() => router.push("/measure/who5")}
+                  style={styles.selfStart}
+                >
+                  Vyplnit první dotazník
+                </Button>
+              </View>
             ) : low ? (
               <View>
                 <Text style={styles.wellTextLow}>
                   Poslední dva týdny vypadají náročně. Je v pořádku říct si o podporu.
                 </Text>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onPress={() => router.push("/help")}
-                  style={styles.selfStart}
-                >
-                  Otevřít Pomoc
-                </Button>
+                <View style={styles.lowActions}>
+                  <Button variant="secondary" size="sm" onPress={() => router.push("/help")}>
+                    Otevřít Pomoc
+                  </Button>
+                  {who5Due ? (
+                    <Button variant="ghost" size="sm" onPress={() => router.push("/measure/who5")}>
+                      Vyplnit dotazník
+                    </Button>
+                  ) : null}
+                </View>
               </View>
             ) : (
-              <Text style={styles.wellText}>{who5StatsText(who5)}</Text>
+              <View>
+                <Text style={[styles.wellText, who5Due ? styles.wellTextSpaced : null]}>
+                  {who5StatsText(who5)}
+                </Text>
+                {who5Due ? (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onPress={() => router.push("/measure/who5")}
+                    style={styles.selfStart}
+                  >
+                    Vyplnit dotazník
+                  </Button>
+                ) : null}
+              </View>
             )}
           </View>
         </View>
       </Card>
+
+      {/* hlubší screeningy — dobrovolné, nikdy nevnucované, žádné notifikace */}
+      <View>
+        <SectionLabel>Chceš jít víc do hloubky?</SectionLabel>
+        <Card style={styles.deepCard}>
+          <ListItem
+            icon="cloud"
+            iconTint={colors.infoSoft}
+            iconColor={palette.lake700}
+            title="Nálada do hloubky"
+            subtitle={deepSubtitle(phq9, 9, phq9Band)}
+            onPress={() => router.push("/measure/phq9")}
+          />
+          <ListItem
+            icon="waves"
+            iconTint={colors.infoSoft}
+            iconColor={palette.lake700}
+            title="Napětí a obavy do hloubky"
+            subtitle={deepSubtitle(gad7, 7, gad7Band)}
+            onPress={() => router.push("/measure/gad7")}
+          />
+        </Card>
+        <Text style={styles.deepNote}>
+          Dobrovolné — jen když chceš. Lumi ti je nikdy nebude připomínat.
+        </Text>
+      </View>
 
       {/* data pro výzkum — toggle, výchozí stav vypnuto, žádné dark patterns */}
       <Card variant="sunken">
@@ -302,6 +380,17 @@ const styles = StyleSheet.create({
     color: palette.ink700,
     lineHeight: leading.body(type.sm),
     marginTop: 2,
+  },
+  wellTextSpaced: { marginBottom: 10 },
+  lowActions: { flexDirection: "row", flexWrap: "wrap", gap: 8, alignSelf: "flex-start" },
+  deepCard: { paddingVertical: 8, paddingHorizontal: 12, marginTop: 6 },
+  deepNote: {
+    ...font.body(400),
+    fontSize: type.xs,
+    lineHeight: leading.body(type.xs),
+    color: palette.ink500,
+    marginTop: 8,
+    paddingHorizontal: 4,
   },
   wellTextLow: {
     ...font.body(400),

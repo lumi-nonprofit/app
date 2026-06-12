@@ -75,6 +75,8 @@ export interface MonthDay {
 
 export interface HelpLine {
   name: string;
+  /** Dativ pro věty typu „Zavolat Lince bezpečí“. */
+  nameDative: string;
   phone: string;
   meta: string;
 }
@@ -133,11 +135,13 @@ export const INTENSITY_LABELS = ["jen lehce", "lehce", "středně", "silně", "h
 export const HELP_LINES: Record<AgeBand, HelpLine> = {
   u26: {
     name: "Linka bezpečí",
+    nameDative: "Lince bezpečí",
     phone: "116 111",
     meta: "zdarma · nonstop · děti a studenti do 26 let",
   },
   plus27: {
     name: "Linka první psychické pomoci",
+    nameDative: "Lince první psychické pomoci",
     phone: "116 123",
     meta: "zdarma · nonstop · dospělí",
   },

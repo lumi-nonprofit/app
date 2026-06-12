@@ -52,7 +52,9 @@ export default function Button({
   const handlePress = (e: GestureResponderEvent) => {
     if (disabled) return;
     if (onPress) onPress(e);
-    if (href) Linking.openURL(href);
+    /* bez dialeru/handleru (tablet, web) nesmí spadnout unhandled rejection —
+       číslo je vždy viditelné v popisku tlačítka, dá se vytočit ručně */
+    if (href) Linking.openURL(href).catch(() => {});
   };
 
   /* Stringové děti obalíme do <Text>; sousední texty slučujeme do jednoho uzlu,
@@ -131,7 +133,8 @@ const styles = StyleSheet.create({
   crisis: { backgroundColor: palette.clay500 },
 
   /* velikosti */
-  sm: { paddingVertical: 7, paddingHorizontal: 14, minHeight: 32 },
+  /* i sm drží dotykový cíl ≥ 44 pt (závazné pravidlo přístupnosti) */
+  sm: { paddingVertical: 7, paddingHorizontal: 14, minHeight: 44 },
   md: { paddingVertical: 10, paddingHorizontal: 20, minHeight: 44 },
   lg: { paddingVertical: 14, paddingHorizontal: 28, minHeight: 52 },
 

@@ -29,6 +29,9 @@ import { useEntries, useMeasurements } from "../../db/hooks";
 import type { Measurement } from "../../db/repo";
 import { gad7Band, phq9Band, trendText, type Band } from "../measure/scoring";
 import BackupCard from "./BackupCard";
+import RemindersCard from "./RemindersCard";
+import InsightsCard from "./InsightsCard";
+import { isReflectionWindowOpen } from "./reflection";
 
 type Period = "týden" | "měsíc";
 
@@ -205,6 +208,21 @@ export default function StatsScreen() {
         {!empty ? <MoodLegend /> : null}
       </Card>
 
+      {/* lokální vzorce ze záznamů zvoleného období */}
+      <InsightsCard entries={entries} period={period} />
+
+      {/* týdenní reflexe — karta jen v okně neděle 17:00 → konec pondělí */}
+      {isReflectionWindowOpen(new Date()) ? (
+        <Card style={styles.deepCard}>
+          <ListItem
+            icon="sparkles"
+            title="Ohlédnutí za týdnem"
+            subtitle="Souhrn: tečky, slova a co se ukazuje"
+            onPress={() => router.push("/reflection")}
+          />
+        </Card>
+      ) : null}
+
       {/* wellbeing index */}
       <Card>
         <View style={styles.wellRow}>
@@ -312,6 +330,9 @@ export default function StatsScreen() {
           </View>
         </View>
       </Card>
+
+      {/* připomínky — denní pozvání k zápisu, vše opt-in */}
+      <RemindersCard />
 
       {/* záloha — export/import záznamů */}
       <BackupCard />

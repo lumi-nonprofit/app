@@ -4,6 +4,7 @@
    se jen přepíná label. */
 import React from "react";
 import { AccessibilityInfo, Animated, Easing, StyleSheet, Text, View } from "react-native";
+import { haptics } from "../lib/haptics";
 import { palette, font, type } from "../theme";
 
 type BreathPhase = "Nádech" | "Výdech";
@@ -28,6 +29,13 @@ export default function LumiBreath({ size = 160, active, hint }: Props) {
       setPhase("Nádech"); // reset v cleanupu: příští start vždy začíná nádechem
     };
   }, [active]);
+
+  /* decentní haptika na začátku nádechu (Light) a výdechu (Medium) */
+  React.useEffect(() => {
+    if (!active) return;
+    if (phase === "Nádech") haptics.inhale();
+    else haptics.exhale();
+  }, [active, phase]);
 
   /* redukce pohybu: async dotaz, default false; pozor na unmount */
   React.useEffect(() => {

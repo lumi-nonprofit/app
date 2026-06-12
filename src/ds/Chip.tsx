@@ -8,16 +8,28 @@ interface Props {
   children: React.ReactNode;
   selected?: boolean;
   onPress?: (event: GestureResponderEvent) => void;
+  /** Dlouhé podržení (např. mazání vlastního štítku) — bez vizuální změny chipu. */
+  onLongPress?: () => void;
+  accessibilityHint?: string;
   style?: StyleProp<ViewStyle>;
 }
 
-export default function Chip({ children, selected = false, onPress, style }: Props) {
+export default function Chip({
+  children,
+  selected = false,
+  onPress,
+  onLongPress,
+  accessibilityHint,
+  style,
+}: Props) {
   const textColor = selected ? palette.sun700 : colors.textBody;
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityState={{ selected: !!selected }}
+      accessibilityHint={accessibilityHint}
       onPress={onPress}
+      onLongPress={onLongPress}
       style={({ pressed }) => [
         styles.chip,
         selected && styles.selected,

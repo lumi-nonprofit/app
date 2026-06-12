@@ -28,7 +28,10 @@
         }
       ],
       "expo-secure-store",
-      "expo-sharing"
+      "expo-sharing",
+      "expo-audio",
+      "@react-native-community/datetimepicker",
+      "expo-asset"
     ],
     "icon": "./assets/icon.png",
     "ios": {

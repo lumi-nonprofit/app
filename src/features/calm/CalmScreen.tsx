@@ -1,13 +1,27 @@
-/* Klid — dechový launcher, seznam aktivit, Večerka. */
+/* Klid — dechový launcher a seznam aktivit z manifestu (content.ts).
+   Statická sekce Večerka je pryč: vecerka je teď řádek aktivity s vlastním
+   přehrávačem — stejná informace dvakrát (jednou klepnutelná, jednou ne)
+   by jen mátla. */
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
+import { useRouter } from "expo-router";
 import { Badge, Card, ListItem } from "../../ds/index";
+import type { IconName } from "../../ds/Icon";
 import { LumiHeader } from "../../components/Header";
 import LumiBreath from "../../components/Breath";
 import Screen from "../../components/Screen";
-import { colors, font, leading, palette, radius, type } from "../../theme";
+import { colors, palette } from "../../theme";
+import { CALM_ACTIVITIES } from "./content";
+
+/* mapování id aktivity → ikona řádku; lilac je v DS vyhrazený pro spánek/večer */
+const ACTIVITY_ICONS: Record<string, { icon: IconName; iconTint?: string; iconColor?: string }> = {
+  "dech-478": { icon: "wind" },
+  "ticha-louka": { icon: "audio-lines" },
+  vecerka: { icon: "moon", iconTint: palette.lilac100, iconColor: palette.lilac700 },
+};
 
 export default function CalmScreen() {
+  const router = useRouter();
   const [breathing, setBreathing] = React.useState(false);
   return (
     <Screen>
@@ -36,20 +50,23 @@ export default function CalmScreen() {
       </Card>
 
       <Card style={styles.listCard}>
-        <ListItem
-          icon="wind"
-          title="Dech 4-7-8"
-          subtitle="Při napětí a úzkosti"
-          trailing={<Badge tone="accent">3 min</Badge>}
-          onPress={() => {}}
-        />
-        <ListItem
-          icon="audio-lines"
-          title="Tichá louka"
-          subtitle="Vedená meditace · čeština"
-          trailing={<Badge tone="accent">10 min</Badge>}
-          onPress={() => {}}
-        />
+        {CALM_ACTIVITIES.map((a) => {
+          /* pojistka pro aktivitu bez mapování — neutrální výchozí ikona */
+          const visual = ACTIVITY_ICONS[a.id] ?? { icon: "wind" };
+          return (
+            <ListItem
+              key={a.id}
+              icon={visual.icon}
+              iconTint={visual.iconTint}
+              iconColor={visual.iconColor}
+              title={a.title}
+              subtitle={a.subtitle}
+              trailing={a.badge ? <Badge tone={a.badge[0]}>{a.badge[1]}</Badge> : undefined}
+              onPress={() => router.push({ pathname: "/calm/[id]", params: { id: a.id } })}
+            />
+          );
+        })}
+        {/* procházka nemá přehrávač — zůstává bez navigace */}
         <ListItem
           icon="footprints"
           iconTint={colors.positiveSoft}
@@ -60,17 +77,6 @@ export default function CalmScreen() {
           onPress={() => {}}
         />
       </Card>
-
-      {/* Večerka — lilac je v DS vyhrazený pro spánek/večer */}
-      <View style={styles.eveningSection}>
-        <View style={styles.eveningHeader}>
-          <Text style={styles.eveningTitle}>Večerka</Text>
-          <Badge tone="lilac">od 21:00</Badge>
-        </View>
-        <Text style={styles.eveningText}>
-          Klidné usínání — zvuky deště, pomalé dýchání a audio na dobrou noc.
-        </Text>
-      </View>
     </Screen>
   );
 }
@@ -82,20 +88,4 @@ const styles = StyleSheet.create({
   pressed: { transform: [{ scale: 0.98 }] },
 
   listCard: { paddingVertical: 8, paddingHorizontal: 12 },
-
-  /* Večerka */
-  eveningSection: { backgroundColor: palette.lilac100, borderRadius: radius.lg, padding: 20 },
-  eveningHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 6,
-  },
-  eveningTitle: { ...font.display(700), fontSize: type.md, color: palette.lilac700 },
-  eveningText: {
-    ...font.body(400),
-    fontSize: type.base,
-    lineHeight: leading.body(type.base),
-    color: colors.textBody,
-  },
 });

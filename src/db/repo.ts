@@ -2,7 +2,7 @@
    čtení = dotazy s volitelným rozsahem dat. Funkce berou `db` jako
    parametr — aplikace dodává expo-sqlite instanci, testy better-sqlite3. */
 import { and, asc, count, eq, gte, inArray, lte } from "drizzle-orm";
-import { entries, measurements, settings } from "./schema";
+import { entries, measurements, settings, tags } from "./schema";
 import type { LumiDb } from "./types";
 import type { AgeBand, Entry, Intensity, ISODate, MoodId } from "../model";
 
@@ -118,6 +118,39 @@ export function writeProfile(db: LumiDb, patch: Partial<ProfileSettings>): void 
       .onConflictDoUpdate({ target: settings.key, set: { value: json } })
       .run();
   }
+}
+
+/* ---------- vlastní štítky ---------- */
+
+export interface Tag {
+  id: string;
+  label: string;
+  builtin: boolean;
+}
+
+/** Vlastní štítky v pořadí vzniku — v UI se řadí za vestavěné CONTEXT_TAGS. */
+export function listCustomTags(db: LumiDb): Tag[] {
+  return db.select().from(tags).where(eq(tags.builtin, false)).orderBy(asc(tags.id)).all();
+}
+
+/** Přidá vlastní štítek; existující label vrátí beze změny (unikátní sloupec). */
+export function addCustomTag(db: LumiDb, label: string): Tag | null {
+  const trimmed = label.trim();
+  if (!trimmed) return null;
+  db.insert(tags)
+    .values({
+      id: `tag-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      label: trimmed,
+      builtin: false,
+    })
+    .onConflictDoNothing()
+    .run();
+  return db.select().from(tags).where(eq(tags.label, trimmed)).get() ?? null;
+}
+
+/** Smaže štítek z nabídky; záznamy, které ho použily, zůstávají beze změny. */
+export function deleteCustomTag(db: LumiDb, id: string): void {
+  db.delete(tags).where(eq(tags.id, id)).run();
 }
 
 /* ---------- obecné preference (settings mimo profil) ---------- */

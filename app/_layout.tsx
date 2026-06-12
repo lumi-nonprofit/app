@@ -41,6 +41,8 @@ function RootNavigator() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="checkin" options={{ presentation: "modal" }} />
         <Stack.Screen name="measure/[type]" options={{ presentation: "modal" }} />
+        <Stack.Screen name="calm/[id]" />
+        <Stack.Screen name="reflection" />
       </Stack.Protected>
       <Stack.Protected guard={!state.onboarded}>
         <Stack.Screen name="onboarding" />

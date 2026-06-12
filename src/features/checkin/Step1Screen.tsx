@@ -11,6 +11,7 @@ import MoodShape from "../../components/MoodShape";
 import Screen from "../../components/Screen";
 import { INTENSITY_LABELS, MOODS } from "../../model";
 import type { Intensity } from "../../model";
+import { haptics } from "../../lib/haptics";
 import { palette, colors, radius, font, leading, shadow, type } from "../../theme";
 import { useCheckinDraft } from "./draft";
 
@@ -40,7 +41,10 @@ export default function Step1Screen() {
                 is && styles.quadSelected,
                 pressed && { transform: [{ scale: 0.98 }] },
               ]}
-              onPress={() => setDraft({ mood: m.id, words: [] })}
+              onPress={() => {
+                haptics.select();
+                setDraft({ mood: m.id, words: [] });
+              }}
             >
               <MoodShape mood={m} size={22} />
               <View>

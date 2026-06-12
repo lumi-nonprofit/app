@@ -17,14 +17,16 @@ import {
   toISODate,
 } from "../../model";
 import type { Entry, MoodId } from "../../model";
-import { newEntryId, useAppStore } from "../../store";
+import { newEntryId } from "../../store";
+import { useDbWriter } from "../../db/hooks";
+import { insertEntry } from "../../db/repo";
 import { palette, colors, radius, font, leading, tracking, type } from "../../theme";
 import { useCheckinDraft } from "./draft";
 
 export default function Step2Screen() {
   const router = useRouter();
   const { draft, setDraft } = useCheckinDraft();
-  const { state, patch } = useAppStore();
+  const writeDb = useDbWriter();
 
   /* draft.mood může být null — fallback za `||` to jistí, přetypování jen pro index */
   const mood = MOOD_BY_ID[draft.mood as MoodId] || MOOD_BY_ID.napeti;
@@ -51,7 +53,7 @@ export default function Step2Screen() {
       tags: draft.tags,
       note: draft.note.trim(),
     };
-    patch({ entries: [...state.entries, entry] });
+    writeDb((db) => insertEntry(db, entry)); // INSERT, žádné přepisování celku
     /* replace, ne push: hardware back z potvrzení se nevrací na už uložený krok */
     router.replace("/checkin/confirm");
   };

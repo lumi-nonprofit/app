@@ -1,20 +1,17 @@
 /* Průchod hlavními flow přes expo-router (skutečné routes z adresáře app/):
    onboarding → Dnes → check-in → potvrzení → Přehledy → Pomoc.
-   Navigaci vlastní router — stav v AsyncStorage už žádnou `route` nemá. */
+   Data žijí v SQLite (v testech better-sqlite3, viz helpers/testDb);
+   navigaci vlastní router a nikam se nepersistuje. */
 import { Linking } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fireEvent, userEvent } from "@testing-library/react-native";
 import { renderRouter, screen } from "expo-router/testing-library";
-import { STORE_KEY, type AppState } from "../src/store";
+import { listEntries, readProfile } from "../src/db/repo";
+import { LEGACY_STORE_KEY } from "../src/db/migrateLegacy";
+import { toISODate } from "../src/model";
+import { getTestDb } from "./helpers/testDb";
 
 type User = ReturnType<typeof userEvent.setup>;
-
-/** Stav se ukládá do AsyncStorage (asynchronní API, mock drží data v paměti). */
-async function loadSaved(): Promise<AppState> {
-  // `as string`: testy čtou až po uložení, klíč v mocku vždy existuje;
-  // `as AppState`: JSON.parse vrací any, tvar dat odpovídá persistovanému stavu
-  return JSON.parse((await AsyncStorage.getItem(STORE_KEY)) as string) as AppState;
-}
 
 async function finishOnboarding(user: User, name = "Janko"): Promise<void> {
   // hydratace z AsyncStorage je asynchronní — první obrazovka se objeví až po načtení
@@ -38,7 +35,7 @@ async function finishOnboarding(user: User, name = "Janko"): Promise<void> {
 }
 
 describe("Lumi app", () => {
-  it("projde onboardingem na Dnes; stav uloží bez `route`", async () => {
+  it("projde onboardingem na Dnes; profil se uloží do DB", async () => {
     const user = userEvent.setup();
     await renderRouter("app");
     await finishOnboarding(user);
@@ -47,12 +44,42 @@ describe("Lumi app", () => {
     // první den: výzva k prvnímu dotazníku místo procenta
     expect(screen.getByRole("button", { name: "Vyplnit první dotazník" })).toBeOnTheScreen();
 
-    const saved = await loadSaved();
-    expect(saved.onboarded).toBe(true);
-    expect(saved.name).toBe("Janko");
-    expect(saved.age).toBe("u26");
-    // navigace patří routeru, ne storage
-    expect(saved).not.toHaveProperty("route");
+    const profile = readProfile(getTestDb());
+    expect(profile.onboarded).toBe(true);
+    expect(profile.name).toBe("Janko");
+    expect(profile.age).toBe("u26");
+  });
+
+  it("stará data z AsyncStorage se při startu přelijí do DB", async () => {
+    await AsyncStorage.setItem(
+      LEGACY_STORE_KEY,
+      JSON.stringify({
+        onboarded: true,
+        name: "Janko",
+        age: "u26",
+        share: false,
+        route: "stats",
+        entries: [
+          // dnešní datum: karta na Dnes shrnuje právě dnešní zápis
+          {
+            id: "1-l",
+            date: toISODate(),
+            time: "8:00",
+            mood: "klid",
+            intensity: 2,
+            words: ["pohoda"],
+            tags: [],
+            note: "",
+          },
+        ],
+        who5: [],
+      }),
+    );
+    await renderRouter("app");
+    // onboarding se přeskočí (profil z migrace), karta shrnuje dnešní zápis
+    expect(await screen.findByText(/Dnes zapsáno: Klid · pohoda/)).toBeOnTheScreen();
+    expect(listEntries(getTestDb())).toHaveLength(1);
+    expect(await AsyncStorage.getItem(LEGACY_STORE_KEY)).toBeNull();
   });
 
   it("uloží check-in a ukáže potvrzení s kontextovým tipem", async () => {
@@ -87,9 +114,9 @@ describe("Lumi app", () => {
     await user.press(screen.getByRole("button", { name: "Zpět na Dnes" }));
     expect(await screen.findByText(/Dnes zapsáno: Napětí · stres, obavy/)).toBeOnTheScreen();
 
-    const saved = await loadSaved();
-    expect(saved.entries).toHaveLength(1);
-    expect(saved.entries[0]).toMatchObject({
+    const rows = listEntries(getTestDb());
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
       mood: "napeti",
       intensity: 3,
       words: ["stres", "obavy"],
@@ -127,7 +154,7 @@ describe("Lumi app", () => {
     expect(share).not.toBeChecked();
     await fireEvent(share, "valueChange", true);
     expect(screen.getByRole("switch", { name: "Sdílení zapnuto" })).toBeChecked();
-    expect((await loadSaved()).share).toBe(true);
+    expect(readProfile(getTestDb()).share).toBe(true);
   });
 
   it("Pomoc: primární linka podle věku, tel: odkazy, řádek 155/112", async () => {

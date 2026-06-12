@@ -20,6 +20,7 @@ import {
   InstrumentSans_700Bold,
 } from "@expo-google-fonts/instrument-sans";
 import { AppStateProvider, useAppStore } from "../src/store";
+import { DbProvider } from "../src/db/provider";
 import { colors } from "../src/theme";
 
 SplashScreen.preventAutoHideAsync().catch(() => {
@@ -61,10 +62,12 @@ export default function RootLayout() {
   if (!fontsLoaded && !fontError) return null;
   return (
     <SafeAreaProvider>
-      <AppStateProvider>
-        <StatusBar style="dark" />
-        <RootNavigator />
-      </AppStateProvider>
+      <DbProvider>
+        <AppStateProvider>
+          <StatusBar style="dark" />
+          <RootNavigator />
+        </AppStateProvider>
+      </DbProvider>
     </SafeAreaProvider>
   );
 }

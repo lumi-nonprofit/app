@@ -17,11 +17,14 @@ import {
   buildMonth,
   buildWeek,
   latestWho5,
+  toISODate,
   weekEntryCount,
   who5StatsText,
 } from "../../model";
 import type { WeekDay } from "../../model";
 import { useAppStore } from "../../store";
+import { useEntries, useMeasurements } from "../../db/hooks";
+import BackupCard from "./BackupCard";
 
 type Period = "týden" | "měsíc";
 
@@ -80,8 +83,11 @@ function MoodLegend() {
 export default function StatsScreen() {
   const { state, patch } = useAppStore();
   const router = useRouter();
-  const entries = state.entries;
-  const who5 = state.who5;
+  /* měsíční pohled jde 4 kalendářní týdny zpět — 35 dní rozsah bohatě stačí */
+  const monthStart = new Date();
+  monthStart.setDate(monthStart.getDate() - 35);
+  const entries = useEntries({ from: toISODate(monthStart) });
+  const who5 = useMeasurements("who5");
   const share = state.share;
 
   const [period, setPeriod] = React.useState<Period>("týden");
@@ -228,6 +234,9 @@ export default function StatsScreen() {
           </View>
         </View>
       </Card>
+
+      {/* záloha — export/import záznamů */}
+      <BackupCard />
     </Screen>
   );
 }

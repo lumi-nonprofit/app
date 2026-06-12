@@ -20,7 +20,15 @@
           "backgroundColor": "#FBF7EF"
         }
       ],
-      "expo-router"
+      "expo-router",
+      [
+        "expo-sqlite",
+        {
+          "useSQLCipher": true
+        }
+      ],
+      "expo-secure-store",
+      "expo-sharing"
     ],
     "icon": "./assets/icon.png",
     "ios": {

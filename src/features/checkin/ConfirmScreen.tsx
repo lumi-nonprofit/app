@@ -8,16 +8,16 @@ import { SectionLabel } from "../../components/Header";
 import Screen from "../../components/Screen";
 import { lastEntryForDate, recommendationForMood, toISODate } from "../../model";
 import type { MoodId } from "../../model";
-import { useAppStore } from "../../store";
+import { useEntries } from "../../db/hooks";
 import { palette, colors, font, leading, tracking, shadow, type } from "../../theme";
 import { useCheckinDraft } from "./draft";
 
 export default function ConfirmScreen() {
   const router = useRouter();
   const { draft } = useCheckinDraft();
-  const { state } = useAppStore();
-  const moodId: MoodId =
-    draft.mood ?? lastEntryForDate(state.entries, toISODate())?.mood ?? "napeti";
+  const today = toISODate();
+  const todayEntries = useEntries({ from: today, to: today });
+  const moodId: MoodId = draft.mood ?? lastEntryForDate(todayEntries, today)?.mood ?? "napeti";
   const tip = recommendationForMood(moodId);
 
   const goHome = () => {

@@ -19,14 +19,16 @@ import {
   who5HomeText,
 } from "../../model";
 import { useAppStore } from "../../store";
+import { useEntries, useMeasurements } from "../../db/hooks";
 import { colors, font, leading, palette, radius, space, type } from "../../theme";
 
 export default function HomeScreen() {
   const { state } = useAppStore();
   const router = useRouter();
   const name = state.name.trim();
-  const todayEntry = lastEntryForDate(state.entries, toISODate());
-  const who5 = state.who5;
+  const today = toISODate();
+  const todayEntry = lastEntryForDate(useEntries({ from: today, to: today }), today);
+  const who5 = useMeasurements("who5");
 
   const startCheckin = () => router.push("/checkin");
   const openHelp = () => router.push("/help");

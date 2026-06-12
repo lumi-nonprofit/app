@@ -23,6 +23,29 @@ npm test          # testy (jest-expo + @testing-library/react-native)
 Produkční buildy řeší standardní Expo pipeline (`eas build`, případně
 `npx expo export` pro web).
 
+## Vývoj
+
+Databáze je šifrovaná **SQLCipherem** (config plugin `expo-sqlite`), který
+**nefunguje v Expo Go** — na zařízení/emulátoru je potřeba development build:
+
+```bash
+npx expo prebuild           # vygeneruje nativní projekty (android/, ios/)
+npx expo run:android        # build + instalace na Android (emulátor/zařízení)
+npx expo run:ios            # build + instalace na iOS (jen macOS)
+```
+
+Po úpravě schématu databáze (`src/db/schema.ts`) vygeneruj migraci:
+
+```bash
+npx drizzle-kit generate    # zapíše SQL + journal do drizzle/
+```
+
+Migrace se registrují automaticky při startu aplikace (`src/db/connect.ts`).
+Testy běží proti stejnému schématu a migracím přes better-sqlite3 v paměti
+(`test/helpers/testDb.ts`) — nativní build k vývoji logiky potřeba není.
+
+Kontroly: `npm test`, `npm run typecheck`, `npm run lint`, `npx expo-doctor`.
+
 ## Co je hotové
 
 - **Onboarding (3 obrazovky):** jméno → věkové pásmo (určuje primární
@@ -72,10 +95,15 @@ Prototyp přepínal varianty obrazovek ručně (tweaks panel); v aplikaci je
 
 ## Soukromí
 
-Záznamy se ukládají **jen do telefonu** (AsyncStorage, klíč `lumi-app-v1`).
-Žádný backend, žádná telemetrie. Přepínač „Data pro výzkum“ je výhradně
-opt-in, default vypnuto — a zatím nic neodesílá; je to připravené UI pro
-budoucí anonymní export.
+Záznamy se ukládají **jen do telefonu**, do SQLite šifrované SQLCipherem
+(emoční záznamy = zvláštní kategorie dle čl. 9 GDPR); klíč drží
+Keychain/Keystore (expo-secure-store) a nikdy neopouští zařízení. Starší
+data z AsyncStorage (klíč `lumi-app-v1`) se při prvním startu jednorázově
+přelijí do databáze. Žádný backend, žádná telemetrie. Přepínač „Data pro
+výzkum“ je výhradně opt-in, default vypnuto — a zatím nic neodesílá; je to
+připravené UI pro budoucí anonymní export. Záloha v Přehledech exportuje
+**nešifrovaný** JSON — o jeho bezpečné uložení se stará uživatel (appka to
+říká rovnou v kartě zálohy).
 
 ## Adaptace na Expo / React Native
 

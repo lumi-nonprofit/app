@@ -3,7 +3,9 @@
    (DS: tense→clay, low→lake = vizuální podpis Mood Meteru).
    Zde: Napětí→lake (studené sevření), Útlum→clay (tlumené, těžké světlo).
    Každý stav má navíc vlastní tvar — informace nikdy jen barvou. */
-import { palette } from "./theme";
+import { colors, palette } from "./theme";
+import type { IconName } from "./ds/Icon";
+import type { BadgeTone } from "./ds/Badge";
 
 /* ---------- doménové typy ---------- */
 
@@ -142,6 +144,76 @@ export const HELP_LINES: Record<AgeBand, HelpLine> = {
 };
 
 export const WHO5_CADENCE_DAYS = 14;
+
+/* ---------- doporučení ----------
+   Jeden zdroj pro karty „Pro tebe“ (Dnes) i kontextový tip na potvrzení
+   check-inu; tip se vybírá podle stavu (`forMood`). */
+
+export type RecommendationRoute = "/calm" | "/checkin" | "/stats" | "/help";
+
+export interface Recommendation {
+  id: string;
+  icon: IconName;
+  iconTint?: string;
+  iconColor?: string;
+  title: string;
+  subtitle: string;
+  badge: [BadgeTone, string] | null;
+  route: RecommendationRoute;
+  forMood?: MoodId;
+}
+
+export const RECOMMENDATIONS: Recommendation[] = [
+  {
+    id: "dech-478",
+    icon: "wind",
+    iconTint: colors.accentSoft,
+    iconColor: palette.sun700,
+    title: "Dech 4-7-8",
+    subtitle: "Pomáhá při napětí",
+    badge: ["accent", "3 min"],
+    route: "/calm",
+    forMood: "napeti",
+  },
+  {
+    id: "denik",
+    icon: "notebook-pen",
+    iconTint: colors.positiveSoft,
+    iconColor: palette.sage700,
+    title: "Zápis do deníku",
+    subtitle: "Na co dnes nechceš zapomenout?",
+    badge: null,
+    route: "/checkin",
+    forMood: "energie",
+  },
+  {
+    id: "usinani",
+    icon: "moon",
+    iconTint: palette.lilac100,
+    iconColor: palette.lilac700,
+    title: "Klidné usínání",
+    subtitle: "Zvuky a audio na dobrou noc",
+    badge: ["lilac", "večer"],
+    route: "/calm",
+    forMood: "utlum",
+  },
+  {
+    id: "prochazka",
+    icon: "footprints",
+    iconTint: colors.positiveSoft,
+    iconColor: palette.sage700,
+    title: "Všímavá procházka",
+    subtitle: "Meditace v pohybu · venku",
+    badge: ["positive", "venku"],
+    route: "/calm",
+    forMood: "klid",
+  },
+];
+
+/** Kontextový tip podle stavu (potvrzení check-inu); bez shody → tip pro napětí. */
+export function recommendationForMood(mood: MoodId): Recommendation {
+  return RECOMMENDATIONS.find((r) => r.forMood === mood) ?? RECOMMENDATIONS[0];
+}
 
 /* ---------- datum / čas ---------- */
 export const DAY_LETTERS = ["Po", "Út", "St", "Čt", "Pá", "So", "Ne"];

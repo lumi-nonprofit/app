@@ -4,7 +4,7 @@
    se jen přepíná label. */
 import React from "react";
 import { AccessibilityInfo, Animated, Easing, StyleSheet, Text, View } from "react-native";
-import { palette, font } from "../theme";
+import { palette, font, type } from "../theme";
 
 type BreathPhase = "Nádech" | "Výdech";
 
@@ -115,6 +115,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  label: { ...font.display(600), fontSize: 17, color: palette.ink900 },
-  hint: { ...font.body(400), fontSize: 14, color: palette.ink700 },
+  label: { ...font.display(600), fontSize: type.md, color: palette.ink900 },
+  hint: { ...font.body(400), fontSize: type.sm, color: palette.ink700 },
 });

@@ -1,9 +1,10 @@
-/* Průchod hlavními flow: onboarding → Dnes → check-in → potvrzení → Přehledy → Pomoc. */
-import React from "react";
+/* Průchod hlavními flow přes expo-router (skutečné routes z adresáře app/):
+   onboarding → Dnes → check-in → potvrzení → Přehledy → Pomoc.
+   Navigaci vlastní router — stav v AsyncStorage už žádnou `route` nemá. */
 import { Linking } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { fireEvent, render, screen, userEvent } from "@testing-library/react-native";
-import App from "../src/App";
+import { fireEvent, userEvent } from "@testing-library/react-native";
+import { renderRouter, screen } from "expo-router/testing-library";
 import { STORE_KEY, type AppState } from "../src/store";
 
 type User = ReturnType<typeof userEvent.setup>;
@@ -25,23 +26,24 @@ async function finishOnboarding(user: User, name = "Janko"): Promise<void> {
   await user.press(screen.getByRole("button", { name: "Pokračovat" }));
 
   // věk — určuje primární krizovou linku
-  expect(screen.getByText("Kolik ti je?")).toBeOnTheScreen();
+  expect(await screen.findByText("Kolik ti je?")).toBeOnTheScreen();
   await user.press(screen.getByRole("radio", { name: /do 26 let/ }));
   await user.press(screen.getByRole("button", { name: "Pokračovat" }));
 
   // soukromí
-  expect(screen.getByText("Tvoje data zůstávají u tebe")).toBeOnTheScreen();
+  expect(await screen.findByText("Tvoje data zůstávají u tebe")).toBeOnTheScreen();
   await user.press(screen.getByRole("button", { name: "Rozumím, jdeme na to" }));
+  // Protected stack přesměruje na taby sám
+  expect(await screen.findByText("Jak se dnes cítíš?")).toBeOnTheScreen();
 }
 
 describe("Lumi app", () => {
-  it("projde onboardingem na Dnes a stav uloží", async () => {
+  it("projde onboardingem na Dnes; stav uloží bez `route`", async () => {
     const user = userEvent.setup();
-    await render(<App />);
+    await renderRouter("app");
     await finishOnboarding(user);
 
     expect(screen.getByRole("header", { name: /Janko/ })).toBeOnTheScreen();
-    expect(screen.getByText("Jak se dnes cítíš?")).toBeOnTheScreen();
     // první den: výzva k prvnímu dotazníku místo procenta
     expect(screen.getByRole("button", { name: "Vyplnit první dotazník" })).toBeOnTheScreen();
 
@@ -49,15 +51,17 @@ describe("Lumi app", () => {
     expect(saved.onboarded).toBe(true);
     expect(saved.name).toBe("Janko");
     expect(saved.age).toBe("u26");
+    // navigace patří routeru, ne storage
+    expect(saved).not.toHaveProperty("route");
   });
 
   it("uloží check-in a ukáže potvrzení s kontextovým tipem", async () => {
     const user = userEvent.setup();
-    await render(<App />);
+    await renderRouter("app");
     await finishOnboarding(user);
 
     await user.press(screen.getByRole("button", { name: "Začít check-in" }));
-    expect(screen.getByText("Jak se právě teď cítíš?")).toBeOnTheScreen();
+    expect(await screen.findByText("Jak se právě teď cítíš?")).toBeOnTheScreen();
 
     // „Pokračovat“ je neaktivní, dokud není vybrán stav
     expect(screen.getByRole("button", { name: "Pokračovat" })).toBeDisabled();
@@ -65,7 +69,7 @@ describe("Lumi app", () => {
     await user.press(screen.getByRole("button", { name: "Pokračovat" }));
 
     // krok 2: slova (max 2), štítky, poznámka
-    expect(screen.getByText("Které slovo to vystihuje nejlíp?")).toBeOnTheScreen();
+    expect(await screen.findByText("Které slovo to vystihuje nejlíp?")).toBeOnTheScreen();
     expect(screen.getByRole("button", { name: "Uložit zápis" })).toBeDisabled();
     await user.press(screen.getByRole("button", { name: "stres" }));
     await user.press(screen.getByRole("button", { name: "obavy" }));
@@ -75,13 +79,13 @@ describe("Lumi app", () => {
     await user.press(screen.getByRole("button", { name: "Uložit zápis" }));
 
     // potvrzení — rodově neutrální, tip pro Napětí = Dech 4-7-8
-    expect(screen.getByText("Uloženo.")).toBeOnTheScreen();
+    expect(await screen.findByText("Uloženo.")).toBeOnTheScreen();
     expect(screen.getByText(/Tohle byla chvilka pro tebe/)).toBeOnTheScreen();
     expect(screen.getByText("Dech 4-7-8")).toBeOnTheScreen();
 
     // zpět na Dnes — karta shrnuje dnešní zápis
     await user.press(screen.getByRole("button", { name: "Zpět na Dnes" }));
-    expect(screen.getByText(/Dnes zapsáno: Napětí · stres, obavy/)).toBeOnTheScreen();
+    expect(await screen.findByText(/Dnes zapsáno: Napětí · stres, obavy/)).toBeOnTheScreen();
 
     const saved = await loadSaved();
     expect(saved.entries).toHaveLength(1);
@@ -93,13 +97,30 @@ describe("Lumi app", () => {
     });
   });
 
+  it("krok 2 → zpět na krok 1 (router.back); draft zůstává", async () => {
+    const user = userEvent.setup();
+    await renderRouter("app");
+    await finishOnboarding(user);
+
+    await user.press(screen.getByRole("button", { name: "Začít check-in" }));
+    expect(await screen.findByText("Jak se právě teď cítíš?")).toBeOnTheScreen();
+    await user.press(screen.getByRole("radio", { name: /Klid/ }));
+    await user.press(screen.getByRole("button", { name: "Pokračovat" }));
+    expect(await screen.findByText("Které slovo to vystihuje nejlíp?")).toBeOnTheScreen();
+
+    // zpět na krok 1 — výběr stavu zůstává (draft žije v provideru stacku)
+    await user.press(screen.getByRole("button", { name: "Zpět na krok 1" }));
+    expect(await screen.findByText("Jak se právě teď cítíš?")).toBeOnTheScreen();
+    expect(screen.getByRole("radio", { name: /Klid/ })).toBeChecked();
+  });
+
   it("Přehledy: prázdný týden bez viny, sdílení default vypnuto", async () => {
     const user = userEvent.setup();
-    await render(<App />);
+    await renderRouter("app");
     await finishOnboarding(user);
 
     await user.press(screen.getByRole("button", { name: "Přehledy" }));
-    expect(screen.getByText("Tvůj týden")).toBeOnTheScreen();
+    expect(await screen.findByText("Tvůj týden")).toBeOnTheScreen();
     expect(screen.getByText(/Zatím tu toho moc není — každý zápis se počítá/)).toBeOnTheScreen();
 
     const share = screen.getByRole("switch", { name: "Sdílení vypnuto" });
@@ -113,11 +134,11 @@ describe("Lumi app", () => {
     const user = userEvent.setup();
     // mockResolvedValue(undefined): TS vyžaduje argument, runtime je shodný s bezparametrickým voláním
     const openURL = jest.spyOn(Linking, "openURL").mockResolvedValue(undefined);
-    await render(<App />);
+    await renderRouter("app");
     await finishOnboarding(user); // do 26 let
 
     await user.press(screen.getByRole("button", { name: "Pomoc" }));
-    expect(screen.getByText("Jsme tu s tebou")).toBeOnTheScreen();
+    expect(await screen.findByText("Jsme tu s tebou")).toBeOnTheScreen();
     expect(screen.getByText("tvoje linka")).toBeOnTheScreen();
 
     // tel: odkazy se v RN otevírají přes Linking.openURL
@@ -131,11 +152,11 @@ describe("Lumi app", () => {
 
   it("Klid: dechový kruh se spouští klepnutím („Začneme?“)", async () => {
     const user = userEvent.setup();
-    await render(<App />);
+    await renderRouter("app");
     await finishOnboarding(user);
 
     await user.press(screen.getByRole("button", { name: "Klid" }));
-    expect(screen.getByText("Na chvilku se zastav")).toBeOnTheScreen();
+    expect(await screen.findByText("Na chvilku se zastav")).toBeOnTheScreen();
     expect(screen.getByText("Začneme?")).toBeOnTheScreen();
 
     await user.press(screen.getByRole("button", { name: "Začít dýchat" }));

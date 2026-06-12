@@ -31,6 +31,8 @@ export default function ProgressRing({
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const off = c * (1 - Math.max(0, Math.min(1, value)));
+  /* Záměrně mimo typografickou škálu: velikosti popisků se odvozují
+     z průměru kruhu, aby škálovaly spolu s ringem. */
   const labelSize = size / 4.2;
   return (
     <View style={{ width: size, height: size }}>

@@ -2,33 +2,36 @@
    procenta zobrazí výzva k prvnímu dotazníku (varianta „první den“),
    po dnešním zápisu se check-in karta změní na shrnutí. */
 import { StyleSheet, Text, View } from "react-native";
-import { Badge, Button, Card, Icon, ListItem, ProgressRing } from "../ds";
-import { LumiHeader, SectionLabel } from "../components/Header";
-import MoodShape from "../components/MoodShape";
-import Screen from "../components/Screen";
-import { MOOD_BY_ID, czGreeting, czToday, latestWho5, who5HomeText } from "../model";
-import type { Entry, Who5Measurement } from "../model";
-import { colors, font, leading, palette, radius, space } from "../theme";
+import { useRouter } from "expo-router";
+import type { Href } from "expo-router";
+import { Badge, Button, Card, Icon, ListItem, ProgressRing } from "../../ds";
+import { LumiHeader, SectionLabel } from "../../components/Header";
+import MoodShape from "../../components/MoodShape";
+import Screen from "../../components/Screen";
+import {
+  MOOD_BY_ID,
+  RECOMMENDATIONS,
+  czGreeting,
+  czToday,
+  lastEntryForDate,
+  latestWho5,
+  toISODate,
+  who5HomeText,
+} from "../../model";
+import { useAppStore } from "../../store";
+import { colors, font, leading, palette, radius, space, type } from "../../theme";
 
-interface Props {
-  name: string;
-  todayEntry: Entry | null;
-  who5: Who5Measurement[];
-  onStartCheckin: () => void;
-  onOpenCalm: () => void;
-  onOpenHelp: () => void;
-  onOpenStats: () => void;
-}
+export default function HomeScreen() {
+  const { state } = useAppStore();
+  const router = useRouter();
+  const name = state.name.trim();
+  const todayEntry = lastEntryForDate(state.entries, toISODate());
+  const who5 = state.who5;
 
-export default function HomeScreen({
-  name,
-  todayEntry,
-  who5,
-  onStartCheckin,
-  onOpenCalm,
-  onOpenHelp,
-  onOpenStats,
-}: Props) {
+  const startCheckin = () => router.push("/checkin");
+  const openHelp = () => router.push("/help");
+  const openStats = () => router.push("/stats");
+
   /* mood je non-null vždy, když existuje todayEntry — TS to přes ternár
      nenarrowuje, proto níže `mood!` (čistě typová aserce, bez vlivu na runtime) */
   const mood = todayEntry ? MOOD_BY_ID[todayEntry.mood] : null;
@@ -53,7 +56,7 @@ export default function HomeScreen({
             </View>
           </View>
           <View style={styles.entryActions}>
-            <Button variant="ghost" size="sm" onPress={onStartCheckin} style={styles.selfStart}>
+            <Button variant="ghost" size="sm" onPress={startCheckin} style={styles.selfStart}>
               Přidat další zápis
             </Button>
           </View>
@@ -62,7 +65,7 @@ export default function HomeScreen({
         <Card variant="ink">
           <Text style={styles.inkTitle}>Jak se dnes cítíš?</Text>
           <Text style={styles.inkText}>Krátký check-in pomáhá najít, co ti dělá dobře.</Text>
-          <Button variant="soft" onPress={onStartCheckin} style={styles.selfStart}>
+          <Button variant="soft" onPress={startCheckin} style={styles.selfStart}>
             Začít check-in
           </Button>
         </Card>
@@ -70,7 +73,7 @@ export default function HomeScreen({
 
       {/* Wellbeing index */}
       {measurement ? (
-        <Card onPress={onOpenStats}>
+        <Card onPress={openStats}>
           <View style={styles.ringRow}>
             <ProgressRing
               value={measurement.score / 100}
@@ -93,7 +96,7 @@ export default function HomeScreen({
               <Text style={[styles.ringText, styles.ringTextEmpty]}>
                 Krátký dotazník (5 otázek) ti nastaví výchozí bod. Bez známek, bez porovnávání.
               </Text>
-              <Button variant="secondary" size="sm" onPress={onOpenStats} style={styles.selfStart}>
+              <Button variant="secondary" size="sm" onPress={openStats} style={styles.selfStart}>
                 Vyplnit první dotazník
               </Button>
             </View>
@@ -105,30 +108,18 @@ export default function HomeScreen({
       <View>
         <SectionLabel>Pro tebe</SectionLabel>
         <Card style={styles.listCard}>
-          <ListItem
-            icon="wind"
-            title="Dechové cvičení 4-7-8"
-            subtitle="Pomáhá při napětí"
-            trailing={<Badge tone="accent">3 min</Badge>}
-            onPress={onOpenCalm}
-          />
-          <ListItem
-            icon="notebook-pen"
-            iconTint={colors.positiveSoft}
-            iconColor={palette.sage700}
-            title="Večerní zápis do deníku"
-            subtitle="Na co dnes nechceš zapomenout?"
-            onPress={onStartCheckin}
-          />
-          <ListItem
-            icon="moon"
-            iconTint={palette.lilac100}
-            iconColor={palette.lilac700}
-            title="Klidné usínání"
-            subtitle="Zvuky a audio na dobrou noc"
-            trailing={<Badge tone="lilac">večer</Badge>}
-            onPress={onOpenCalm}
-          />
+          {RECOMMENDATIONS.map((rec) => (
+            <ListItem
+              key={rec.id}
+              icon={rec.icon}
+              iconTint={rec.iconTint}
+              iconColor={rec.iconColor}
+              title={rec.title}
+              subtitle={rec.subtitle}
+              trailing={rec.badge ? <Badge tone={rec.badge[0]}>{rec.badge[1]}</Badge> : null}
+              onPress={() => router.navigate(rec.route as Href)}
+            />
+          ))}
         </Card>
       </View>
 
@@ -139,7 +130,7 @@ export default function HomeScreen({
           <Text style={styles.crisisTitle}>Není ti dobře?</Text>
         </View>
         <Text style={styles.crisisText}>Pomoc je tu pořád — nemusíš na nic čekat.</Text>
-        <Button variant="crisis" onPress={onOpenHelp} style={styles.selfStart}>
+        <Button variant="crisis" onPress={openHelp} style={styles.selfStart}>
           <Icon name="heart-handshake" size={18} color={colors.textOnAccent} />
           Otevřít Pomoc
         </Button>
@@ -156,24 +147,24 @@ const styles = StyleSheet.create({
   entryRow: { flexDirection: "row", alignItems: "center", gap: 12 },
   entryTitle: {
     ...font.body(600),
-    fontSize: 15,
-    lineHeight: leading.body(15),
+    fontSize: type.base,
+    lineHeight: leading.body(type.base),
     color: colors.textStrong,
   },
   entryMeta: {
     ...font.body(400),
-    fontSize: 13,
-    lineHeight: leading.body(13),
+    fontSize: type.sm,
+    lineHeight: leading.body(type.sm),
     color: palette.ink700,
   },
   entryActions: { marginTop: 12 },
 
   /* ink karta — výzva k check-inu (text na tmavém podkladu nedědí, barvy explicitně) */
-  inkTitle: { ...font.display(700), fontSize: 21, color: colors.textOnInk, marginBottom: 4 },
+  inkTitle: { ...font.display(700), fontSize: type.lg, color: colors.textOnInk, marginBottom: 4 },
   inkText: {
     ...font.body(400),
-    fontSize: 14.5,
-    lineHeight: Math.round(14.5 * 1.5),
+    fontSize: type.base,
+    lineHeight: leading.body(type.base),
     color: "rgba(255,248,236,0.82)",
     marginBottom: 16,
   },
@@ -182,14 +173,14 @@ const styles = StyleSheet.create({
   ringRow: { flexDirection: "row", alignItems: "center", gap: 16 },
   ringTitle: {
     ...font.body(600),
-    fontSize: 15,
-    lineHeight: leading.body(15),
+    fontSize: type.base,
+    lineHeight: leading.body(type.base),
     color: colors.textStrong,
   },
   ringText: {
     ...font.body(400),
-    fontSize: 13.5,
-    lineHeight: Math.round(13.5 * 1.45),
+    fontSize: type.sm,
+    lineHeight: leading.body(type.sm),
     color: palette.ink700,
   },
   ringTextEmpty: { marginTop: 2, marginBottom: 10 },
@@ -200,11 +191,11 @@ const styles = StyleSheet.create({
   /* krizová karta */
   crisisSection: { backgroundColor: colors.dangerSoft, borderRadius: radius.lg, padding: space.s5 },
   crisisHeader: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 6 },
-  crisisTitle: { ...font.display(700), fontSize: 17, color: palette.clay700 },
+  crisisTitle: { ...font.display(700), fontSize: type.md, color: palette.clay700 },
   crisisText: {
     ...font.body(400),
-    fontSize: 15,
-    lineHeight: leading.body(15),
+    fontSize: type.base,
+    lineHeight: leading.body(type.base),
     color: colors.textBody,
     marginBottom: 14,
   },

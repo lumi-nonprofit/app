@@ -3,7 +3,7 @@
    ne jen světle šedý text. Disabled stav vysvětluje hint pod tlačítkem. */
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { palette, colors, radius, font, leading } from "../theme";
+import { palette, colors, radius, font, leading, type } from "../theme";
 
 interface Props {
   children: React.ReactNode;
@@ -58,13 +58,13 @@ const styles = StyleSheet.create({
   /* disabled: obrys + inkoustový text na zapuštěném podkladu, ne opacita */
   btnDisabled: { backgroundColor: colors.surfaceSunken, borderColor: colors.borderStrong },
   btnPressed: { transform: [{ scale: 0.98 }] },
-  label: { ...font.body(600), fontSize: 17, color: colors.textOnInk },
+  label: { ...font.body(600), fontSize: type.md, color: colors.textOnInk },
   labelSecondary: { color: colors.textStrong },
   labelDisabled: { color: palette.ink700 },
   hint: {
     ...font.body(400),
-    fontSize: 13,
-    lineHeight: leading.body(13),
+    fontSize: type.sm,
+    lineHeight: leading.body(type.sm),
     color: palette.ink700,
     textAlign: "center",
   },

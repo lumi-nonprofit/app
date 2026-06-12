@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 import type { StyleProp, ViewStyle } from "react-native";
 import { colors, font, leading, palette, radius, type } from "../theme";
 
-type BadgeTone = "neutral" | "accent" | "positive" | "info" | "danger" | "lilac";
+export type BadgeTone = "neutral" | "accent" | "positive" | "info" | "danger" | "lilac";
 
 interface ToneStyle {
   backgroundColor: string;

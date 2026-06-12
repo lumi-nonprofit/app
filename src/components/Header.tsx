@@ -1,7 +1,7 @@
 /* LumiHeader — hlavička obrazovky (kicker + display titulek), SectionLabel — mikropopisek sekce. */
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { palette, colors, font, leading, tracking } from "../theme";
+import { palette, colors, font, leading, tracking, type } from "../theme";
 
 interface LumiHeaderProps {
   kicker?: string;
@@ -43,18 +43,19 @@ const styles = StyleSheet.create({
   /* .lumi-kicker z app.css */
   kicker: {
     ...font.body(600),
-    fontSize: 11,
-    letterSpacing: tracking.label(11),
+    fontSize: type.xxs,
+    letterSpacing: tracking.label(type.xxs),
     textTransform: "uppercase",
     color: palette.ink700,
     marginBottom: 4,
   },
+  /* titulek obrazovky: xl — hero na onboardingu zůstává xxl, hlavičky tabů o stupeň níž */
   title: {
     ...font.display(700),
-    fontSize: 27,
-    letterSpacing: tracking.display(27),
+    fontSize: type.xl,
+    letterSpacing: tracking.display(type.xl),
     color: colors.textStrong,
-    lineHeight: leading.tight(27),
+    lineHeight: leading.tight(type.xl),
   },
   sectionLabel: { paddingTop: 4, paddingHorizontal: 4, paddingBottom: 0 },
 });

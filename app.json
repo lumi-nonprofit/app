@@ -3,8 +3,12 @@
     "name": "Lumi",
     "slug": "lumi",
     "version": "0.1.0",
+    "scheme": "lumi",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "experiments": {
+      "typedRoutes": true
+    },
     "plugins": [
       "expo-font",
       [
@@ -15,7 +19,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#FBF7EF"
         }
-      ]
+      ],
+      "expo-router"
     ],
     "icon": "./assets/icon.png",
     "ios": {

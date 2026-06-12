@@ -2,11 +2,13 @@
    druhá vždy viditelná hned pod ní; tlačítka volají přes tel: odkazy.
    Krizový register: konkrétně, čísla a akce napřed, žádný alarm. */
 import { StyleSheet, Text, View } from "react-native";
-import { Badge, Button, Card, Icon, ListItem } from "../ds/index";
-import Screen from "../components/Screen";
-import { LumiHeader, SectionLabel } from "../components/Header";
-import { palette, colors, radius, font } from "../theme";
-import { HELP_LINES, type AgeBand, type HelpLine } from "../model";
+import { useRouter } from "expo-router";
+import { Badge, Button, Card, Icon, ListItem } from "../../ds/index";
+import Screen from "../../components/Screen";
+import { LumiHeader, SectionLabel } from "../../components/Header";
+import { palette, colors, radius, font, type, leading } from "../../theme";
+import { HELP_LINES, type HelpLine } from "../../model";
+import { useAppStore } from "../../store";
 
 const telHref = (phone: string): string => `tel:${phone.replace(/\s/g, "")}`;
 
@@ -20,7 +22,9 @@ function LineRow({ line, primary }: LineRowProps) {
     <View style={styles.lineRow}>
       <View>
         <View style={styles.lineHead}>
-          <Text style={[styles.lineName, { fontSize: primary ? 18 : 15.5 }]}>{line.name}</Text>
+          <Text style={[styles.lineName, { fontSize: primary ? type.md : type.base }]}>
+            {line.name}
+          </Text>
           {primary ? <Badge tone="danger">tvoje linka</Badge> : null}
         </View>
         <Text style={styles.lineMeta}>{line.meta}</Text>
@@ -37,12 +41,10 @@ function LineRow({ line, primary }: LineRowProps) {
   );
 }
 
-interface Props {
-  age: AgeBand | null;
-  onOpenCalm: () => void;
-}
-
-export default function HelpScreen({ age, onOpenCalm }: Props) {
+export default function HelpScreen() {
+  const { state } = useAppStore();
+  const router = useRouter();
+  const age = state.age;
   const primary = age === "plus27" ? HELP_LINES.plus27 : HELP_LINES.u26;
   const secondary = age === "plus27" ? HELP_LINES.u26 : HELP_LINES.plus27;
   return (
@@ -99,7 +101,7 @@ export default function HelpScreen({ age, onOpenCalm }: Props) {
           title="Rychlé zklidnění"
           subtitle="Dech a uzemnění na 2 minuty"
           trailing={<Badge tone="accent">2 min</Badge>}
-          onPress={onOpenCalm}
+          onPress={() => router.push("/calm")}
         />
       </Card>
 
@@ -187,7 +189,7 @@ const styles = StyleSheet.create({
   },
   lineHead: { flexDirection: "row", alignItems: "baseline", gap: 8, flexWrap: "wrap" },
   lineName: { ...font.display(700), color: colors.textStrong },
-  lineMeta: { ...font.body(400), fontSize: 13, color: palette.ink700, marginTop: 2 },
+  lineMeta: { ...font.body(400), fontSize: type.sm, color: palette.ink700, marginTop: 2 },
 
   crisisCard: { backgroundColor: colors.dangerSoft, borderRadius: radius.lg, padding: 16, gap: 10 },
   crisisHead: {
@@ -197,21 +199,21 @@ const styles = StyleSheet.create({
     paddingTop: 2,
     paddingHorizontal: 4,
   },
-  crisisTitle: { ...font.display(700), fontSize: 17, color: palette.clay700 },
+  crisisTitle: { ...font.display(700), fontSize: type.md, color: palette.clay700 },
   crisisNote: {
     paddingTop: 2,
     paddingHorizontal: 4,
     paddingBottom: 4,
     ...font.body(600),
-    fontSize: 13.5,
+    fontSize: type.sm,
     color: palette.clay700,
-    lineHeight: Math.round(13.5 * 1.5),
+    lineHeight: leading.body(type.sm),
   },
 
   planCard: { paddingTop: 16, paddingHorizontal: 12, paddingBottom: 8 },
   planHead: { paddingHorizontal: 8, paddingBottom: 6 },
-  planTitle: { ...font.display(700), fontSize: 17, color: colors.textStrong },
-  planSub: { ...font.body(400), fontSize: 13.5, color: palette.ink700, marginTop: 2 },
+  planTitle: { ...font.display(700), fontSize: type.md, color: colors.textStrong },
+  planSub: { ...font.body(400), fontSize: type.sm, color: palette.ink700, marginTop: 2 },
 
   slimCard: { paddingVertical: 8, paddingHorizontal: 12 },
   sectionCard: { paddingVertical: 8, paddingHorizontal: 12, marginTop: 6 },

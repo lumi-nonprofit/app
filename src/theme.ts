@@ -93,6 +93,8 @@ export const radius = { xs: 8, sm: 12, md: 16, lg: 22, xl: 28, pill: 999 } as co
 
 /* --- typografie --- */
 export const type = {
+  /* xxs: mikropopisky (kicker, popisky tab baru) — doplněno při sjednocení na scale */
+  xxs: 11,
   xs: 12,
   sm: 13,
   base: 15,

@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Icon } from "../ds/index";
 import type { IconName } from "../ds/Icon";
-import { palette, colors, font, shadow } from "../theme";
+import { palette, colors, font, shadow, type } from "../theme";
 
 export type TabId = "home" | "calm" | "checkin" | "stats" | "help";
 
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     ...shadow.raised,
   },
   plusPressed: { transform: [{ scale: 0.95 }] },
-  label: { fontSize: 11 },
+  label: { fontSize: type.xxs },
   labelActive: { ...font.body(700), color: palette.sun700 },
   labelIdle: { ...font.body(500), color: palette.ink700 },
 });

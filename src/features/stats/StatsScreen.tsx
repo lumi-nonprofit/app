@@ -4,11 +4,12 @@
    při WHO-5 pod 50 % — žádné alarmy, žádná vina. */
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Badge, Button, Card, Icon, ProgressRing, Switch } from "../ds/index";
-import Screen from "../components/Screen";
-import { LumiHeader } from "../components/Header";
-import MoodShape from "../components/MoodShape";
-import { palette, colors, radius, font, leading, shadow } from "../theme";
+import { useRouter } from "expo-router";
+import { Badge, Button, Card, Icon, ProgressRing, Switch } from "../../ds/index";
+import Screen from "../../components/Screen";
+import { LumiHeader } from "../../components/Header";
+import MoodShape from "../../components/MoodShape";
+import { palette, colors, radius, font, leading, shadow, type } from "../../theme";
 import {
   INTENSITY_LABELS,
   MOODS,
@@ -18,8 +19,9 @@ import {
   latestWho5,
   weekEntryCount,
   who5StatsText,
-} from "../model";
-import type { Entry, WeekDay, Who5Measurement } from "../model";
+} from "../../model";
+import type { WeekDay } from "../../model";
+import { useAppStore } from "../../store";
 
 type Period = "týden" | "měsíc";
 
@@ -75,23 +77,13 @@ function MoodLegend() {
   );
 }
 
-interface Props {
-  entries: Entry[];
-  who5: Who5Measurement[];
-  share: boolean;
-  onShare: (v: boolean) => void;
-  onStartCheckin: () => void;
-  onOpenHelp: () => void;
-}
+export default function StatsScreen() {
+  const { state, patch } = useAppStore();
+  const router = useRouter();
+  const entries = state.entries;
+  const who5 = state.who5;
+  const share = state.share;
 
-export default function StatsScreen({
-  entries,
-  who5,
-  share,
-  onShare,
-  onStartCheckin,
-  onOpenHelp,
-}: Props) {
   const [period, setPeriod] = React.useState<Period>("týden");
   const week = buildWeek(entries);
   const empty = weekEntryCount(entries) <= 1;
@@ -142,7 +134,12 @@ export default function StatsScreen({
               ))}
             </View>
             <Text style={styles.emptyText}>Zatím tu toho moc není — každý zápis se počítá.</Text>
-            <Button variant="secondary" size="sm" onPress={onStartCheckin} style={styles.selfStart}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onPress={() => router.push("/checkin")}
+              style={styles.selfStart}
+            >
               Začít check-in
             </Button>
           </View>
@@ -197,7 +194,12 @@ export default function StatsScreen({
                 <Text style={styles.wellTextLow}>
                   Poslední dva týdny vypadají náročně. Je v pořádku říct si o podporu.
                 </Text>
-                <Button variant="secondary" size="sm" onPress={onOpenHelp} style={styles.selfStart}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onPress={() => router.push("/help")}
+                  style={styles.selfStart}
+                >
                   Otevřít Pomoc
                 </Button>
               </View>
@@ -220,7 +222,7 @@ export default function StatsScreen({
             </Text>
             <Switch
               checked={share}
-              onChange={onShare}
+              onChange={(v) => patch({ share: v })}
               label={share ? "Sdílení zapnuto" : "Sdílení vypnuto"}
             />
           </View>
@@ -234,7 +236,7 @@ const styles = StyleSheet.create({
   selfStart: { alignSelf: "flex-start" },
   dayDot: { flex: 1, alignItems: "center", gap: 7 },
   dayDotShape: { height: 32, alignItems: "center", justifyContent: "center" },
-  dayDotLabel: { ...font.body(500), fontSize: 11.5, color: palette.ink700 },
+  dayDotLabel: { ...font.body(500), fontSize: type.xs, color: palette.ink700 },
   dayDotLabelToday: { ...font.body(700), color: palette.sun700 },
 
   /* segmentový přepínač období (.lumi-seg z app.css) */
@@ -254,7 +256,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   segBtnOn: { backgroundColor: colors.surfaceCard, ...shadow.card },
-  segBtnText: { ...font.body(600), fontSize: 13, color: palette.ink700 },
+  segBtnText: { ...font.body(600), fontSize: type.sm, color: palette.ink700 },
   segBtnTextOn: { color: colors.textStrong },
 
   cardHead: {
@@ -263,7 +265,7 @@ const styles = StyleSheet.create({
     alignItems: "baseline",
     marginBottom: 12,
   },
-  cardTitle: { ...font.body(600), color: colors.textStrong, fontSize: 15 },
+  cardTitle: { ...font.body(600), color: colors.textStrong, fontSize: type.base },
 
   weekRow: { flexDirection: "row", gap: 4 },
   monthGrid: { gap: 10 },
@@ -271,32 +273,32 @@ const styles = StyleSheet.create({
 
   emptyText: {
     ...font.body(400),
-    fontSize: 14.5,
+    fontSize: type.base,
     color: colors.textBody,
-    lineHeight: leading.body(14.5),
+    lineHeight: leading.body(type.base),
     marginTop: 16,
     marginBottom: 12,
   },
 
   legend: { flexDirection: "row", gap: 12, flexWrap: "wrap", marginTop: 14 },
   legendItem: { flexDirection: "row", alignItems: "center", gap: 5 },
-  legendText: { ...font.body(400), fontSize: 12, color: palette.ink700 },
+  legendText: { ...font.body(400), fontSize: type.xs, color: palette.ink700 },
 
   wellRow: { flexDirection: "row", alignItems: "center", gap: 16 },
   wellBody: { flex: 1 },
-  wellTitle: { ...font.body(600), color: colors.textStrong, fontSize: 15 },
+  wellTitle: { ...font.body(600), color: colors.textStrong, fontSize: type.base },
   wellText: {
     ...font.body(400),
-    fontSize: 13.5,
+    fontSize: type.sm,
     color: palette.ink700,
-    lineHeight: Math.round(13.5 * 1.5),
+    lineHeight: leading.body(type.sm),
     marginTop: 2,
   },
   wellTextLow: {
     ...font.body(400),
-    fontSize: 13.5,
+    fontSize: type.sm,
     color: palette.ink700,
-    lineHeight: Math.round(13.5 * 1.5),
+    lineHeight: leading.body(type.sm),
     marginTop: 2,
     marginBottom: 10,
   },
@@ -304,12 +306,12 @@ const styles = StyleSheet.create({
   shareRow: { flexDirection: "row", gap: 12, alignItems: "flex-start" },
   shareIcon: { marginTop: 2 },
   shareBody: { flex: 1 },
-  shareTitle: { ...font.body(600), fontSize: 14.5, color: colors.textStrong, marginBottom: 2 },
+  shareTitle: { ...font.body(600), fontSize: type.base, color: colors.textStrong, marginBottom: 2 },
   shareText: {
     ...font.body(400),
-    fontSize: 13.5,
+    fontSize: type.sm,
     color: palette.ink700,
-    lineHeight: Math.round(13.5 * 1.5),
+    lineHeight: leading.body(type.sm),
     marginBottom: 12,
   },
 });

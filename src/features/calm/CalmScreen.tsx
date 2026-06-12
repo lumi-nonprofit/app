@@ -1,11 +1,11 @@
 /* Klid — dechový launcher, seznam aktivit, Večerka. */
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Badge, Card, ListItem } from "../ds/index";
-import { LumiHeader } from "../components/Header";
-import LumiBreath from "../components/Breath";
-import Screen from "../components/Screen";
-import { colors, font, leading, palette, radius } from "../theme";
+import { Badge, Card, ListItem } from "../../ds/index";
+import { LumiHeader } from "../../components/Header";
+import LumiBreath from "../../components/Breath";
+import Screen from "../../components/Screen";
+import { colors, font, leading, palette, radius, type } from "../../theme";
 
 export default function CalmScreen() {
   const [breathing, setBreathing] = React.useState(false);
@@ -91,11 +91,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 6,
   },
-  eveningTitle: { ...font.display(700), fontSize: 17, color: palette.lilac700 },
+  eveningTitle: { ...font.display(700), fontSize: type.md, color: palette.lilac700 },
   eveningText: {
     ...font.body(400),
-    fontSize: 14.5,
-    lineHeight: leading.body(14.5),
+    fontSize: type.base,
+    lineHeight: leading.body(type.base),
     color: colors.textBody,
   },
 });

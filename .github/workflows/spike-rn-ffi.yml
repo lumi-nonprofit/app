@@ -85,11 +85,11 @@ jobs:
         run: cargo build --release
       - name: ubrn generate jsi bindings (TS + C++ from the compiled library)
         continue-on-error: true
-        working-directory: spikes/rn-ffi
+        working-directory: spikes/rn-ffi/rust/lumi-ffi-spike
         run: |
-          npx ubrn generate jsi bindings --library --no-format \
-            --ts-dir generated/ts --cpp-dir generated/cpp \
-            rust/lumi-ffi-spike/target/release/liblumi_ffi_spike.so
+          ../../node_modules/.bin/ubrn generate jsi bindings --library --no-format \
+            --ts-dir ../../generated/ts --cpp-dir ../../generated/cpp \
+            target/release/liblumi_ffi_spike.so
       - name: Show generated bindings
         if: always()
         working-directory: spikes/rn-ffi

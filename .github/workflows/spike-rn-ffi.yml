@@ -1,0 +1,118 @@
+# THROWAWAY spike #1 (ADR 0001 §13). Proves what CI's full-toolchain runners can
+# prove: host round-trip, cross-compile to real Android (NDK) + iOS targets, and
+# the uniffi-bindgen-react-native codegen. The on-device New-Architecture round-trip
+# (criterion 3) is NOT covered here — it needs an emulator/simulator e2e harness.
+name: Spike RN FFI (throwaway)
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths:
+      - "spikes/**"
+      - ".github/workflows/spike-rn-ffi.yml"
+
+permissions:
+  contents: read
+
+env:
+  CRATE: spikes/rn-ffi/rust/lumi-ffi-spike/Cargo.toml
+
+jobs:
+  # Criterion 1 (logic) — real x25519 + ChaCha20-Poly1305 round-trip through the
+  # typed FFI records, run on the host.
+  host-roundtrip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test --manifest-path "$CRATE" --verbose
+
+  # Criterion 2 (Android) — cross-compile the cdylib for arm64 Android via the NDK.
+  android-crosscompile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+      - uses: nttld/setup-ndk@v1
+        id: ndk
+        with:
+          ndk-version: r27c
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-ndk
+      - name: cargo ndk build (arm64-v8a)
+        env:
+          ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
+        run: cargo ndk -t arm64-v8a build --release --manifest-path "$CRATE"
+      - name: Show built .so
+        run: find spikes/rn-ffi/rust -name '*.so' -ls
+
+  # Criterion 2 (iOS) — cross-compile the staticlib for device + simulator on macOS.
+  ios-crosscompile:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios,aarch64-apple-ios-sim
+      - name: cargo build (iOS device + sim)
+        run: |
+          cargo build --release --target aarch64-apple-ios --manifest-path "$CRATE"
+          cargo build --release --target aarch64-apple-ios-sim --manifest-path "$CRATE"
+      - name: Show built libs
+        run: find spikes/rn-ffi/rust -name '*.a' -ls
+
+  # Criterion 1 (codegen) + 5 (pin) — run the pinned binder. Self-documenting: it
+  # prints the CLI surface first (so we learn the exact pre-1.0 commands), then
+  # attempts codegen and uploads whatever it produces for §1 inspection.
+  ubrn-codegen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+      - uses: nttld/setup-ndk@v1
+        id: ndk
+        with:
+          ndk-version: r27c
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-ndk
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install pinned uniffi-bindgen-react-native
+        run: npm install
+        working-directory: spikes/rn-ffi
+      - name: Discover ubrn CLI (always runs)
+        working-directory: spikes/rn-ffi
+        run: |
+          npx ubrn --version || true
+          npx ubrn --help || true
+          npx ubrn build --help || true
+          npx ubrn generate --help || true
+      - name: ubrn build android (cross-compile + generate TS/JSI bindings)
+        id: build
+        continue-on-error: true
+        working-directory: spikes/rn-ffi
+        env:
+          ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
+        run: npx ubrn build android --config ubrn.config.yaml
+      - name: Show generated tree
+        if: always()
+        working-directory: spikes/rn-ffi
+        run: find . -path ./node_modules -prune -o -name '*.ts' -print -o -name '*.cpp' -print -o -name '*.h' -print | head -100
+      - name: Upload generated bindings (for §1 inspection)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ubrn-generated
+          path: |
+            spikes/rn-ffi/generated/**
+            spikes/rn-ffi/cpp/**
+            spikes/rn-ffi/src/**
+          if-no-files-found: warn

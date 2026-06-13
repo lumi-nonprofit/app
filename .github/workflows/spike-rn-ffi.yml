@@ -1,7 +1,8 @@
 # THROWAWAY spike #1 (ADR 0001 §13). Proves what CI's full-toolchain runners can
 # prove: host round-trip, cross-compile to real Android (NDK) + iOS targets, and
-# the uniffi-bindgen-react-native codegen. The on-device New-Architecture round-trip
-# (criterion 3) is NOT covered here — it needs an emulator/simulator e2e harness.
+# uniffi-bindgen-react-native (ubrn) binding codegen on realistic types. The
+# on-device New-Architecture round-trip (criterion 3) is NOT covered here — it
+# needs an emulator/simulator e2e harness.
 name: Spike RN FFI (throwaway)
 
 on:
@@ -20,7 +21,7 @@ env:
 
 jobs:
   # Criterion 1 (logic) — real x25519 + ChaCha20-Poly1305 round-trip through the
-  # typed FFI records, run on the host.
+  # typed FFI records, on the host.
   host-roundtrip:
     runs-on: ubuntu-latest
     steps:
@@ -40,9 +41,8 @@ jobs:
         id: ndk
         with:
           ndk-version: r27c
-      - uses: taiki-e/install-action@v2
-        with:
-          tool: cargo-ndk
+      - name: Install cargo-ndk (reliable, from source)
+        run: cargo install cargo-ndk --locked
       - name: cargo ndk build (arm64-v8a)
         env:
           ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
@@ -65,54 +65,47 @@ jobs:
       - name: Show built libs
         run: find spikes/rn-ffi/rust -name '*.a' -ls
 
-  # Criterion 1 (codegen) + 5 (pin) — run the pinned binder. Self-documenting: it
-  # prints the CLI surface first (so we learn the exact pre-1.0 commands), then
-  # attempts codegen and uploads whatever it produces for §1 inspection.
+  # Criterion 1 (codegen) + 4 (§1) + 5 (pin) — the pinned binder generates the
+  # JSI/TS bindings from the realistic typed crate; we then grep the generated TS to
+  # confirm no secret-key type crosses the FFI.
   ubrn-codegen:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: aarch64-linux-android
-      - uses: nttld/setup-ndk@v1
-        id: ndk
-        with:
-          ndk-version: r27c
-      - uses: taiki-e/install-action@v2
-        with:
-          tool: cargo-ndk
       - uses: actions/setup-node@v4
         with:
           node-version: 20
       - name: Install pinned uniffi-bindgen-react-native
         run: npm install
         working-directory: spikes/rn-ffi
-      - name: Discover ubrn CLI (always runs)
+      - name: Discover generate-jsi CLI (always runs; first call also compiles ubrn)
         working-directory: spikes/rn-ffi
-        run: |
-          npx ubrn --version || true
-          npx ubrn --help || true
-          npx ubrn build --help || true
-          npx ubrn generate --help || true
-      - name: ubrn build android (cross-compile + generate TS/JSI bindings)
-        id: build
-        continue-on-error: true
+        run: npx ubrn generate jsi --help || true
+      - name: ubrn generate jsi (TS + C++ bindings from the Rust)
         working-directory: spikes/rn-ffi
-        env:
-          ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
-        run: npx ubrn build android --config ubrn.config.yaml
-      - name: Show generated tree
+        run: npx ubrn generate jsi --config ubrn.config.yaml
+      - name: Show generated bindings
         if: always()
         working-directory: spikes/rn-ffi
-        run: find . -path ./node_modules -prune -o -name '*.ts' -print -o -name '*.cpp' -print -o -name '*.h' -print | head -100
-      - name: Upload generated bindings (for §1 inspection)
+        run: find generated -type f -print 2>/dev/null || echo "(no generated/ dir)"
+      - name: "§1 check: no secret type crosses the FFI; public API is handle-based"
+        if: always()
+        working-directory: spikes/rn-ffi
+        run: |
+          echo "---- exported function signatures in generated TS ----"
+          grep -rInE "export function (newDeviceKey|publicKey|sealCheckin|openCheckin)" generated || true
+          echo "---- assert NO secret/private-key symbol leaks into TS bindings ----"
+          if grep -rIniE "secret|private[_-]?key|staticsecret" generated; then
+            echo "::error::§1 VIOLATION: a secret-key symbol appears in the generated FFI bindings"
+            exit 1
+          else
+            echo "§1 OK: no secret/private-key symbol in the generated bindings"
+          fi
+      - name: Upload generated bindings
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ubrn-generated
-          path: |
-            spikes/rn-ffi/generated/**
-            spikes/rn-ffi/cpp/**
-            spikes/rn-ffi/src/**
+          path: spikes/rn-ffi/generated/**
           if-no-files-found: warn

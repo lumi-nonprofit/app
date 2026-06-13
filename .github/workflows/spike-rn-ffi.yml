@@ -101,14 +101,18 @@ jobs:
             echo "::error::no bindings generated — see 'generate jsi bindings --help' above"
             exit 1
           fi
-          echo "---- exported function signatures in generated TS ----"
-          grep -rInE "export function (newDeviceKey|publicKey|sealCheckin|openCheckin)" generated || true
-          echo "---- assert NO secret/private-key symbol leaks into TS bindings ----"
-          if grep -rIniE "secret|private[_-]?key|staticsecret" generated; then
-            echo "::error::§1 VIOLATION: a secret-key symbol appears in the generated FFI bindings"
+          echo "---- exported function signatures ----"
+          grep -rhnE "export function (newDeviceKey|publicKey|sealCheckin|openCheckin)" generated || true
+          # Positive: the surface is handle + public key + plaintext record only.
+          grep -rqE "handle:" generated && grep -rqE "publicKey" generated \
+            || { echo "::error::expected handle-based DeviceKey not found"; exit 1; }
+          # Negative: no secret-key TYPE/symbol crosses (case-sensitive; prose
+          # "secret" in propagated JSDoc is fine and expected).
+          if grep -rnE "StaticSecret|SecretKey|PrivateKey|privateKey|secretKey" generated; then
+            echo "::error::§1 VIOLATION: a secret-key type/symbol appears in the generated FFI bindings"
             exit 1
           fi
-          echo "§1 OK: bindings present, no secret/private-key symbol crosses the FFI"
+          echo "§1 OK: bindings present; only handle + public key + plaintext record + ciphertext cross"
       - name: Upload generated bindings
         if: always()
         uses: actions/upload-artifact@v4

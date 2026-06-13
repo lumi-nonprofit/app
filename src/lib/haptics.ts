@@ -25,4 +25,21 @@ export const haptics = {
   select(): void {
     if (active) Haptics.selectionAsync().catch(() => {});
   },
+  /* --- Dech naslepo: vedení dechu poslepu, výraznější vzorce --- */
+  /** Výrazný impulz — začátek nádechu naslepo. */
+  strongPulse(): void {
+    if (active) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
+  },
+  /** Dvojitý impulz — začátek výdechu naslepo. */
+  doublePulse(): void {
+    if (!active) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
+    setTimeout(() => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
+    }, 140);
+  },
+  /** Jemný tik — střed zádrže u 4-7-8. */
+  tick(): void {
+    if (active) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+  },
 };

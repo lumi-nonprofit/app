@@ -18,6 +18,7 @@ const ACTIVITY_ICONS: Record<string, { icon: IconName; iconTint?: string; iconCo
   "dech-478": { icon: "wind" },
   "ticha-louka": { icon: "audio-lines" },
   vecerka: { icon: "moon", iconTint: palette.lilac100, iconColor: palette.lilac700 },
+  "dech-naslepo": { icon: "waves" },
 };
 
 export default function CalmScreen() {

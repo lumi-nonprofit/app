@@ -15,7 +15,7 @@ export interface CalmActivity {
   /** mixWithOthers pro krátká cvičení (hudba uživatele hraje dál),
       duckOthers pro vedené meditace (hudbu jen ztiší, nezastaví). */
   audioMode: "mix" | "duck";
-  kind: "breath" | "audio";
+  kind: "breath" | "audio" | "blind";
   /** Stavový pill v seznamu i přehrávači: [tón, text]. */
   badge?: [BadgeTone, string];
 }
@@ -51,6 +51,17 @@ export const CALM_ACTIVITIES: readonly CalmActivity[] = [
     audioMode: "duck",
     kind: "audio",
     badge: ["lilac", "večer"],
+  },
+  {
+    /* Dech naslepo — rytmus vedou vibrace, displej netřeba (telefon v kapse). */
+    id: "dech-naslepo",
+    title: "Dech naslepo",
+    subtitle: "Telefon v kapse — vedeme tě vibracemi",
+    minutes: 3,
+    file: null,
+    audioMode: "mix",
+    kind: "blind",
+    badge: ["info", "poslepu"],
   },
 ];
 

@@ -1,16 +1,33 @@
 /* Pomoc — krizová intervence. Primární linka podle věku z onboardingu,
    druhá vždy viditelná hned pod ní; tlačítka volají přes tel: odkazy.
    Krizový register: konkrétně, čísla a akce napřed, žádný alarm. */
-import { StyleSheet, Text, View } from "react-native";
+import React from "react";
+import { Alert, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
 import { Badge, Button, Card, Icon, ListItem } from "../../ds/index";
+import type { IconName } from "../../ds/Icon";
 import Screen from "../../components/Screen";
 import { LumiHeader, SectionLabel } from "../../components/Header";
 import { palette, colors, radius, font, type, leading } from "../../theme";
 import { HELP_LINES, type HelpLine } from "../../model";
 import { useAppStore } from "../../store";
+import { useDb, useDbVersion } from "../../db/provider";
+import { PLAN_SECTIONS, planIsEmpty, readPlan, type PlanSectionId } from "./plan";
+import { crisisCardHtml } from "./crisisCard";
 
 const telHref = (phone: string): string => `tel:${phone.replace(/\s/g, "")}`;
+
+/* ikona a tint pro sekce krizového plánu (id z plan.ts → vizuál) */
+const PLAN_VISUALS: Record<
+  PlanSectionId,
+  { icon: IconName; iconTint?: string; iconColor?: string }
+> = {
+  signals: { icon: "eye" },
+  helps: { icon: "heart", iconTint: colors.positiveSoft, iconColor: palette.sage700 },
+  contacts: { icon: "users", iconTint: colors.infoSoft, iconColor: palette.lake700 },
+};
 
 interface LineRowProps {
   line: HelpLine;
@@ -44,9 +61,36 @@ function LineRow({ line, primary }: LineRowProps) {
 export default function HelpScreen() {
   const { state } = useAppStore();
   const router = useRouter();
+  const db = useDb();
+  const { version } = useDbVersion();
   const age = state.age;
   const primary = age === "plus27" ? HELP_LINES.plus27 : HELP_LINES.u26;
   const secondary = age === "plus27" ? HELP_LINES.u26 : HELP_LINES.plus27;
+
+  /* plán se přečte znovu po každém zápisu (návrat z editoru zvýší verzi) */
+  const plan = React.useMemo(() => {
+    void version;
+    return readPlan(db);
+  }, [db, version]);
+
+  const printCard = async () => {
+    if (planIsEmpty(plan)) {
+      Alert.alert(
+        "Nejdřív si plán vyplň",
+        "Kartička se skládá z tvého krizového plánu — vyplň aspoň jednu část.",
+      );
+      return;
+    }
+    try {
+      const { uri } = await Print.printToFileAsync({ html: crisisCardHtml(plan) });
+      await Sharing.shareAsync(uri, {
+        mimeType: "application/pdf",
+        dialogTitle: "Krizová kartička",
+      });
+    } catch {
+      Alert.alert("Nepovedlo se", "Kartičku se teď nepodařilo vytvořit. Zkus to prosím znovu.");
+    }
+  };
   return (
     <Screen>
       <LumiHeader kicker="Pomoc" title="Jsme tu s tebou" />
@@ -64,33 +108,36 @@ export default function HelpScreen() {
         </Text>
       </View>
 
-      {/* krizový plán — rozcestník, detailní obrazovky budou doplněny */}
+      {/* krizový plán — tři sekce + tisk kartičky do peněženky */}
       <Card style={styles.planCard}>
         <View style={styles.planHead}>
           <Text style={styles.planTitle}>Můj krizový plán</Text>
           <Text style={styles.planSub}>Připrav si kroky, dokud je klid.</Text>
         </View>
+        {PLAN_SECTIONS.map((s) => {
+          const visual = PLAN_VISUALS[s.id];
+          const filled = plan[s.id].trim().length > 0;
+          return (
+            <ListItem
+              key={s.id}
+              icon={visual.icon}
+              iconTint={visual.iconTint}
+              iconColor={visual.iconColor}
+              title={s.title}
+              subtitle={filled ? `${s.subtitle} · vyplněno` : s.subtitle}
+              onPress={() =>
+                router.push({ pathname: "/plan/[section]", params: { section: s.id } })
+              }
+            />
+          );
+        })}
         <ListItem
-          icon="eye"
-          title="Moje varovné signály"
-          subtitle="Podle čeho poznám, že se to horší"
-          onPress={() => {}}
-        />
-        <ListItem
-          icon="heart"
-          iconTint={colors.positiveSoft}
-          iconColor={palette.sage700}
-          title="Co mi pomáhá"
-          subtitle="Ověřené kroky a činnosti"
-          onPress={() => {}}
-        />
-        <ListItem
-          icon="users"
-          iconTint={colors.infoSoft}
-          iconColor={palette.lake700}
-          title="Na koho se obrátím"
-          subtitle="Blízcí lidé a kontakty"
-          onPress={() => {}}
+          icon="printer"
+          iconTint={colors.accentSoft}
+          iconColor={palette.sun700}
+          title="Vytisknout kartičku do peněženky"
+          subtitle="PDF na přeložení a zalaminování"
+          onPress={printCard}
         />
       </Card>
 
@@ -102,6 +149,18 @@ export default function HelpScreen() {
           subtitle="Dech a uzemnění na 2 minuty"
           trailing={<Badge tone="accent">2 min</Badge>}
           onPress={() => router.push("/calm")}
+        />
+      </Card>
+
+      {/* režim pro třetí osobu — celoobrazovkový, bez osobních dat */}
+      <Card style={styles.slimCard}>
+        <ListItem
+          icon="heart-handshake"
+          iconTint={colors.infoSoft}
+          iconColor={palette.lake700}
+          title="Pomáháš někomu blízkému?"
+          subtitle="Otevři režim pro chvíli, kdy držíš telefon za druhého"
+          onPress={() => router.push("/handover")}
         />
       </Card>
 

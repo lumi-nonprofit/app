@@ -43,6 +43,8 @@ function RootNavigator() {
         <Stack.Screen name="measure/[type]" options={{ presentation: "modal" }} />
         <Stack.Screen name="calm/[id]" />
         <Stack.Screen name="reflection" />
+        <Stack.Screen name="plan/[section]" />
+        <Stack.Screen name="handover" options={{ presentation: "fullScreenModal" }} />
       </Stack.Protected>
       <Stack.Protected guard={!state.onboarded}>
         <Stack.Screen name="onboarding" />

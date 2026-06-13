@@ -16,6 +16,29 @@ jest.mock(
 
 jest.mock("../src/db/connect", () => jest.requireActual("./helpers/testDb"));
 
+/* expo-audio nemá v jestu nativní modul (spadl by na importu); přehrávač ho
+   používá jen pro audio se souborem, v testech stačí no-op. */
+jest.mock("expo-audio", () => ({
+  setAudioModeAsync: jest.fn(async () => {}),
+  useAudioPlayer: () => ({
+    play: jest.fn(),
+    pause: jest.fn(),
+    seekTo: jest.fn(),
+    remove: jest.fn(),
+  }),
+  useAudioPlayerStatus: () => ({
+    playing: false,
+    currentTime: 0,
+    duration: 0,
+    didJustFinish: false,
+  }),
+}));
+
+/* expo-print: tisk kartičky vrací v testu fiktivní soubor. */
+jest.mock("expo-print", () => ({
+  printToFileAsync: jest.fn(async () => ({ uri: "file:///tmp/lumi-karticka.pdf" })),
+}));
+
 beforeEach(async () => {
   await AsyncStorage.clear();
   __resetTestDb();

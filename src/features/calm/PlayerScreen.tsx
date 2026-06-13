@@ -17,6 +17,7 @@ import { Badge, Icon, IconButton } from "../../ds/index";
 import Screen from "../../components/Screen";
 import { haptics } from "../../lib/haptics";
 import { byId, type CalmActivity } from "./content";
+import BlindBreathScreen from "./BlindBreathScreen";
 import { colors, font, leading, palette, radius, tracking, type } from "../../theme";
 
 export default function PlayerScreen() {
@@ -24,6 +25,7 @@ export default function PlayerScreen() {
   const activity = byId(typeof id === "string" ? id : undefined);
   if (!activity) return <Redirect href="/calm" />;
   // key: změna parametru routy musí znamenat čistý stav přehrávače
+  if (activity.kind === "blind") return <BlindBreathScreen key={activity.id} activity={activity} />;
   if (activity.kind === "breath") return <BreathPlayer key={activity.id} activity={activity} />;
   if (activity.file === null) return <ComingSoon key={activity.id} activity={activity} />;
   return <AudioPlayer key={activity.id} activity={activity} file={activity.file} />;

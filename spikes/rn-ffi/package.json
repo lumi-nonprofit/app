@@ -1,9 +1,0 @@
-{
-  "name": "lumi-rn-ffi-spike",
-  "private": true,
-  "version": "0.0.0",
-  "description": "THROWAWAY spike #1 harness — pins uniffi-bindgen-react-native to prove criterion 5 (pinnable/vendorable).",
-  "dependencies": {
-    "uniffi-bindgen-react-native": "0.29.3-1"
-  }
-}

@@ -44,9 +44,10 @@ jobs:
       - name: Install cargo-ndk (reliable, from source)
         run: cargo install cargo-ndk --locked
       - name: cargo ndk build (arm64-v8a)
+        working-directory: spikes/rn-ffi/rust/lumi-ffi-spike
         env:
           ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
-        run: cargo ndk -t arm64-v8a build --release --manifest-path "$CRATE"
+        run: cargo ndk -t arm64-v8a build --release
       - name: Show built .so
         run: find spikes/rn-ffi/rust -name '*.so' -ls
 
@@ -79,29 +80,33 @@ jobs:
       - name: Install pinned uniffi-bindgen-react-native
         run: npm install
         working-directory: spikes/rn-ffi
-      - name: Discover generate-jsi CLI (always runs; first call also compiles ubrn)
+      - name: Discover generate-jsi-bindings CLI (always; first call also compiles ubrn)
         working-directory: spikes/rn-ffi
-        run: npx ubrn generate jsi --help || true
-      - name: ubrn generate jsi (TS + C++ bindings from the Rust)
+        run: npx ubrn generate jsi bindings --help || true
+      - name: ubrn generate jsi bindings (TS + C++ from the Rust)
+        id: gen
+        continue-on-error: true
         working-directory: spikes/rn-ffi
-        run: npx ubrn generate jsi --config ubrn.config.yaml
+        run: npx ubrn generate jsi bindings --config ubrn.config.yaml
       - name: Show generated bindings
         if: always()
         working-directory: spikes/rn-ffi
         run: find generated -type f -print 2>/dev/null || echo "(no generated/ dir)"
-      - name: "§1 check: no secret type crosses the FFI; public API is handle-based"
-        if: always()
+      - name: "§1 gate: bindings exist + no secret type crosses the FFI"
         working-directory: spikes/rn-ffi
         run: |
+          if [ ! -d generated ] || [ -z "$(find generated -type f)" ]; then
+            echo "::error::no bindings generated — see 'generate jsi bindings --help' above"
+            exit 1
+          fi
           echo "---- exported function signatures in generated TS ----"
           grep -rInE "export function (newDeviceKey|publicKey|sealCheckin|openCheckin)" generated || true
           echo "---- assert NO secret/private-key symbol leaks into TS bindings ----"
           if grep -rIniE "secret|private[_-]?key|staticsecret" generated; then
             echo "::error::§1 VIOLATION: a secret-key symbol appears in the generated FFI bindings"
             exit 1
-          else
-            echo "§1 OK: no secret/private-key symbol in the generated bindings"
           fi
+          echo "§1 OK: bindings present, no secret/private-key symbol crosses the FFI"
       - name: Upload generated bindings
         if: always()
         uses: actions/upload-artifact@v4

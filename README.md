@@ -49,6 +49,11 @@ Migrace se registrují automaticky při startu aplikace (`src/db/connect.ts`).
 Testy běží proti stejnému schématu a migracím přes better-sqlite3 v paměti
 (`test/helpers/testDb.ts`) — nativní build k vývoji logiky potřeba není.
 
+Dev build potřebují i **lokální připomínky** (`expo-notifications`): knihovna
+nezmizela, jen v SDK 53+ skončila vzdálená push notifikace v Expo Go. Lokální
+plánované notifikace (které appka používá — žádný push token) běží
+v development buildu; v Expo Go se jen objeví varování.
+
 Kontroly: `npm test`, `npm run typecheck`, `npm run lint`, `npx expo-doctor`.
 
 ## Co je hotové
@@ -118,13 +123,11 @@ Prototyp přepínal varianty obrazovek ručně (tweaks panel); v aplikaci je
 
 Záznamy se ukládají **jen do telefonu**, do SQLite šifrované SQLCipherem
 (emoční záznamy = zvláštní kategorie dle čl. 9 GDPR); klíč drží
-Keychain/Keystore (expo-secure-store) a nikdy neopouští zařízení. Starší
-data z AsyncStorage (klíč `lumi-app-v1`) se při prvním startu jednorázově
-přelijí do databáze. Žádný backend, žádná telemetrie. Přepínač „Data pro
-výzkum“ je výhradně opt-in, default vypnuto — a zatím nic neodesílá; je to
-připravené UI pro budoucí anonymní export. Záloha v Přehledech exportuje
-**nešifrovaný** JSON — o jeho bezpečné uložení se stará uživatel (appka to
-říká rovnou v kartě zálohy).
+Keychain/Keystore (expo-secure-store) a nikdy neopouští zařízení. Žádný
+backend, žádná telemetrie. Přepínač „Data pro výzkum“ je výhradně opt-in,
+default vypnuto — a zatím nic neodesílá; je to připravené UI pro budoucí
+anonymní export. Záloha v Přehledech exportuje **nešifrovaný** JSON — o jeho
+bezpečné uložení se stará uživatel (appka to říká rovnou v kartě zálohy).
 
 ## Adaptace na Expo / React Native
 

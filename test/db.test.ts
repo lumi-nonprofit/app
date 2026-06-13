@@ -1,8 +1,6 @@
-/* Datová vrstva: schéma + repo funkce, jednorázová migrace z AsyncStorage
-   (idempotentní) a záloha export → smazání → import = identická data. */
-import AsyncStorage from "@react-native-async-storage/async-storage";
+/* Datová vrstva: schéma + repo funkce a záloha export → smazání → import
+   = identická data. */
 import { buildBackup, importBackup, parseBackup } from "../src/db/backup";
-import { LEGACY_STORE_KEY, migrateLegacyStore, sanitizeLegacyState } from "../src/db/migrateLegacy";
 import {
   insertEntry,
   insertMeasurement,
@@ -70,77 +68,6 @@ describe("repo: záznamy a měření", () => {
     writeProfile(db, { name: "Janko", age: "u26" });
     writeProfile(db, { onboarded: true });
     expect(readProfile(db)).toEqual({ onboarded: true, name: "Janko", age: "u26", share: false });
-  });
-});
-
-describe("migrace z AsyncStorage", () => {
-  const legacyPayload = {
-    onboarded: true,
-    name: "Janko",
-    age: "u26",
-    share: false,
-    route: "home", // stará verze persistovala i navigaci — musí se zahodit
-    entries: [
-      {
-        id: "100-a",
-        date: "2026-06-10",
-        time: "8:15",
-        mood: "klid",
-        intensity: 2,
-        words: ["pohoda"],
-        tags: [],
-        note: "",
-      },
-      {
-        id: "101-b",
-        date: "2026-06-12",
-        time: "19:02",
-        mood: "napeti",
-        intensity: 4,
-        words: ["stres"],
-        tags: ["škola"],
-        note: "test",
-      },
-    ],
-    who5: [{ score: 64, date: "2026-06-01" }],
-  };
-
-  it("sanitizace zahazuje route a nevalidní záznamy", () => {
-    const st = sanitizeLegacyState(
-      JSON.stringify({ ...legacyPayload, entries: [...legacyPayload.entries, { bogus: true }] }),
-    );
-    expect(st.entries).toHaveLength(2);
-    expect(st).not.toHaveProperty("route");
-    expect(sanitizeLegacyState("{{{").entries).toEqual([]);
-    expect(sanitizeLegacyState(null).onboarded).toBe(false);
-  });
-
-  it("přelije data, ověří počty a smaže starý klíč; opakování nic nerozbije", async () => {
-    const db = createTestDb();
-    await AsyncStorage.setItem(LEGACY_STORE_KEY, JSON.stringify(legacyPayload));
-
-    await migrateLegacyStore(db);
-    expect(listEntries(db)).toHaveLength(2);
-    expect(listMeasurements(db, "who5").map((m) => m.score)).toEqual([64]);
-    expect(readProfile(db)).toEqual({ onboarded: true, name: "Janko", age: "u26", share: false });
-    expect(await AsyncStorage.getItem(LEGACY_STORE_KEY)).toBeNull();
-
-    // idempotence: druhé spuštění (klíč už neexistuje) nic nezmění
-    await migrateLegacyStore(db);
-    expect(listEntries(db)).toHaveLength(2);
-
-    // a kdyby klíč přežil (smazání selhalo), vloží se jen chybějící
-    await AsyncStorage.setItem(LEGACY_STORE_KEY, JSON.stringify(legacyPayload));
-    writeProfile(db, { name: "Nové jméno" });
-    await migrateLegacyStore(db);
-    expect(listEntries(db)).toHaveLength(2);
-    expect(readProfile(db).name).toBe("Nové jméno"); // DB je zdroj pravdy, migrace nepřepisuje
-  });
-
-  it("prázdný storage → no-op", async () => {
-    const db = createTestDb();
-    await migrateLegacyStore(db);
-    expect(listEntries(db)).toEqual([]);
   });
 });
 

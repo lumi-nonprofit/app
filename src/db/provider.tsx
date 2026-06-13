@@ -1,9 +1,8 @@
-/* DbProvider: otevře šifrovanou databázi, provede migrace (Drizzle +
-   jednorázovou migraci z AsyncStorage) a do té doby nevykresluje nic
-   (nativní splash zůstává). Verze dat řídí re-query hooků po zápisu. */
+/* DbProvider: otevře šifrovanou databázi (vč. Drizzle migrací) a do té doby
+   nevykresluje nic (nativní splash zůstává). Verze dat řídí re-query hooků
+   po zápisu. */
 import React from "react";
 import { connectDb } from "./connect";
-import { migrateLegacyStore } from "./migrateLegacy";
 import type { LumiDb } from "./types";
 
 const DbContext = React.createContext<LumiDb | null>(null);
@@ -21,8 +20,7 @@ export function DbProvider({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     let alive = true;
     connectDb()
-      .then(async (d) => {
-        await migrateLegacyStore(d);
+      .then((d) => {
         if (alive) setDb(d);
       })
       .catch((err: unknown) => {

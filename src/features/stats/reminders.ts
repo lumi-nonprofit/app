@@ -1,7 +1,13 @@
 /* Lokální připomínky (expo-notifications) — jen plánované lokální
    notifikace, žádný push token, žádná zmínka o zmeškání. Texty gentle
    a rodově neutrální, rotují podle dne v týdnu. O povolení se žádá až
-   při zapnutí přepínače, nikdy při startu aplikace. */
+   při zapnutí přepínače, nikdy při startu aplikace.
+
+   Pozn.: expo-notifications NEbylo zrušeno — v SDK 53+ jen zmizela
+   vzdálená push notifikace z Expo Go (Android). Lokální plánované
+   notifikace (tohle) fungují v development buildu, který appka stejně
+   potřebuje kvůli SQLCipheru. V Expo Go se objeví varování a notifikace
+   se nenaplánuje — proto vždy testovat na dev buildu. */
 import { Platform } from "react-native";
 import * as Notifications from "expo-notifications";
 

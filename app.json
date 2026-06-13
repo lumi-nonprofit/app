@@ -30,6 +30,12 @@
       "expo-secure-store",
       "expo-sharing",
       "expo-audio",
+      [
+        "expo-notifications",
+        {
+          "color": "#E8AC43"
+        }
+      ],
       "@react-native-community/datetimepicker",
       "expo-asset"
     ],

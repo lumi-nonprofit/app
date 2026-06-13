@@ -3,18 +3,15 @@
    Data žijí v SQLite (v testech better-sqlite3, viz helpers/testDb);
    navigaci vlastní router a nikam se nepersistuje. */
 import { Linking } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fireEvent, userEvent } from "@testing-library/react-native";
 import { renderRouter, screen } from "expo-router/testing-library";
 import { listEntries, readProfile } from "../src/db/repo";
-import { LEGACY_STORE_KEY } from "../src/db/migrateLegacy";
-import { toISODate } from "../src/model";
 import { getTestDb } from "./helpers/testDb";
 
 type User = ReturnType<typeof userEvent.setup>;
 
 async function finishOnboarding(user: User, name = "Janko"): Promise<void> {
-  // hydratace z AsyncStorage je asynchronní — první obrazovka se objeví až po načtení
+  // hydratace databáze je asynchronní — první obrazovka se objeví až po načtení
   expect(await screen.findByText("Ahoj, tady Lumi.")).toBeOnTheScreen();
   // CTA je neaktivní, dokud není jméno
   const next = screen.getByRole("button", { name: "Pokračovat" });
@@ -48,38 +45,6 @@ describe("Lumi app", () => {
     expect(profile.onboarded).toBe(true);
     expect(profile.name).toBe("Janko");
     expect(profile.age).toBe("u26");
-  });
-
-  it("stará data z AsyncStorage se při startu přelijí do DB", async () => {
-    await AsyncStorage.setItem(
-      LEGACY_STORE_KEY,
-      JSON.stringify({
-        onboarded: true,
-        name: "Janko",
-        age: "u26",
-        share: false,
-        route: "stats",
-        entries: [
-          // dnešní datum: karta na Dnes shrnuje právě dnešní zápis
-          {
-            id: "1-l",
-            date: toISODate(),
-            time: "8:00",
-            mood: "klid",
-            intensity: 2,
-            words: ["pohoda"],
-            tags: [],
-            note: "",
-          },
-        ],
-        who5: [],
-      }),
-    );
-    await renderRouter("app");
-    // onboarding se přeskočí (profil z migrace), karta shrnuje dnešní zápis
-    expect(await screen.findByText(/Dnes zapsáno: Klid · pohoda/)).toBeOnTheScreen();
-    expect(listEntries(getTestDb())).toHaveLength(1);
-    expect(await AsyncStorage.getItem(LEGACY_STORE_KEY)).toBeNull();
   });
 
   it("uloží check-in a ukáže potvrzení s kontextovým tipem", async () => {

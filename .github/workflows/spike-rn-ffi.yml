@@ -80,14 +80,16 @@ jobs:
       - name: Install pinned uniffi-bindgen-react-native
         run: npm install
         working-directory: spikes/rn-ffi
-      - name: Discover generate-jsi-bindings CLI (always; first call also compiles ubrn)
-        working-directory: spikes/rn-ffi
-        run: npx ubrn generate jsi bindings --help || true
-      - name: ubrn generate jsi bindings (TS + C++ from the Rust)
-        id: gen
+      - name: Build host cdylib (uniffi library-mode source for the binder)
+        working-directory: spikes/rn-ffi/rust/lumi-ffi-spike
+        run: cargo build --release
+      - name: ubrn generate jsi bindings (TS + C++ from the compiled library)
         continue-on-error: true
         working-directory: spikes/rn-ffi
-        run: npx ubrn generate jsi bindings --config ubrn.config.yaml
+        run: |
+          npx ubrn generate jsi bindings --library --no-format \
+            --ts-dir generated/ts --cpp-dir generated/cpp \
+            rust/lumi-ffi-spike/target/release/liblumi_ffi_spike.so
       - name: Show generated bindings
         if: always()
         working-directory: spikes/rn-ffi

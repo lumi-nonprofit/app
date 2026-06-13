@@ -5,9 +5,14 @@ přehledy a pomoc v krizi. Zdarma, neziskově, česky.
 
 Implementace vychází z high-fidelity prototypu **„Lumi Prototyp“** z Claude
 Designu (handoff z 12. 6. 2026) a z **Lumi design systemu** (tokeny v
-`src/theme.js` jsou převzaté 1:1, komponenty v `src/ds/` odpovídají DS bundle).
+`src/theme.ts` jsou převzaté 1:1, komponenty v `src/ds/` odpovídají DS bundle).
 Nativní mobilní aplikace v **Expo / React Native** (iOS, Android, web přes
 react-native-web), návrhový rozměr 390×844, světlý režim.
+
+**Stack:** Expo SDK 56 · React Native 0.85 · React 19 · TypeScript (strict) ·
+expo-router (typed routes) · šifrovaná SQLite (SQLCipher) + Drizzle ORM ·
+ESLint (expo + react-native-a11y) + Prettier. Vše local-first, offline,
+bez backendu a telemetrie.
 
 ## Spuštění
 
@@ -51,15 +56,26 @@ Kontroly: `npm test`, `npm run typecheck`, `npm run lint`, `npx expo-doctor`.
 - **Onboarding (3 obrazovky):** jméno → věkové pásmo (určuje primární
   krizovou linku) → soukromí. Bez tab baru.
 - **Dnes:** pozdrav podle denní doby, dominantní check-in karta (po dnešním
-  zápisu se změní na shrnutí), wellbeing index, „Pro tebe“, krizová karta.
+  zápisu se změní na shrnutí), wellbeing index z reálných dat, „Pro tebe“
+  (jeden zdroj doporučení), krizová karta.
 - **Check-in:** krok 1 (stav + intenzita 1–5) → krok 2 (slova 1–2, kontextové
-  štítky, nepovinná poznámka) → potvrzení s kontextovým tipem podle stavu.
-- **Klid:** dechový kruh (4 s nádech / 4 s výdech, respektuje systémovou
-  redukci pohybu), seznam aktivit, Večerka.
-- **Přehledy:** týden/měsíc jako tečky, wellbeing index s kadencí 14 dní,
+  i **vlastní** štítky, nepovinná poznámka) → potvrzení s kontextovým tipem
+  podle stavu. Výběr a uložení provází decentní **haptika**.
+- **Dotazníky:** **WHO-5** (wellbeing index, kadence 14 dní), volitelně
+  **PHQ-9** a **GAD-7** v sekci „Chceš jít víc do hloubky?“. Jedna otázka na
+  kartu, výsledek jako pásmo + trend vůči vlastnímu měření, nikdy diagnóza.
+  Disclaimer před prvním hlubším screeningem; **PHQ-9 ot. 9 > 0** vede na
+  empatickou podpůrnou mezistránku místo výsledku.
+- **Klid:** dechový kruh, přehrávač aktivit (Dech 4-7-8 s časovanými fázemi
+  i bez audia, audio aktivity připravené), **Dech naslepo** (telefon v kapse,
+  vedení vibracemi).
+- **Přehledy:** týden/měsíc jako tečky, wellbeing index, **insights**
+  („Co se ukazuje“ — deskriptivní vzorce), **týdenní reflexe**, **připomínky**
+  (lokální notifikace, default vypnuto), **záloha** (export/import JSON),
   přepínač „Data pro výzkum“ (default vypnuto).
-- **Pomoc:** krizové linky s `tel:` odkazy, trvalý řádek 155/112, krizový
-  plán, rychlé zklidnění, rozcestník „Co dělat, když…“, kontakty.
+- **Pomoc:** krizové linky s `tel:` odkazy, trvalý řádek 155/112, editovatelný
+  krizový plán + **tisk kartičky do peněženky** (PDF), rychlé zklidnění,
+  režim **„Podej telefon“** pro třetí osobu, rozcestník, kontakty.
 
 Spodní navigace: **Dnes · Klid · Check-in (+) · Přehledy · Pomoc**.
 
@@ -75,6 +91,11 @@ Prototyp přepínal varianty obrazovek ručně (tweaks panel); v aplikaci je
 | Přehledy — prázdný týden     | 0–1 záznam v aktuálním týdnu → povzbuzení bez viny             |
 | Přehledy — WHO-5 pod 50 %    | poslední skóre < 50 → empatická věta + tiché tlačítko na Pomoc |
 | Dnes — shrnutí zápisu        | existuje dnešní záznam                                         |
+| Dotazník — disclaimer        | první spuštění PHQ-9/GAD-7 → orientační nástroj, ne diagnóza   |
+| PHQ-9 — podpůrná mezistránka | odpověď na otázku 9 (myšlenky na smrt) > 0 → akce nad foldem   |
+| Insights — málo dat          | < 3 záznamy / vzorec pod prahem → povzbuzení místo nálezu      |
+| Reflexe — okno viditelnosti  | karta „Ohlédnutí za týdnem“ od neděle 17:00 do pondělí         |
+| Kartička — prázdný plán      | tisk bez vyplněného plánu → výzva k vyplnění, ne prázdné PDF   |
 
 ## Klíčová rozhodnutí (převzatá z handoff prototypu)
 
@@ -107,7 +128,7 @@ připravené UI pro budoucí anonymní export. Záloha v Přehledech exportuje
 
 ## Adaptace na Expo / React Native
 
-- CSS tokeny DS jsou převedené 1:1 do `src/theme.js` (barvy, spacing, rádiusy,
+- CSS tokeny DS jsou převedené 1:1 do `src/theme.ts` (barvy, spacing, rádiusy,
   typografie, stíny, motion). RN Text nedědí styly, proto theme nabízí helpery
   `font.display(weight)` / `font.body(weight)` (statické řezy fontů),
   `leading.*` a `tracking.*` (převod em/unitless hodnot na body).
@@ -129,29 +150,40 @@ připravené UI pro budoucí anonymní export. Záloha v Přehledech exportuje
 
 ## Co zatím není (další kroky)
 
-- **WHO-5 dotazník** — obrazovka nebyla součástí návrhu. Datový model je
-  připravený (`who5: [{ score, date }]` ve storu), karty wellbeingu všechny
-  stavy už umí; „Vyplnit první dotazník“ zatím vede na Přehledy.
-- **Detailní obsah** — aktivity v Klidu (audio/meditace), sekce krizového
-  plánu, rozcestník „Co dělat, když…“ a chat Linky bezpečí jsou navržené
+- **Audio soubory** klidových aktivit (Tichá louka, Večerka) — přehrávač je
+  připravený, položky bez souboru mají badge „připravujeme“; po dodání stačí
+  doplnit `file` v `src/features/calm/content.ts` (viz `assets/audio/`).
+- **iOS State of Mind** (zápis nálad do Apple Zdraví) — knihovna ho zatím
+  nepodporuje, takže je za feature flagem a zdokumentovaný v
+  `docs/state-of-mind.md`.
+- **Rozcestník „Co dělat, když…“** a chat Linky bezpečí jsou navržené
   rozcestníky bez cílových obrazovek.
-- **Před ostrým nasazením ověřit** telefonní linky a provozní doby
-  (116 111, 116 123, 606 021 021) a doplnit skutečné logo.
+- **Znění dotazníků** WHO-5 / PHQ-9 / GAD-7 ověřit proti validovaným českým
+  verzím (v kódu označeno `TODO(Anna)`); ověřit telefonní linky a provozní
+  doby (116 111, 116 123, 606 021 021) a doplnit skutečné logo.
+- **Nativní ověření na dev buildu:** šifrování DB na disku, haptika,
+  notifikace, keep-awake u Dechu naslepo, tisk PDF kartičky.
 
 ## Struktura
 
 ```
-index.js           vstup (registerRootComponent)
-app.json           Expo konfigurace (ikony, splash, web manifest)
-assets/            logo + generované ikony aplikace
+app.json           Expo konfigurace (ikony, splash, plugins, web manifest)
+app/               expo-router: routes (_layout, (tabs), onboarding, checkin,
+                   measure/[type], calm/[id], plan/[section], handover, …)
+drizzle/           vygenerované SQL migrace + journal
+assets/            logo, generované ikony, audio/ (manifest cvičení)
+docs/              poznámky (state-of-mind.md)
 src/
-  theme.js         tokeny DS 1:1 (barvy, typografie, spacing, stíny, motion)
-  ds/              DS komponenty (Button, Card, Chip, Input, Switch, …)
-  components/      sdílené prvky (MoodShape, Header, CTA, Breath, TabBar,
-                   Screen, LumiMark)
-  screens/         Onboarding, Home, Checkin, Calm, Stats, Help
-  model.js         stavy, slovník, agregace týdne/měsíce, WHO-5 texty
-  store.js         persistovaný stav (AsyncStorage)
-  App.jsx          routing a propojení flow
-test/              jest-expo + @testing-library/react-native
+  theme.ts         tokeny DS 1:1 (barvy, typografie, spacing, stíny, motion)
+  model.ts         doménové typy, slovník, agregace, doporučení, WHO-5 texty
+  store.tsx        profil/preference (paměť + settings tabulka)
+  ds/              DS komponenty (Button, Card, Chip, Input, Switch, Icon, …)
+  components/      sdílené prvky (MoodShape, Header, CTA, Breath, TabBar, …)
+  db/              SQLite + SQLCipher + Drizzle: schema, connect, repo, hooks,
+                   provider, migrateLegacy (z AsyncStorage), backup
+  features/        feature-first obrazovky a logika:
+                   checkin, calm, measure, stats, help, onboarding, home
+  lib/             haptics, featureFlags
+test/              jest-expo + @testing-library/react-native (vč. expo-router
+                   testing-library); helpers/testDb = better-sqlite3 v paměti
 ```

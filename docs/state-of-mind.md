@@ -32,15 +32,15 @@ flag `STATE_OF_MIND_ENABLED` (`src/lib/featureFlags.ts`, default `false`).
 
 ## Mapování (až to půjde)
 
-| Lumi             | HKStateOfMind                                  |
-| ---------------- | ---------------------------------------------- |
-| kvadrant Energie | valence kladná (pleasant), arousal vysoký      |
-| kvadrant Klid    | valence kladná (pleasant), arousal nízký       |
-| kvadrant Napětí  | valence záporná (unpleasant), arousal vysoký   |
-| kvadrant Útlum   | valence záporná (unpleasant), arousal nízký    |
-| intenzita 1–5    | velikost valence škálovaná do 0,2–1,0          |
-| slova (words)    | `HKStateOfMind.Label` nejbližší ekvivalent     |
-| typ záznamu      | `momentaryEmotion` (check-in je „teď a tady“)  |
+| Lumi             | HKStateOfMind                                 |
+| ---------------- | --------------------------------------------- |
+| kvadrant Energie | valence kladná (pleasant), arousal vysoký     |
+| kvadrant Klid    | valence kladná (pleasant), arousal nízký      |
+| kvadrant Napětí  | valence záporná (unpleasant), arousal vysoký  |
+| kvadrant Útlum   | valence záporná (unpleasant), arousal nízký   |
+| intenzita 1–5    | velikost valence škálovaná do 0,2–1,0         |
+| slova (words)    | `HKStateOfMind.Label` nejbližší ekvivalent    |
+| typ záznamu      | `momentaryEmotion` (check-in je „teď a tady“) |
 
 Pozn.: HKStateOfMind má valence −1…+1; mapujeme znaménko z kvadrantu
 a velikost z intenzity. Zapisuje se **pouze** se zapnutým togglem

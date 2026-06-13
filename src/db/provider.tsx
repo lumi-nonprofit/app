@@ -23,9 +23,11 @@ export function DbProvider({ children }: { children: React.ReactNode }) {
       .then((d) => {
         if (alive) setDb(d);
       })
-      .catch((err: unknown) => {
-        // bez telemetrie: chyba zůstává jen v lokálním logu vývojáře
-        console.error("Lumi: databázi se nepodařilo otevřít", err);
+      .catch(() => {
+        // S12: žádné citlivé logy v produkci. Klíč/PRAGMA/cesty se nelogují nikdy;
+        // ani chybový objekt (může nést PRAGMA či cestu k souboru). V dev buildu
+        // jen obecná zpráva. Bez DB se UI nevykreslí (provider vrací null).
+        if (__DEV__) console.error("Lumi: databázi se nepodařilo otevřít.");
       });
     return () => {
       alive = false;

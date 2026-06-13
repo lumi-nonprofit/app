@@ -1,6 +1,6 @@
 # ADR 0001 — Lumi cross-platform architecture (Milestone 0)
 
-- **Status:** **Accepted with conditions** (2026-06-13) — see the sign-off record
+- **Status:** **Ratified** (2026-06-13) — M0 step (b) in progress. See the sign-off record
   below. The shared Rust core, the locked crypto/sync design, and the
   *defer-the-UI-lock-to-M3 + spikes + A-native-fallback* strategy are
   approved. Five conditions (sign-off record) must be reflected before
@@ -73,6 +73,23 @@ D-rn's structural disqualifier, so the UI decision is **reopened with a revised
 recommendation — keep React Native for the v1 mobile surface (D-rn)** — see
 **§2.4 Revision**; (iii) nothing is scaffolded until Anna confirms these
 revisions.
+
+**Ratification (2026-06-13 #2).** Both parked questions answered; the ADR is now
+**acted on**:
+- **Q1 (UI) — ratified:** **D-rn (keep React Native) for v1, scoped MOBILE-ONLY —
+  Android + iOS (iPad via the iOS build).** Desktop (Windows/macOS/Linux) and
+  watchOS are **post-v1** milestones, each with its own framework decision (§2.4a /
+  §12); the §2.4a all-platform analysis is **not** acted on now. M1–M3 go entirely
+  to the core, sync, and migration. Rationale on record: the rebuild's value is the
+  audited Rust core + zero-knowledge sync + migration, not a UI rewrite; D-rn is the
+  only path reusing the existing accessible UI + test suite; RN's **native**
+  accessibility tree is a strength for EN 301 549 / WCAG 2.2 AA, not a compromise.
+- **Q1 condition — spike #1 is a HARD GO/NO-GO gate** (not a checkbox): see §13.
+- **Q2 (scaffold) — green-lit:** M0 step (b), the framework-independent foundation
+  only; `apps/` stays **empty** until spike #1 passes and M3.
+- **Interoperability (record-only, do NOT build):** the eventual API/interop layer
+  maps to **FHIR / SMART on FHIR / Open mHealth** at the boundary, Rust-native event
+  model kept internal — see **ADR 0002** (stub). The schema must not foreclose it.
 
 ---
 
@@ -682,9 +699,15 @@ local op-log+HLC for offline writes — §3.)*
 milestone.
 
 *M1 spikes for the v1 mobile path (D-rn):*
-1. **`uniffi-bindgen-react-native` binding** — bind the Rust core into the existing
-   RN app via JSI/TurboModules; confirm **no raw key bytes cross the FFI** (only
-   handles/plaintext, §1), and pin the pre-1.0 binder.
+1. **`uniffi-bindgen-react-native` binding — HARD GO/NO-GO GATE for D-rn-for-v1.**
+   Run **early in M1** and **report the outcome before** building out the RN↔core
+   integration further. **Pass criteria (all required):** (a) builds + runs against
+   the current RN New Architecture / RN version; (b) the FFI returns **handles /
+   plaintext domain objects ONLY — verify NO raw key bytes cross into the JS heap**
+   (the §1 invariant); (c) the binder can be **pinned and vendored**. **On fail or
+   flake on any criterion: do NOT work around it silently — stop, report, and
+   reopen the v1 UI decision to the §2.4a broad-surface analysis** (CMP/Flutter via
+   the gate-2 binding-maturity evaluation).
 2. **Argon2id 64 MiB on low-end Android** — confirm the unlock-latency budget;
    decide per-platform params if needed. (**Watch excluded** — phone-enrolled, §3.)
 

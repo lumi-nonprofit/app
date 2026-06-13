@@ -124,7 +124,7 @@ describe("Lumi app", () => {
 
   it("Pomoc: primární linka podle věku, tel: odkazy, řádek 155/112", async () => {
     const user = userEvent.setup();
-    // mockResolvedValue(undefined): TS vyžaduje argument, runtime je shodný s bezparametrickým voláním
+    // runtime ekvivalent mockResolvedValue(), ale @types/jest zde vyžaduje argument
     const openURL = jest.spyOn(Linking, "openURL").mockResolvedValue(undefined);
     await renderRouter("app");
     await finishOnboarding(user); // do 26 let

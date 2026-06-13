@@ -5,7 +5,7 @@
    oficiální mock knihovny dodá nulové insety, takže děti se vykreslí.
    Nativní šifrovaná SQLite se mockuje na better-sqlite3 (stejné schéma,
    stejné migrace) — viz helpers/testDb. */
-import { __resetTestDb } from "./helpers/testDb";
+import { __resetTestDb as resetTestDb } from "./helpers/testDb";
 
 jest.mock(
   "react-native-safe-area-context",
@@ -17,7 +17,7 @@ jest.mock("../src/db/connect", () => jest.requireActual("./helpers/testDb"));
 /* expo-audio nemá v jestu nativní modul (spadl by na importu); přehrávač ho
    používá jen pro audio se souborem, v testech stačí no-op. */
 jest.mock("expo-audio", () => ({
-  setAudioModeAsync: jest.fn(async () => {}),
+  setAudioModeAsync: jest.fn().mockResolvedValue(undefined),
   useAudioPlayer: () => ({
     play: jest.fn(),
     pause: jest.fn(),
@@ -38,7 +38,7 @@ jest.mock("expo-print", () => ({
 }));
 
 beforeEach(() => {
-  __resetTestDb();
+  resetTestDb();
 });
 
 afterEach(() => {

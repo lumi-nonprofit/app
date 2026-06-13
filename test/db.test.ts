@@ -38,9 +38,21 @@ describe("repo: záznamy a měření", () => {
     expect(listEntries(db, { from: "2026-06-12" }).map((e) => e.id)).toEqual([b.id, c.id]);
     expect(listEntries(db, { to: "2026-06-10" })).toHaveLength(1);
     // duplicitní id se tiše ignoruje (merge sémantika)
-    insertEntry(db, { ...a, note: "jiná" });
+    insertEntry(db, {
+      ...a,
+      note: "jiná",
+      mood: "napeti",
+      intensity: 5,
+      words: ["prepsano"],
+      tags: ["x"],
+    });
     expect(listEntries(db)).toHaveLength(3);
-    expect(listEntries(db, { to: "2026-06-10" })[0].note).toBe("");
+    const originalA = listEntries(db, { to: "2026-06-10" }).find((e) => e.id === a.id)!;
+    expect(originalA.note).toBe("");
+    expect(originalA.mood).toBe("klid");
+    expect(originalA.intensity).toBe(2);
+    expect(originalA.words).toEqual([]);
+    expect(originalA.tags).toEqual([]);
   });
 
   it("měření se filtrují podle typu a řadí podle data", () => {

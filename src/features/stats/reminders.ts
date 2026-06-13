@@ -77,7 +77,7 @@ export async function scheduleDailyReminder(time: ReminderTime): Promise<void> {
       content: { title: "Lumi", body: REMINDER_TEXTS[(weekday - 1) % REMINDER_TEXTS.length] },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
-        weekday, // 1 = neděle … 7 = sobota
+        weekday, // expo-notifications WEEKLY: 1 = neděle … 7 = sobota (na rozdíl od JS Date.getDay(): 0 = neděle … 6 = sobota)
         hour: time.hour,
         minute: time.minute,
       },

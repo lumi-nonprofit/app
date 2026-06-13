@@ -23,18 +23,43 @@ describe("WHO-5", () => {
 
 describe("PHQ-9 pásma (0–4 / 5–9 / 10–14 / 15–19 / 20–27)", () => {
   it.each([
-    [0, "minimal"],
-    [4, "minimal"],
-    [5, "mild"],
-    [9, "mild"],
-    [10, "moderate"],
-    [14, "moderate"],
-    [15, "moderately-severe"],
-    [19, "moderately-severe"],
-    [20, "severe"],
-    [27, "severe"],
-  ])("skóre %i → %s", (score, id) => {
+    [0, "minimal", "Odpovědi odpovídají pásmu minimálních příznaků."],
+    [4, "minimal", "Odpovědi odpovídají pásmu minimálních příznaků."],
+    [5, "mild", "Odpovědi odpovídají pásmu mírných příznaků."],
+    [9, "mild", "Odpovědi odpovídají pásmu mírných příznaků."],
+    [
+      10,
+      "moderate",
+      "Odpovědi odpovídají pásmu středně závažných příznaků. Může pomoct probrat to s někým blízkým nebo s odbornou podporou.",
+    ],
+    [
+      14,
+      "moderate",
+      "Odpovědi odpovídají pásmu středně závažných příznaků. Může pomoct probrat to s někým blízkým nebo s odbornou podporou.",
+    ],
+    [
+      15,
+      "moderately-severe",
+      "Odpovědi odpovídají pásmu závažnějších příznaků. Stojí za to říct si o odbornou podporu — v Pomoci najdeš, kde začít.",
+    ],
+    [
+      19,
+      "moderately-severe",
+      "Odpovědi odpovídají pásmu závažnějších příznaků. Stojí za to říct si o odbornou podporu — v Pomoci najdeš, kde začít.",
+    ],
+    [
+      20,
+      "severe",
+      "Odpovědi odpovídají pásmu výrazných příznaků. Stojí za to říct si o odbornou podporu co nejdřív — v Pomoci najdeš, kde začít.",
+    ],
+    [
+      27,
+      "severe",
+      "Odpovědi odpovídají pásmu výrazných příznaků. Stojí za to říct si o odbornou podporu co nejdřív — v Pomoci najdeš, kde začít.",
+    ],
+  ])("skóre %i → %s", (score, id, expectedText) => {
     expect(phq9Band(score).id).toBe(id);
+    expect(phq9Band(score).text).toBe(expectedText);
   });
   it("texty jsou deskriptivní, ne diagnóza", () => {
     for (const s of [0, 5, 10, 15, 20]) {
@@ -50,16 +75,39 @@ describe("PHQ-9 pásma (0–4 / 5–9 / 10–14 / 15–19 / 20–27)", () => {
 
 describe("GAD-7 pásma (0–4 / 5–9 / 10–14 / 15–21)", () => {
   it.each([
-    [0, "minimal"],
-    [4, "minimal"],
-    [5, "mild"],
-    [9, "mild"],
-    [10, "moderate"],
-    [14, "moderate"],
-    [15, "severe"],
-    [21, "severe"],
-  ])("skóre %i → %s", (score, id) => {
+    [0, "minimal", "Odpovědi odpovídají pásmu minimálních příznaků."],
+    [4, "minimal", "Odpovědi odpovídají pásmu minimálních příznaků."],
+    [5, "mild", "Odpovědi odpovídají pásmu mírných příznaků."],
+    [9, "mild", "Odpovědi odpovídají pásmu mírných příznaků."],
+    [
+      10,
+      "moderate",
+      "Odpovědi odpovídají pásmu středních příznaků. Může pomoct probrat to s někým blízkým nebo s odbornou podporou.",
+    ],
+    [
+      14,
+      "moderate",
+      "Odpovědi odpovídají pásmu středních příznaků. Může pomoct probrat to s někým blízkým nebo s odbornou podporou.",
+    ],
+    [
+      15,
+      "severe",
+      "Odpovědi odpovídají pásmu výrazných příznaků. Stojí za to říct si o odbornou podporu — v Pomoci najdeš, kde začít.",
+    ],
+    [
+      21,
+      "severe",
+      "Odpovědi odpovídají pásmu výrazných příznaků. Stojí za to říct si o odbornou podporu — v Pomoci najdeš, kde začít.",
+    ],
+  ])("skóre %i → %s", (score, id, expectedText) => {
     expect(gad7Band(score).id).toBe(id);
+    expect(gad7Band(score).text).toBe(expectedText);
+  });
+  it("texty jsou deskriptivní, ne diagnóza", () => {
+    for (const s of [0, 5, 10, 15]) {
+      expect(gad7Band(s).text).toMatch(/^Odpovědi odpovídají pásmu/);
+      expect(gad7Band(s).text).not.toMatch(/deprese|diagnóz/i);
+    }
   });
 });
 
@@ -69,9 +117,20 @@ describe("trend vůči minulému měření", () => {
     expect(trendText(10, undefined)).toBeNull();
   });
   it("deskriptivní formulace s českým plurálem", () => {
+    // 0 rozdíl
     expect(trendText(10, 10)).toBe("Stejně jako minule.");
+
+    // 1 = bod
     expect(trendText(11, 10)).toBe("O 1 bod víc než minule.");
+
+    // 2–4 = body
     expect(trendText(8, 10)).toBe("O 2 body míň než minule.");
+    expect(trendText(14, 10)).toBe("O 4 body víc než minule.");
+
+    // 0, 5+ a teen hodnoty = bodů
+    expect(trendText(5, 10)).toBe("O 5 bodů míň než minule.");
+    expect(trendText(21, 10)).toBe("O 11 bodů víc než minule.");
+    expect(trendText(32, 10)).toBe("O 22 bodů víc než minule.");
     expect(trendText(3, 10)).toBe("O 7 bodů míň než minule.");
   });
   it("WHO-5 se zobrazuje procentem → jednotka %", () => {

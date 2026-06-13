@@ -1,0 +1,24 @@
+[package]
+name = "lumi-ffi-cabi"
+version = "0.0.0"
+edition = "2021"
+publish = false
+description = "THROWAWAY spike #1b: Rust C ABI (cbindgen) over the representative crypto core, for a HAND-WRITTEN RN JSI TurboModule (no ubrn / no UniFFI)."
+
+[lib]
+name = "lumi_ffi_cabi"
+# staticlib -> linked into the C++ TurboModule .so (no separate .so to package);
+# cdylib    -> alternative if you prefer a standalone .so in jniLibs;
+# lib       -> lets `cargo test` run the host round-trip test.
+crate-type = ["staticlib", "cdylib", "lib"]
+
+[dependencies]
+# Vetted pure-Rust crypto only (C-free; cross-compiles to Android NDK targets).
+x25519-dalek = { version = "2", features = ["static_secrets"] }
+chacha20poly1305 = "0.10"
+hkdf = "0.12"
+sha2 = "0.10"
+getrandom = "0.2"
+
+[profile.release]
+panic = "abort"  # a panic must never unwind across the C ABI (UB); abort instead.

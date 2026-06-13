@@ -1,0 +1,15 @@
+[package]
+name = "lumi-core"
+version = "0.0.0"
+edition = "2021"
+publish = false
+description = "Lumi shared core: data model, crypto, sync/merge, validation (privacy-first, on-device)."
+
+[dependencies]
+# None. The crate is intentionally dependency-free: a small in-house JSON reader
+# (src/crisis/json.rs) keeps the security-critical core lean and lets it build with
+# no C toolchain. Ingestion walks the parsed value by hand (boundary validators,
+# mirroring src/db/backup.ts asEntry/asMeasurement) so unknown input degrades.
+
+[lints.rust]
+unsafe_code = "forbid"

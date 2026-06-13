@@ -1,0 +1,1067 @@
+{
+  "schema_version": "1.0",
+  "source": {
+    "name": "Česká asociace pracovišť linek důvěry, z.s. — Linky důvěry v ČR",
+    "url": "https://www.capld.cz/linky-duvery-cr2/?wpbdp_view=all_listings",
+    "accessed_date": "2026-06-13",
+    "note": "Data byla ručně strukturována z veřejného výpisu a viditelných detailů ČAPLD. Časy a kontakty je vhodné před produkčním použitím průběžně validovat proti originálu."
+  },
+  "count": 31,
+  "items": [
+    {
+      "name": "Modrá linka",
+      "operator": "Modrá linka z. s.",
+      "focus": "Pro celou populaci",
+      "contacts": {
+        "phones": [
+          {
+            "number": "608 902 410"
+          }
+        ],
+        "phone_hours": "NONSTOP",
+        "chat": {
+          "url": "https://chat.modralinka.cz",
+          "hours": "PO, ST, NE: 18:30 - 21:30, aktuální provozní doba chatu je upřesněna na webových stránkách organizace"
+        },
+        "email_counseling": [
+          "help@modralinka.cz"
+        ],
+        "contact_emails": [
+          "reditelka@modralinka.cz"
+        ],
+        "web": "https://www.modralinka.cz",
+        "social": []
+      },
+      "address": "Anenská 10/10, 602 00 Brno",
+      "notes": null,
+      "categories": [
+        "Brno",
+        "Celá populace",
+        "Chat",
+        "E-mailové poradenství",
+        "NONSTOP",
+        "Telefonická krizová pomoc",
+        "Volání dle běžného tarifu"
+      ]
+    },
+    {
+      "name": "Rodičovská linka",
+      "operator": "Linka bezpečí, z. s.",
+      "focus": "Služba je určena rodičům, rodinným příslušníkům a ostatním dospělým jednajícím v zájmu dětí (pedagogové, trenéři atp.). Klienti se mohou na nás obracet s nejrůznějšími starostmi, které se týkají dětí, dospívajících a mladých dospělých do 26 let.",
+      "contacts": {
+        "phones": [
+          {
+            "number": "+420 606 021 021"
+          }
+        ],
+        "phone_hours": "PO - ČT - 09:00 - 21:00, PÁ - 9:00 - 17:00",
+        "chat": {
+          "url": "https://chat.rodicovskalinka.cz/",
+          "hours": "NE: 17:00 – 21:00"
+        },
+        "email_counseling": [
+          "pomoc@rodicovskalinka.cz"
+        ],
+        "contact_emails": [
+          "info@linkabezpeci.cz"
+        ],
+        "web": "https://www.rodicovskalinka.cz",
+        "social": []
+      },
+      "address": "Linka bezpečí, z.s., Ústavní 95, 181 02 Praha 8 – Bohnice",
+      "notes": null,
+      "categories": [
+        "Celorepublikové",
+        "Chat",
+        "E-mailové poradenství",
+        "Praha",
+        "Rodiče a škola",
+        "Telefonická krizová pomoc",
+        "Volání dle běžného tarifu"
+      ]
+    },
+    {
+      "name": "Linka důvěry SOS (Mladá Boleslav)",
+      "operator": "Linka důvěry SOS a Centrum psychoterapie",
+      "focus": "Pro celou populaci",
+      "contacts": {
+        "phones": [
+          {
+            "number": "326 741 481"
+          }
+        ],
+        "phone_hours": "PO - PÁ: 09:00 - 18:00",
+        "chat": null,
+        "email_counseling": [
+          "linka.duvery-mb@centrum.cz"
+        ],
+        "contact_emails": [
+          "linka.duvery-mb@centrum.cz"
+        ],
+        "web": "https://www.linka-duvery-mb.cz/",
+        "social": []
+      },
+      "address": "Čechova 778/5, 293 01 Mladá Boleslav",
+      "notes": null,
+      "categories": [
+        "Celá populace",
+        "E-mailové poradenství",
+        "Mladá Boleslav",
+        "Středočeský kraj",
+        "Telefonická krizová pomoc",
+        "Volání dle běžného tarifu"
+      ]
+    },
+    {
+      "name": "Linka důvěry, Res vitae, z. s. (Karlovy Vary)",
+      "operator": "Res vitae, z. s.",
+      "focus": "dospělí",
+      "contacts": {
+        "phones": [
+          {
+            "number": "353 588 080"
+          },
+          {
+            "number": "723 963 356"
+          }
+        ],
+        "phone_hours": "PO - PÁ 19:00 - 07:00",
+        "chat": null,
+        "email_counseling": [],
+        "contact_emails": [
+          "poradna.kv@gmail.com"
+        ],
+        "web": "https://resvitae.cz/",
+        "social": []
+      },
+      "address": "Blahoslavova 659/18, 360 01 Karlovy Vary",
+      "notes": null,
+      "categories": [
+        "Dospělí",
+        "Karlovarský kraj",
+        "Karlovy Vary",
+        "Telefonická krizová pomoc",
+        "Volání dle běžného tarifu"
+      ]
+    },
+    {
+      "name": "Linka duševní tísně (Most)",
+      "operator": "Most k naději z. s.",
+      "focus": "Pro celou populaci",
+      "contacts": {
+        "phones": [
+          {
+            "number": "+420 476 701 444"
+          }
+        ],
+        "phone_hours": "NONSTOP",
+        "chat": null,
+        "email_counseling": [
+          "ldt.most@mostknadeji.cz"
+        ],
+        "contact_emails": [
+          "vedouci.ldt@mostknadeji.cz"
+        ],
+        "web": "http://www.mostknadeji.eu/linka-dusevni-tisne/",
+        "social": []
+      },
+      "address": "P. Jilemnického 1929, 434 01 Most 1",
+      "notes": null,
+      "categories": [
+        "Celá populace",
+        "E-mailové poradenství",
+        "Most",
+        "NONSTOP",
+        "Telefonická krizová pomoc",
+        "Ústecký kraj",
+        "Volání dle běžného tarifu"
+      ]
+    },
+    {
+      "name": "Krizová linka pomoci pro blízké pacientů",
+      "operator": "Národní centrum ošetřovatelství a nelékařských zdravotnických oborů (NCO NZO), SPIS",
+      "focus": "Podpora pro pacienty a blízké pacientů, pro pozůstalé",
+      "contacts": {
+        "phones": [
+          {
+            "number": "227 272 225"
+          }
+        ],
+        "phone_hours": "Denně 08:00 až 20:00",
+        "chat": null,
+        "email_counseling": [],
+        "contact_emails": [
+          "venkolarova@seznam.cz"
+        ],
+        "web": "https://spis.cz/",
+        "social": []
+      },
+      "address": "Národní centrum ošetřovatelství a nelékařských zdravotnických oborů, Vinařská 6, 603 00 Brno",
+      "notes": "K dispozici volajícím jsou zkušení pracovníci Systému psychosociální intervenční služby. Linka poskytuje krizovou podporu v krizích spojených se zdravím.",
+      "categories": [
+        "Blízcí pacientů",
+        "Celorepublikové",
+        "Telefonická krizová pomoc",
+        "Volání dle běžného tarifu"
+      ]
+    },
+    {
+      "name": "Linka PRISON",
+      "operator": "Romodrom, o. p. s.",
+      "focus": "krizová intervence a poradenství v oblasti vězeňství a postpenitenciární péče",
+      "contacts": {
+        "phones": [
+          {
+            "number": "770 330 035"
+          }
+        ],
+        "phone_hours": "PO - PÁ - 09:00 - 21:00",
+        "chat": null,
+        "email_counseling": [
+          "linka.prison@romodrom.cz"
+        ],
+        "contact_emails": [
+          "eva.paprstkarova@romodrom.cz"
+        ],
+        "web": "https://romodrom.cz/linka-prison",
+        "social": [
+          "https://www.facebook.com/people/Linka-Prison/61581875655467/",
+          "https://www.instagram.com/linka_prison"
+        ]
+      },
+      "address": "Sukova třída 1556, Pardubice, 530 02",
+      "notes": null,
+      "categories": [
+        "Celorepublikové",
+        "E-mailové poradenství",
+        "Oblast vězeňství",
+        "Telefonická krizová pomoc"
+      ]
+    },
+    {
+      "name": "Linka kolegiální podpory pro pracovníky ve zdravotnictví",
+      "operator": "Národní centrum ošetřovatelství a nelékařských zdravotnických oborů (NCO NZO), SPIS",
+      "focus": "Kolegiální telefonická podpora a krizová intervence pro pracovníky ve zdravotnictví",
+      "contacts": {
+        "phones": [
+          {
+            "number": "530 331 122"
+          },
+          {
+            "number": "530 331 131"
+          }
+        ],
+        "phone_hours": "Denně 08:00 - 20:00",
+        "chat": null,
+        "email_counseling": [],
+        "contact_emails": [
+          "venkolarova@seznam.cz"
+        ],
+        "web": "https://spis.cz/",
+        "social": []
+      },
+      "address": "Národní centrum ošetřovatelství a nelékařských zdravotnických oborů, Vinařská 6, 603 00 Brno",
+      "notes": "K dispozici zdravotníkům jsou zkušení pracovníci Systému psychosociální intervenční služby. Linka poskytuje kolegiální anonymní podporu zdravotníkům v pracovních i individuálních krizích.",
+      "categories": [
+        "Celorepublikové",
+        "Telefonická krizová pomoc",
+        "Volání dle běžného tarifu",
+        "Zdravotníci"
+      ]
+    },
+    {
+      "name": "Linka důvěry Blansko",
+      "operator": "Oblastní charita Blansko, církevní organizace",
+      "focus": "Pro celou populaci",
+      "contacts": {
+        "phones": [
+          {
+            "number": "516 410 668"
+          },
+          {
+            "number": "737 234 078"
+          }
+        ],
+        "phone_hours": "NONSTOP",
+        "chat": null,
+        "email_counseling": [],
+        "contact_emails": [
+          "soslinka@blansko.charita.cz"
+        ],
+        "web": "https://blansko.charita.cz/co-delame/jsem-v-krizi/linka-duvery/",
+        "social": []
+      },
+      "address": "Komenského 19, 678 01 Blansko",
+      "notes": null,
+      "categories": [
+        "Blansko",
+        "Celá populace",
+        "Jihomoravský kraj",
+        "NONSTOP",
+        "Telefonická krizová pomoc",
+        "Volání dle běžného tarifu"
+      ]
+    },
+    {
+      "name": "Linka pro ženy a dívky",
+      "operator": "ONŽ - pomoc a poradenství pro ženy a dívky, z.s.",
+      "focus": "Ženy, dívky a rodiny v tíživé situaci",
+      "contacts": {
+        "phones": [
+          {
+            "number": "+420 603 210 999"
+          }
+        ],
+        "phone_hours": "PO, ST, PÁ - 08:00 - 20:00",
+        "chat": null,
+        "email_counseling": [
+          "linka@poradnaprozeny.eu"
+        ],
+        "contact_emails": [
+          "linka@poradnaprozeny.eu"
+        ],
+        "web": "https://www.poradnaprozeny.eu",
+        "social": []
+      },
+      "address": "Voršilská 139/5, 110 00 Praha 1",
+      "notes": null,
+      "categories": [
+        "Celorepublikové",
+        "E-mailové poradenství",
+        "Praha",
+        "Telefonická krizová pomoc",
+        "Volání dle běžného tarifu",
+        "Ženy a dívky"
+      ]
+    },
+    {
+      "name": "Telefonická krizová pomoc CDZ RIAPS",
+      "operator": "Sdružení ozdravoven a léčeben okresu Trutnov",
+      "focus": "dospělé osoby v krizi, osoby s chronickým duševním onemocněním",
+      "contacts": {
+        "phones": [
+          {
+            "number": "702 256 762"
+          }
+        ],
+        "phone_hours": "NONSTOP",
+        "chat": null,
+        "email_counseling": [],
+        "contact_emails": [
+          "lucie.skalska@riaps.cz"
+        ],
+        "web": "https://www.riaps.cz/cdz/telefonicka-krizova-linka.html",
+        "social": []
+      },
+      "address": "Procházkova 818, 541 01 Trutnov",
+      "notes": "Pracoviště funguje v rámci Centra duševního zdraví.",
+      "categories": [
+        "Dospělí",
+        "Královéhradecký kraj",
+        "Lidé s duševním onemocněním",
+        "NONSTOP",
+        "Telefonická krizová pomoc",
+        "Trutnov",
+        "Volání dle běžného tarifu"
+      ]
+    },
+    {
+      "name": "Anonymní linka pomoci v krizi",
+      "operator": "Ministerstvo vnitra",
+      "focus": "Linka psychologické pomoci pro pracovníky bezpečnostních sborů a jejich blízké",
+      "contacts": {
+        "phones": [
+          {
+            "number": "974 834 688"
+          }
+        ],
+        "phone_hours": "NONSTOP",
+        "chat": null,
+        "email_counseling": [
+          "pomoc.ski@pcr.cz"
+        ],
+        "contact_emails": [
+          "pomoc.ski@pcr.cz"
+        ],
+        "web": "https://www.policie.cz/clanek/anonymni-linka-pomoci-v-krizi.aspx",
+        "social": []
+      },
+      "address": null,
+      "notes": "Zřizovatelem této služby je ministerstvo vnitra, nejde tedy o samostatnou registrovanou sociální službu. Pracoviště však dodržuje etický kodex linek důvěry včetně respektování anonymity.",
+      "categories": [
+        "Celorepublikové",
+        "E-mailové poradenství",
+        "NONSTOP",
+        "Příslušníci bezpečnostních sborů",
+        "Telefonická krizová pomoc"
+      ]
+    },
+    {
+      "name": "Linka seniorů Elpida",
+      "operator": "Elpida o. p. s.",
+      "focus": "Senioři a osoby pečující o seniory",
+      "contacts": {
+        "phones": [
+          {
+            "number": "800 200 007"
+          }
+        ],
+        "phone_hours": "denně 08:00 - 20.00",
+        "chat": null,
+        "email_counseling": [
+          "linkasenioru@elpida.cz"
+        ],
+        "contact_emails": [
+          "linkasenioru@elpida.cz",
+          "katerina.bohata@elpida.cz"
+        ],
+        "web": "https://www.elpida.cz/linka-senioru",
+        "social": []
+      },
+      "address": "Na Bělidle 34, 150 00 Praha 5",
+      "notes": null,
+      "categories": [
+        "Celorepublikové",
+        "E-mailové poradenství",
+        "Praha",
+        "Senioři",
+        "Telefonická krizová pomoc",
+        "Volání bezplatné"
+      ]
+    },
+    {
+      "name": "Olomoucká linka důvěry",
+      "operator": "z. s. iPoradna",
+      "focus": "Pro celou populaci",
+      "contacts": {
+        "phones": [
+          {
+            "number": "585 414 600"
+          }
+        ],
+        "phone_hours": "PO, ÚT, ST, ČT, PÁ - 18:00 - 6:00, víkendy a svátky nepřetržitě",
+        "chat": null,
+        "email_counseling": [],
+        "contact_emails": [
+          "info@iporadna.cz"
+        ],
+        "web": "https://iporadna.cz/krizova-linka/",
+        "social": []
+      },
+      "address": "Wurmova 577/7, 779 00 Olomouc",
+      "notes": null,
+      "categories": [
+        "Celá populace",
+        "Olomouc",
+        "Olomoucký kraj",
+        "Telefonická krizová pomoc",
+        "Volání dle běžného tarifu"
+      ]
+    },
+    {
+      "name": "Linka důvěry Liberec",
+      "operator": "Centrum intervenčních a psychosociálních služeb Libereckého kraje, příspěvková organizace",
+      "focus": "Pro celou populaci",
+      "contacts": {
+        "phones": [
+          {
+            "number": "485 177 177"
+          },
+          {
+            "number": "606 450 044"
+          }
+        ],
+        "phone_hours": "NONSTOP",
+        "chat": {
+          "url": "https://www.linka-duvery.cz/",
+          "hours": "PO 13:00 - 16:00, ÚT 16:00 - 19:00, ČT 13:00 - 16:00 (mimo svátky)"
+        },
+        "email_counseling": [
+          "pomoc@linka-duvery.cz"
+        ],
+        "contact_emails": [
+          "info@linka-duvery.cz"
+        ],
+        "web": "http://www.linka-duvery.cz",
+        "social": []
+      },
+      "address": "Tanvaldská 269, 463 11 Liberec 30",
+      "notes": null,
+      "categories": [
+        "Celá populace",
+        "Chat",
+        "E-mailové poradenství",
+        "Liberec",
+        "Liberecký kraj",
+        "NONSTOP",
+        "Telefonická krizová pomoc",
+        "Volání dle běžného tarifu"
+      ]
+    },
+    {
+      "name": "Nepanikař",
+      "operator": "Nepanikař, z. s.",
+      "focus": "První pomoc při psychických potížích (pro celou populaci).",
+      "contacts": {
+        "phones": [],
+        "phone_hours": null,
+        "chat": {
+          "url": "https://nepanikar.eu/poradna/",
+          "hours": "PO - PÁ 16:00 - 22:00, (letní režim 16:00 - 20:00)"
+        },
+        "email_counseling": [
+          "pomoc@nepanikar.eu"
+        ],
+        "contact_emails": [
+          "kamenska@nepanikar.eu"
+        ],
+        "web": "https://nepanikar.eu",
+        "social": []
+      },
+      "address": "Slovácká 6, 690 02 Břeclav",
+      "notes": "Nejde o registrovanou sociální službu. Je využíván systém práce dobrovolníků (včetně studentů psychologie či sociální práce).",
+      "categories": [
+        "Celá populace",
+        "Celorepublikové",
+        "Chat",
+        "E-mailové poradenství"
+      ]
+    },
+    {
+      "name": "Linka důvěry Dětského krizového centra",
+      "operator": "Dětské krizové centrum, z. ú.",
+      "focus": "ohrožené děti a dospívající",
+      "contacts": {
+        "phones": [
+          {
+            "number": "241 484 149"
+          },
+          {
+            "number": "777 715 215"
+          },
+          {
+            "number": "778 510 510",
+            "label": "Rizika kyberprostoru"
+          }
+        ],
+        "phone_hours": "NONSTOP",
+        "chat": {
+          "url": "https://iporadna.cz/elinka-chatova-poradna/",
+          "hours": "PO, ST, PÁ 14:00 - 18:00, SO a NE: 9:00 - 13:00 a 14:00 - 18:00"
+        },
+        "email_counseling": [
+          "problem@ditekrize.cz"
+        ],
+        "contact_emails": [
+          "ld@ditekrize.cz"
+        ],
+        "web": "https://www.ditekrize.cz",
+        "social": []
+      },
+      "address": "Cílkova 796/7, Praha 12 – Kamýk, 142 00",
+      "notes": null,
+      "categories": [
+        "Celorepublikové",
+        "Chat",
+        "Děti a dospívající",
+        "E-mailové poradenství",
+        "NONSTOP",
+        "Praha",
+        "Telefonická krizová pomoc",
+        "Volání dle běžného tarifu"
+      ]
+    },
+    {
+      "name": "Linka důvěry Ústí nad Orlicí",
+      "operator": "Kontakt Ústí nad Orlicí o. p. s.",
+      "focus": "pro celou populaci",
+      "contacts": {
+        "phones": [
+          {
+            "number": "+420 465 524 252"
+          }
+        ],
+        "phone_hours": "NONSTOP",
+        "chat": {
+          "url": "http://chat.linkaduveryuo.cz",
+          "hours": "PO, ČT, SO: 17:00 - 20.00"
+        },
+        "email_counseling": [
+          "napis@linkaduveryuo.cz"
+        ],
+        "contact_emails": [
+          "lduo@seznam.cz"
+        ],
+        "web": "https://www.linkaduveryuo.cz/",
+        "social": []
+      },
+      "address": "Smetanova 470, 562 01 Ústí nad Orlicí",
+      "notes": null,
+      "categories": [
+        "Celá populace",
+        "Chat",
+        "E-mailové poradenství",
+        "NONSTOP",
+        "Pardubický kraj",
+        "Telefonická krizová pomoc",
+        "Ústí nad Orlicí",
+        "Volání dle běžného tarifu"
+      ]
+    },
+    {
+      "name": "Linka důvěry Chytré péče",
+      "operator": "Ústav Chytré péče, z. ú.",
+      "focus": "Senioři, jejich blízcí, osoby zdravotně znevýhodněné",
+      "contacts": {
+        "phones": [
+          {
+            "number": "800 100 117"
+          }
+        ],
+        "phone_hours": "PO - PÁ: 08:00 - 18:00, SO, NE - 08:00 - 16:00",
+        "chat": null,
+        "email_counseling": [
+          "linka@chytrapece.cz"
+        ],
+        "contact_emails": [
+          "linka@chytrapece.cz",
+          "kralova@chytrapece.cz"
+        ],
+        "web": "https://www.chytrapece.cz/linka-duvery",
+        "social": []
+      },
+      "address": "Štěpánská 539/9, 120 00 Praha 2-Nové Město",
+      "notes": null,
+      "categories": [
+        "Celorepublikové",
+        "E-mailové poradenství",
+        "Osoby zdravotně znevýhodněné",
+        "Praha",
+        "Senioři",
+        "Telefonická krizová pomoc",
+        "Volání bezplatné"
+      ]
+    },
+    {
+      "name": "Linka pomoci Spirála (Ústí nad Labem)",
+      "operator": "Spirála - krizové a intervenční centrum",
+      "focus": "Pro celou populaci",
+      "contacts": {
+        "phones": [
+          {
+            "number": "+420 475 603 390"
+          }
+        ],
+        "phone_hours": "NONSTOP",
+        "chat": null,
+        "email_counseling": [
+          "mail@spirala-ul.cz"
+        ],
+        "contact_emails": [
+          "linkapomoci@spirala-ul.cz"
+        ],
+        "web": "https://spirala-ul.cz/sluzby/linka-pomoci/",
+        "social": []
+      },
+      "address": "K Chatám 22, 403 40 Ústí nad Labem – Skorotice",
+      "notes": null,
+      "categories": [
+        "Celá populace",
+        "E-mailové poradenství",
+        "NONSTOP",
+        "Telefonická krizová pomoc",
+        "Ústecký kraj",
+        "Ústí nad Labem",
+        "Volání dle běžného tarifu"
+      ]
+    },
+    {
+      "name": "Linka důvěry Ostrava",
+      "operator": "Městská nemocnice Ostrava",
+      "focus": "Dospělí, cizinci mluvící anglicky (ve vyhrazených časech - aktuální možnosti jsou na webových stránkách organizace)",
+      "contacts": {
+        "phones": [
+          {
+            "number": "737 267 939"
+          }
+        ],
+        "phone_hours": "NONSTOP",
+        "chat": {
+          "url": "https://iporadna.cz/elinka-chatova-poradna",
+          "hours": "PO, PÁ, SO, NE: 16:00 - 22:00"
+        },
+        "email_counseling": [
+          "linka.duvery@mnof.cz"
+        ],
+        "contact_emails": [
+          "linka.duvery@mnof.cz"
+        ],
+        "web": "http://www.mnof.cz/linka-duvery",
+        "social": []
+      },
+      "address": "Městská nemocnice Ostrava, Psychiatrie, Linka důvěry, Nemocniční 898/20 A, 728 80 Ostrava-Moravská Ostrava",
+      "notes": null,
+      "categories": [
+        "Chat",
+        "Cizinci",
+        "Dospělí",
+        "E-mailové poradenství",
+        "Moravskoslezský kraj",
+        "NONSTOP",
+        "Ostrava",
+        "Telefonická krizová pomoc",
+        "Volání dle běžného tarifu"
+      ]
+    },
+    {
+      "name": "Linka důvěry České Budějovice",
+      "operator": "Středisko pro rodinu a mezilidské vztahy a Linka důvěry České Budějovice o.p.s.",
+      "focus": "Celá populace",
+      "contacts": {
+        "phones": [
+          {
+            "number": "387 313 030"
+          }
+        ],
+        "phone_hours": "NONSTOP",
+        "chat": null,
+        "email_counseling": [],
+        "contact_emails": [
+          "spramv@gmail.com"
+        ],
+        "web": "http://www.rodinnaporadnacb.cz",
+        "social": []
+      },
+      "address": "Nádražní 105/47, České Budějovice, 37001",
+      "notes": null,
+      "categories": [
+        "Celá populace",
+        "České Budějovice",
+        "NONSTOP",
+        "Telefonická krizová pomoc"
+      ]
+    },
+    {
+      "name": "Pražská linka důvěry",
+      "operator": "Centrum sociálních služeb Praha",
+      "focus": "Pro celou populaci",
+      "contacts": {
+        "phones": [
+          {
+            "number": "+420 222 580 697"
+          }
+        ],
+        "phone_hours": "NONSTOP",
+        "chat": {
+          "url": "https://www.chat-pomoc.cz",
+          "hours": "PO - ČT 9 - 21, PÁ 9 - 15, SO 14 - 20"
+        },
+        "email_counseling": [
+          "linka.duvery@csspraha.cz"
+        ],
+        "contact_emails": [
+          "linka.duvery@csspraha.cz"
+        ],
+        "web": "https://www.csspraha.cz/prazska-linka-duvery",
+        "social": [
+          "https://www.facebook.com/prazska.linka.duvery/"
+        ]
+      },
+      "address": "Žilinská 2769/2, 141 00 Praha 4 - Záběhlice",
+      "notes": null,
+      "categories": [
+        "Celá populace",
+        "Celorepublikové",
+        "Chat",
+        "E-mailové poradenství",
+        "NONSTOP",
+        "Praha",
+        "Telefonická krizová pomoc",
+        "Volání dle běžného tarifu"
+      ]
+    },
+    {
+      "name": "Linka důvěry Kladno",
+      "operator": "V.O.D.A, z. s.",
+      "focus": "Pro celou populaci",
+      "contacts": {
+        "phones": [
+          {
+            "number": "+420 312 684 444"
+          },
+          {
+            "number": "+420 777 684 444"
+          }
+        ],
+        "phone_hours": "NONSTOP",
+        "chat": null,
+        "email_counseling": [
+          "poradenstvi@ldkladno.cz"
+        ],
+        "contact_emails": [
+          "info@ldkladno.cz"
+        ],
+        "web": "https://www.ldkladno.cz/",
+        "social": []
+      },
+      "address": "Krahulecká 188, 273 64 Doksy u Kladna",
+      "notes": null,
+      "categories": [
+        "Dospělí",
+        "E-mailové poradenství",
+        "Kladno",
+        "NONSTOP",
+        "Středočeský kraj",
+        "Telefonická krizová pomoc",
+        "Volání dle běžného tarifu"
+      ]
+    },
+    {
+      "name": "Linka SOS Zlín",
+      "operator": "Linka SOS Zlín, příspěvková organizace statutárního města Zlín",
+      "focus": "pro celou populaci",
+      "contacts": {
+        "phones": [
+          {
+            "number": "577 431 333"
+          },
+          {
+            "number": "778 400 170"
+          }
+        ],
+        "phone_hours": "NONSTOP",
+        "chat": {
+          "url": "https://iporadna.cz/elinka-chatova-poradna/",
+          "hours": "PO - PÁ: 19:00 - 21:00"
+        },
+        "email_counseling": [
+          "sos@zlin.cz"
+        ],
+        "contact_emails": [
+          "sos.linka@zlin.cz"
+        ],
+        "web": "https://www.soszlin.cz/",
+        "social": []
+      },
+      "address": "Za Školou 570, 760 01 Zlín",
+      "notes": null,
+      "categories": [
+        "Celá populace",
+        "Chat",
+        "E-mailové poradenství",
+        "NONSTOP",
+        "Telefonická krizová pomoc",
+        "Volání dle běžného tarifu",
+        "Zlín",
+        "Zlínský kraj"
+      ]
+    },
+    {
+      "name": "Linka důvěry STŘED (Třebíč)",
+      "operator": "STŘED, z. ú.",
+      "focus": "Pro celou populaci",
+      "contacts": {
+        "phones": [
+          {
+            "number": "568 443 311"
+          },
+          {
+            "number": "775 223 311"
+          }
+        ],
+        "phone_hours": "Denně 09:00 - 21:00",
+        "chat": {
+          "url": "https://iporadna.cz/ld-stred/",
+          "hours": "Denně: 10:00 - 12:00 a 17:00 - 19:00"
+        },
+        "email_counseling": [
+          "linkaduvery@stred.info"
+        ],
+        "contact_emails": [
+          "linkaduvery@stred.info"
+        ],
+        "web": "https://www.stred.info/linka-duvery-stred/",
+        "social": []
+      },
+      "address": "Mládežnická 229, 674 01 Třebíč",
+      "notes": null,
+      "categories": [
+        "Celá populace",
+        "Chat",
+        "E-mailové poradenství",
+        "Kraj Vysočina",
+        "Telefonická krizová pomoc",
+        "Třebíč",
+        "Volání dle běžného tarifu"
+      ]
+    },
+    {
+      "name": "Linka pomoci obětem kriminality a domácího násilí",
+      "operator": "Bílý kruh bezpečí, z. s.",
+      "focus": "Oběti kriminality a domácího násilí",
+      "contacts": {
+        "phones": [
+          {
+            "number": "116 006"
+          }
+        ],
+        "phone_hours": "NONSTOP",
+        "chat": null,
+        "email_counseling": [],
+        "contact_emails": [
+          "116006@bkb.cz"
+        ],
+        "web": "https://www.116006.cz/",
+        "social": []
+      },
+      "address": null,
+      "notes": null,
+      "categories": [
+        "Celorepublikové",
+        "NONSTOP",
+        "Oběti trestných činů a domácího násilí",
+        "Telefonická krizová pomoc"
+      ]
+    },
+    {
+      "name": "Linka bezpečí",
+      "operator": "Linka bezpečí, z.s.",
+      "focus": "děti a studenti do 25 let včetně",
+      "contacts": {
+        "phones": [
+          {
+            "number": "116 111"
+          }
+        ],
+        "phone_hours": "NONSTOP",
+        "chat": {
+          "url": "https://chat.linkabezpeci.cz",
+          "hours": "denně 09:00 – 13.00 a 15:00 – 19:00"
+        },
+        "email_counseling": [
+          "pomoc@linkabezpeci.cz"
+        ],
+        "contact_emails": [
+          "info@linkabezpeci.cz"
+        ],
+        "web": "https://www.linkabezpeci.cz/",
+        "social": []
+      },
+      "address": "Linka bezpečí, z.s., Ústavní 95, 181 02 Praha 8 – Bohnice",
+      "notes": null,
+      "categories": [
+        "Celorepublikové",
+        "Chat",
+        "Děti a dospívající",
+        "E-mailové poradenství",
+        "NONSTOP",
+        "Praha",
+        "Telefonická krizová pomoc",
+        "Volání bezplatné"
+      ]
+    },
+    {
+      "name": "Senior telefon – linka důvěry pro seniory a jejich blízké",
+      "operator": "Život 90, z. ú.",
+      "focus": "Senioři, osoby o seniory pečující, lidé řešící pomoc jiným seniorům či jiná seniorská témata",
+      "contacts": {
+        "phones": [
+          {
+            "number": "800 157 157"
+          }
+        ],
+        "phone_hours": "NONSTOP",
+        "chat": null,
+        "email_counseling": [
+          "seniortelefon@zivot90.cz"
+        ],
+        "contact_emails": [
+          "seniortelefon@zivot90.cz",
+          "aneta.nitschova@zivot90.cz"
+        ],
+        "web": "https://www.zivot90.cz/cs/asistence/senior-telefon",
+        "social": []
+      },
+      "address": "Karoliny Světlé 18, Praha 1, 110 00",
+      "notes": null,
+      "categories": [
+        "Celorepublikové",
+        "E-mailové poradenství",
+        "NONSTOP",
+        "Senioři",
+        "Telefonická krizová pomoc",
+        "Volání bezplatné"
+      ]
+    },
+    {
+      "name": "Linka důvěry v Kutné Hoře",
+      "operator": "Povídej, z.s. - Centrum krizové intervence",
+      "focus": "pro celou populaci",
+      "contacts": {
+        "phones": [
+          {
+            "number": "+420 327 511 111"
+          },
+          {
+            "number": "+420 602 874 470"
+          }
+        ],
+        "phone_hours": "PO - PÁ: 08:00 - 22:00",
+        "chat": null,
+        "email_counseling": [
+          "info@linkaduverykh.cz"
+        ],
+        "contact_emails": [
+          "info@linkaduverykh.cz"
+        ],
+        "web": "https://www.linkaduverykh.cz/",
+        "social": []
+      },
+      "address": "Centrum krizové intervence, Česká 235/36, 284 01 Kutná Hora",
+      "notes": null,
+      "categories": [
+        "Celá populace",
+        "E-mailové poradenství",
+        "Kutná Hora",
+        "Středočeský kraj",
+        "Telefonická krizová pomoc",
+        "Volání dle běžného tarifu"
+      ]
+    },
+    {
+      "name": "Linka první psychické pomoci",
+      "operator": "Cesta z krize, z. ú.",
+      "focus": "Dospělí, kteří jsou v krizi a jejich blízcí",
+      "contacts": {
+        "phones": [
+          {
+            "number": "116 123"
+          }
+        ],
+        "phone_hours": "NONSTOP",
+        "chat": {
+          "url": "http://linkapsychickepomoci.cz/chat/",
+          "hours": "PO: 8:00 – 13:00, ÚT, ST, ČT: 13:00 – 18:00, PÁ SO, NE a svátky: 08:00 – 13:00"
+        },
+        "email_counseling": [],
+        "contact_emails": [
+          "116123@cestazkrize.net",
+          "lucie.hermankova@cestazkrize.net"
+        ],
+        "web": "https://www.linkapsychickepomoci.cz",
+        "social": []
+      },
+      "address": "Cesta z krize, z. ú., Plaská 589/11, 150 00 Praha 5 – Malá Strana",
+      "notes": null,
+      "categories": [
+        "Celorepublikové",
+        "Chat",
+        "Dospělí",
+        "NONSTOP",
+        "Praha",
+        "Telefonická krizová pomoc",
+        "Volání bezplatné"
+      ]
+    }
+  ]
+}

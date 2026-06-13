@@ -1,0 +1,7 @@
+# Lumi shared core — Rust workspace.
+# All security- and correctness-critical logic lives here (see docs/adr/0001).
+# Built in this (toolchain-less) dev env via the musl + rust-lld target:
+#   cargo test --target x86_64-unknown-linux-musl
+[workspace]
+resolver = "2"
+members = ["lumi-core"]

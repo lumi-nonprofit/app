@@ -1,0 +1,12 @@
+[package]
+name = "lumi-sync-client"
+version = "0.0.0"
+edition = "2021"
+publish = false
+description = "Lumi zero-knowledge sync: the on-wire envelope format (version + reserved + padding buckets) and push/pull protocol types (ADR 0001 §5). M0 fixes the format; real crypto + transport land in M1/M2."
+
+[dependencies]
+lumi-crdt = { path = "../lumi-crdt" }
+
+[lints.rust]
+unsafe_code = "forbid"

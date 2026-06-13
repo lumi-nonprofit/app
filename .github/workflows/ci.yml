@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    name: Rust (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            core
+            server
+      - name: Build + test core (dependency-free shared core)
+        run: cargo test --manifest-path core/Cargo.toml --workspace --verbose
+      - name: Build + test sync server (stub)
+        run: cargo test --manifest-path server/Cargo.toml --workspace --verbose
+
+  js:
+    name: JS app (RN/Expo)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+
+  tokens:
+    name: Design tokens (Style Dictionary)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+        working-directory: design
+      - run: npm run build
+        working-directory: design
+
+  sbom:
+    name: SBOM (CycloneDX)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate CycloneDX SBOM (npm + cargo via syft)
+        uses: anchore/sbom-action@v0
+        with:
+          format: cyclonedx-json
+          output-file: sbom.cyclonedx.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx
+          path: sbom.cyclonedx.json
+
+  # Dependency vulnerability scanning. REPORT-ONLY at M0 (continue-on-error): the
+  # JS tree currently has known advisories (1 high, 2 moderate) to triage, and we
+  # don't want the empty scaffold blocked on them. Tighten to blocking once the
+  # existing advisories are resolved.
+  audit:
+    name: Dependency audit (report-only)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-audit
+      - name: cargo audit (core)
+        run: cargo audit --file core/Cargo.lock
+      - name: cargo audit (server)
+        run: |
+          cargo generate-lockfile --manifest-path server/Cargo.toml
+          cargo audit --file server/Cargo.lock
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: npm audit
+        run: npm audit --audit-level=high

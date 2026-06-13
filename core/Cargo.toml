@@ -4,4 +4,4 @@
 #   cargo test --target x86_64-unknown-linux-musl
 [workspace]
 resolver = "2"
-members = ["lumi-core"]
+members = ["lumi-core", "lumi-crdt", "lumi-sync-client", "lumi-ffi", "lumi-wasm"]

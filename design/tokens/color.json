@@ -1,0 +1,57 @@
+{
+  "color": {
+    "cream": {
+      "0":   { "value": "#FFFEFB", "type": "color" },
+      "50":  { "value": "#FBF7EF", "type": "color" },
+      "100": { "value": "#F5EDDF", "type": "color" },
+      "200": { "value": "#EADDC6", "type": "color" },
+      "300": { "value": "#D9C6A6", "type": "color" }
+    },
+    "ink": {
+      "900": { "value": "#2B2722", "type": "color" },
+      "800": { "value": "#3A342C", "type": "color" },
+      "700": { "value": "#544C41", "type": "color" },
+      "500": { "value": "#7A7060", "type": "color" },
+      "400": { "value": "#998E7C", "type": "color" }
+    },
+    "sun": {
+      "100": { "value": "#FCEFD3", "type": "color" },
+      "200": { "value": "#F8DEA4", "type": "color" },
+      "300": { "value": "#F2C76C", "type": "color" },
+      "400": { "value": "#E8AC43", "type": "color" },
+      "500": { "value": "#D89426", "type": "color" },
+      "600": { "value": "#B4761A", "type": "color" },
+      "700": { "value": "#8C5A12", "type": "color" }
+    },
+    "sage": {
+      "100": { "value": "#E7EEDD", "type": "color" },
+      "300": { "value": "#B5C9A2", "type": "color" },
+      "500": { "value": "#7E9A6B", "type": "color" },
+      "700": { "value": "#55704A", "type": "color" }
+    },
+    "lake": {
+      "100": { "value": "#E3EAF2", "type": "color" },
+      "300": { "value": "#A8BDD3", "type": "color" },
+      "500": { "value": "#6E8DAD", "type": "color" },
+      "700": { "value": "#48617C", "type": "color" }
+    },
+    "lilac": {
+      "100": { "value": "#ECE8F5", "type": "color" },
+      "300": { "value": "#C3B8DF", "type": "color" },
+      "500": { "value": "#9483BE", "type": "color" },
+      "700": { "value": "#675693", "type": "color" }
+    },
+    "clay": {
+      "100": { "value": "#F7E2DA", "type": "color" },
+      "300": { "value": "#E2A893", "type": "color" },
+      "500": { "value": "#C26F52", "type": "color" },
+      "700": { "value": "#94492F", "type": "color" }
+    }
+  },
+  "mood": {
+    "energie": { "value": "#E8AC43", "type": "color", "comment": "circle" },
+    "napeti":  { "value": "#6E8DAD", "type": "color", "comment": "diamond" },
+    "klid":    { "value": "#7E9A6B", "type": "color", "comment": "square" },
+    "utlum":   { "value": "#C26F52", "type": "color", "comment": "half" }
+  }
+}

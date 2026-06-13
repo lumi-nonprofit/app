@@ -1,0 +1,13 @@
+[package]
+name = "lumi-sync-server"
+version = "0.0.0"
+edition = "2021"
+publish = false
+description = "Lumi zero-knowledge sync server (STUB). Stores only opaque ciphertext blobs it cannot read. ADR 0001 §5. Real object-storage persistence, auth, cursors, replay protection land in M2."
+
+[dependencies]
+axum = "0.8"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net"] }
+
+[lints.rust]
+unsafe_code = "forbid"

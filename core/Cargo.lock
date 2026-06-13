@@ -5,3 +5,30 @@ version = 4
 [[package]]
 name = "lumi-core"
 version = "0.0.0"
+
+[[package]]
+name = "lumi-crdt"
+version = "0.0.0"
+
+[[package]]
+name = "lumi-ffi"
+version = "0.0.0"
+dependencies = [
+ "lumi-core",
+ "lumi-crdt",
+ "lumi-sync-client",
+]
+
+[[package]]
+name = "lumi-sync-client"
+version = "0.0.0"
+dependencies = [
+ "lumi-crdt",
+]
+
+[[package]]
+name = "lumi-wasm"
+version = "0.0.0"
+dependencies = [
+ "lumi-core",
+]

@@ -1,0 +1,6 @@
+# Lumi sync server — its own workspace (separate from core/ so the core stays
+# dependency-free and locally buildable). The server is built/tested in CI on
+# full-toolchain runners. Real persistence + auth + §5 metadata land in M2.
+[workspace]
+resolver = "2"
+members = ["lumi-sync-server"]

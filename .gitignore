@@ -3,9 +3,13 @@ node_modules/
 dist/
 web-build/
 
-# Rust (shared core)
+# Rust (shared core + server)
 target/
 core/target/
+server/target/
+
+# Design tokens (generated)
+design/build/
 *.orig.*
 *.jks
 *.p8

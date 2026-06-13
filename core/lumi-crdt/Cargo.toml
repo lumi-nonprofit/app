@@ -1,0 +1,11 @@
+[package]
+name = "lumi-crdt"
+version = "0.0.0"
+edition = "2021"
+publish = false
+description = "Lumi merge primitives: Hybrid Logical Clock, append-only op-log, LWW register + set (ADR 0001 §4). Dependency-free at M0; Automerge integration lands in M2."
+
+[dependencies]
+
+[lints.rust]
+unsafe_code = "forbid"

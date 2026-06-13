@@ -1,0 +1,12 @@
+[package]
+name = "lumi-wasm"
+version = "0.0.0"
+edition = "2021"
+publish = false
+description = "wasm surface over the Lumi core. M0 stub (dependency-free). Web is DEFERRED (ADR 0001 §12); wasm-bindgen bindings + WebCrypto-backed encrypt-before-persist (S3) land when an a11y-grade web client is in scope."
+
+[dependencies]
+lumi-core = { path = "../lumi-core" }
+
+[lints.rust]
+unsafe_code = "forbid"

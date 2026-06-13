@@ -1,29 +1,32 @@
-// THROWAWAY spike #1b — copy over example/src/App.tsx. Runs a live JS->Rust->JS
-// round-trip on launch and prints a sentinel the runbook greps from logcat.
+// THROWAWAY spike #1b (Nitro) — copy over example/src/App.tsx. Runs a live
+// JS→Rust→JS round-trip via the Nitro Hybrid Object and prints a sentinel that the
+// runbook greps from logcat.
 import React from 'react';
 import { Text, View, StyleSheet } from 'react-native';
-import LumiCrypto from './NativeLumiCrypto'; // adjust path to the lib's spec/export
+import { NitroModules } from 'react-native-nitro-modules';
+// The type comes from the lib's spec. Adjust the import to the lib package, e.g.
+//   import type { LumiCrypto } from 'react-native-lumi-crypto';
+import type { LumiCrypto } from './LumiCrypto.nitro';
 
-type DeviceKey = { handle: string; publicKeyB64: string };
-type CheckinDraft = { mood: string; intensity: number; note: string };
+const Lumi = NitroModules.createHybridObject<LumiCrypto>('LumiCrypto');
 
 const SENTINEL = 'LUMI_SPIKE_RESULT';
 
 function run(): string {
   try {
-    const a = LumiCrypto.newDeviceKey() as DeviceKey;
-    const b = LumiCrypto.newDeviceKey() as DeviceKey;
+    const a = Lumi.newDeviceKey();
+    const b = Lumi.newDeviceKey();
 
     // A seals to B; B opens from A (real X25519 DH + ChaCha20-Poly1305 in Rust).
-    const sealed = LumiCrypto.sealCheckin(a.handle, b.publicKeyB64, 'klid', 3, 'ok');
-    const opened = LumiCrypto.openCheckin(b.handle, a.publicKeyB64, sealed) as CheckinDraft;
+    const sealed = Lumi.sealCheckin(a.handle, b.publicKeyB64, 'klid', 3, 'ok');
+    const opened = Lumi.openCheckin(b.handle, a.publicKeyB64, sealed);
     const roundtrip =
       opened.mood === 'klid' && opened.intensity === 3 && opened.note === 'ok';
 
     // Throwing fn: a garbage sealed blob must surface an error in JS.
     let threw = false;
     try {
-      LumiCrypto.openCheckin(b.handle, a.publicKeyB64, 'AAAAAAAAAAAAAAAAAAAA');
+      Lumi.openCheckin(b.handle, a.publicKeyB64, 'AAAAAAAAAAAAAAAAAAAA');
     } catch {
       threw = true;
     }

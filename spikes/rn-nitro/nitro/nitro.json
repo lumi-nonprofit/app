@@ -1,0 +1,15 @@
+{
+  "$schema": "https://nitro.margelo.com/nitro.schema.json",
+  "cxxNamespace": ["lumicrypto"],
+  "ios": { "iosModuleName": "LumiCrypto" },
+  "android": {
+    "androidNamespace": ["lumicrypto"],
+    "androidCxxLibName": "lumicrypto"
+  },
+  "autolinking": {
+    "LumiCrypto": {
+      "all": { "language": "c++", "implementationClassName": "HybridLumiCrypto" }
+    }
+  },
+  "ignorePaths": ["node_modules"]
+}

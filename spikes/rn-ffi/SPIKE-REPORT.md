@@ -1,11 +1,20 @@
 # Spike #1 — GO/NO-GO report: `uniffi-bindgen-react-native` (ADR 0001 §13)
 
-**Date:** 2026-06-13 · **Verdict: STRONG PARTIAL — not a full GO yet.**
-4 of the 5 gate criteria are PROVEN with CI evidence on real toolchains; criterion 3
-(live round-trip on a real device/emulator on the New Architecture) was **not
-exercised this session** and is the one remaining leg. The binder itself shows **no
-NO-GO signal** — every binder-specific risk (existence, maturity, pin/vendor,
-codegen on realistic types, cross-compile, §1) came back positive.
+**Date:** 2026-06-13 · **Verdict: NO-GO on criterion 3 → reopen to §2.4a (per the gate rule).**
+Criteria 1, 2, 4, 5 are PROVEN (codegen, cross-compile, §1, pin). Criterion 3 — the
+live JS→Rust→JS round-trip on a real emulator/simulator on the New Architecture — was
+**attempted across multiple CI iterations and did NOT pass on either leg.** Per the
+gate ("GO only if BOTH legs round-trip; if either fails or is flaky → NO-GO"), this
+fires **NO-GO** → reopen to §2.4a (CMP/Flutter via the gate-2 binding evaluation).
+
+**Honest nuance (so the decision is fully informed):** this is *not* proof the binder
+is fundamentally incapable — its codegen, cross-compile, and §1 all work, and
+Mozilla/Filament ship it. The criterion-3 failure reflects **real pre-1.0 e2e
+fragility at the pinned versions** PLUS the limits of a blind CI with no local mobile
+dev loop. Some remaining issues look fixable with a local Xcode/Android Studio
+debugging session. But under the conservative gate you set (the live round-trip is
+the sufficient proof and must actually pass), it has **not** passed — so the gate
+stays closed.
 
 Evidence: CI workflow `Spike RN FFI (throwaway)` (`.github/workflows/spike-rn-ffi.yml`),
 run on GitHub-hosted ubuntu + macOS runners. Harness is THROWAWAY (`spikes/rn-ffi/`);
@@ -25,7 +34,7 @@ host, macOS for iOS), exactly as the brief permitted. The on-device round-trip
 |---|---|---|---|
 | 1 | Representative core (real pure-Rust crypto) + non-trivial typed fn (record in / Result out); binding exercised on realistic types | **PROVEN** | `lumi-ffi-spike`: x25519-dalek + ChaCha20-Poly1305 + HKDF. Host round-trip test green. `ubrn generate jsi bindings` produced correct TS+C++ for `CheckinDraft`/`DeviceKey` records, `bigint`/`ArrayBuffer`, throwing fns. |
 | 2 | Cross-compile to REAL targets: aarch64 Android (NDK) + iOS device + sim | **PROVEN** | `cargo ndk -t arm64-v8a build` → `liblumi_ffi_spike.so` (NDK r27c). `cargo build --target aarch64-apple-ios` + `…-ios-sim` on macOS. |
-| 3 | Round-trip call on a real device/emulator, on the New Architecture (JSI/Fabric), pinned RN version | **NOT EXERCISED** | No RN New-Arch app + TurboModule run on an emulator/simulator this session. The decisive integration leg remains. |
+| 3 | Round-trip on a real device/emulator, New Architecture, pinned RN version | **ATTEMPTED — FAILED** | Built a throwaway RN 0.81.4 New-Arch turbo-module (create-react-native-library 0.49.10 + ubrn) for our crate. Neither leg reached a live round-trip — see §"Criterion 3" below. |
 | 4 | §1 invariant: no raw key bytes cross the FFI into the JS heap | **PROVEN** | By design (the `StaticSecret` type is never in any `#[uniffi::export]` signature) AND firsthand in the generated TS: surface is `newDeviceKey()->{handle,publicKey}`, `publicKey(handle)->bytes`, `sealCheckin(handle,peerPublic,draft)->bytes`, `openCheckin(...)->CheckinDraft`. No `StaticSecret`/secret-key type anywhere. |
 | 5 | Binder pinnable + vendorable | **PROVEN** | `uniffi-bindgen-react-native@0.29.3-1` pinned in `package.json`, installs + runs in CI. Mozilla + Filament-backed, built on first-party Mozilla UniFFI 0.29; GitHub-vendorable. (This is the maintained RN binder — **not** the stale third-party CMP/Kotlin fork flagged in ADR §2.5.) |
 
@@ -65,28 +74,55 @@ handle, public keys, the plaintext domain record, and ciphertext cross the bound
 6. `cargo-ndk` via `taiki-e/install-action` flaked once (transient); `cargo install
    cargo-ndk --locked` was reliable. (`--version` flag also unsupported.)
 
-## What it would take to close criterion 3
+## Criterion 3 — e2e attempt (what actually happened)
 
-Build a minimal RN New-Architecture app (throwaway) that consumes the generated
-TurboModule (the `ubrn build android/ios` happy path + the RN scaffold), then run a
-JS→Rust→JS round-trip:
-- **Android:** on a CI Linux runner with KVM via `reactivecircus/android-emulator-runner`.
-- **iOS:** on a macOS runner with an iOS simulator.
+Harness: a throwaway turbo-module made with `create-react-native-library@0.49.10`
+(RN **0.81.4**, New Arch / Fabric+TurboModules, Hermes), our `lumi-ffi-spike` crate
+wired via ubrn, on CI runners (ubuntu+KVM for Android, macOS for iOS). Two iterations.
+Workflow: `.github/workflows/spike-rn-e2e.yml` (runs `27472273533`, `27472776172`).
 
-This is a meaningfully larger integration than the cross-compile/codegen proved here,
-and is the genuine remaining risk to retire before committing D-rn-for-v1.
+**Pre-1.0 plumbing failures hit (the "plumbing that tends to break" you flagged):**
+
+1. **ubrn ↔ cargo-ndk version incompatibility (Android).** `ubrn build android` passes
+   `--no-strip`, which **cargo-ndk 4.x removed** (changelog: "`--no-strip` option is
+   removed"). So ubrn 0.29.3-1 is broken against current cargo-ndk; only worked after
+   pinning **cargo-ndk 3.5.4** (EOL). A real maintenance/fragility signal.
+2. **Android gradle build did not complete.** After the pin, `ubrn build android`
+   succeeded, but `gradlew assembleDebug` builds CMake for **all 4 ABIs**
+   (arm64-v8a/armeabi-v7a/x86/x86_64) while we built only the x86_64 `.so` (to match
+   the x86_64 emulator). Needs ABI alignment + JS bundling for an offline emulator
+   run — and this `gradle` turbo-module build is the step **ubrn's own CI disables as
+   "perma-failing."**
+3. **iOS app cannot link the Rust static library.** `ubrn build ios --and-generate`
+   and `pod install` both succeed and generate the bindings + xcframework, but the
+   app build fails at link: **`ld: library 'lumi_ffi_spike' not found`** — even after
+   building the full default xcframework (not just one sim slice). The generated
+   podspec/xcconfig isn't putting the static lib on the linker search path. Persistent
+   across both iterations.
+
+**Net:** neither leg reached a live round-trip. The failures are integration/
+packaging issues at the pinned versions, plus the limits of debugging mobile builds
+blind in CI (no local Xcode/Android Studio loop). They are *plausibly fixable* by a
+mobile engineer with local tooling — but they did not pass here.
 
 ## Recommendation
 
-The binder is sound and well-backed; criteria 1/2/4/5 are green. This is **not a
-NO-GO** — there is no reason yet to reopen to the §2.4a broad-surface analysis. But
-per the gate's "GO only if ALL hold," it is **not yet a GO** either: criterion 3
-remains. Decision for Anna:
-- **(a)** Authorize the focused emulator/simulator e2e leg (above) to close criterion
-  3 → then GO; or
-- **(b)** Accept 4/5 + the Mozilla/Filament backing as sufficient confidence to
-  proceed with D-rn-for-v1, treating criterion 3 as an early task in the RN↔core
-  integration (with the right to reopen if the live round-trip then fails).
+Per the gate you set — criterion 3 is the sufficient proof and the gate stays open
+until the live round-trip actually passes; if either leg fails or is flaky → NO-GO →
+reopen to §2.4a — the result is **NO-GO**, because the live round-trip did not pass on
+either leg and the e2e showed real fragility (ubrn↔cargo-ndk incompatibility; iOS
+static-lib link failure; Android gradle/ABI + maintainer-disabled "perma-failing"
+build).
 
-**Stopped for review. No RN↔core integration built. Harness is throwaway, kept for
-your review; quarantine/delete after.**
+→ **Reopen the v1 UI decision to the §2.4a broad-surface analysis** (Compose
+Multiplatform / Flutter via the gate-2 binding-maturity evaluation), per the gate.
+
+**Caveat for your decision:** this NO-GO means "the live New-Arch round-trip was not
+achievable reliably in this attempt," not "the binder is fundamentally incapable" —
+criteria 1/2/4/5 passed, and Mozilla/Filament ship this binder in production. If you'd
+rather, a bounded retry on a real mobile dev machine (local Xcode + Android Studio)
+could try to clear items 2–3 above before reopening. Your call; under the conservative
+rule as written, it's NO-GO now.
+
+**Stopped for your review. No RN↔core integration built. `apps/` untouched. Harness is
+throwaway (`spikes/`) — quarantine/delete after review.**

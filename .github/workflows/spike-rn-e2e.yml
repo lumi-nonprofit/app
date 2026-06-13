@@ -33,7 +33,8 @@ jobs:
         id: ndk
         with: { ndk-version: r27c }
       - name: Install cargo-ndk
-        run: cargo install cargo-ndk --locked
+        # ubrn 0.29.3-1 passes --no-strip, which cargo-ndk 4.x REMOVED. Pin 3.x.
+        run: cargo install cargo-ndk --version '=3.5.4' --locked
       - name: Scaffold turbo-module (bob) + wire ubrn + our crate
         run: |
           set -euxo pipefail
@@ -88,7 +89,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
       - uses: dtolnay/rust-toolchain@stable
-        with: { targets: aarch64-apple-ios-sim }
+        with: { targets: "aarch64-apple-ios,aarch64-apple-ios-sim,x86_64-apple-ios" }
       - name: Scaffold turbo-module (bob) + wire ubrn + our crate
         run: |
           set -euxo pipefail
@@ -118,7 +119,9 @@ jobs:
         run: |
           set -euxo pipefail
           cd "$WORK/lib"
-          yarn ubrn build ios --and-generate --targets aarch64-apple-ios-sim
+          # Let ubrn build its default iOS targets + assemble the full xcframework
+          # (restricting to a single sim slice left the app unable to link the lib).
+          yarn ubrn build ios --and-generate
           (cd example/ios && pod install)
       - name: Build example app for the iOS simulator
         run: |

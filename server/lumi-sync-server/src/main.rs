@@ -47,13 +47,21 @@ async fn health() -> &'static str {
 
 /// Accept an opaque blob. The body is stored verbatim; never inspected.
 async fn push(State(store): State<Store>, body: Bytes) -> StatusCode {
-    store.blobs.lock().expect("lock").push(body.to_vec());
+    store
+        .blobs
+        .lock()
+        .expect("failed to acquire blob store lock while handling push")
+        .push(body.to_vec());
     StatusCode::ACCEPTED
 }
 
 /// Stub: report how many blobs are held. Real cursor-based pull lands in M2.
 async fn pull(State(store): State<Store>) -> String {
-    let n = store.blobs.lock().expect("lock").len();
+    let n = store
+        .blobs
+        .lock()
+        .expect("failed to acquire blob store lock for pull")
+        .len();
     n.to_string()
 }
 

@@ -14,7 +14,7 @@ function runSmoke(): string {
   // API (the old `cacheDirectory` moved to expo-file-system/legacy and would be undefined here).
   // `.uri` is a file:// URI; rusqlite/SQLite needs a plain filesystem path, so strip the scheme.
   // The cache dir always exists + is app-writable; rusqlite creates the .db file. (Real app = step 4b.)
-  const dbPath = new File(Paths.cache, `lumi-smoke-${Date.now()}.db`).uri.replace(/^file:\/\//, '');
+  const dbPath = new File(Paths.cache, `lumi-smoke-${Date.now()}.db`).uri.replace('file://', '');
   // eslint-disable-next-line no-console
   console.log(`${SENTINEL} dbPath: ${dbPath}`); // so logcat shows the actual path if open still fails
   try {
@@ -36,7 +36,7 @@ function runSmoke(): string {
     const pass = roundtrip && destroyed && afterShred;
     return `${SENTINEL} ${JSON.stringify({ pass, roundtrip, destroyed, afterShred })}`;
   } catch (e) {
-    return `${SENTINEL} ${JSON.stringify({ pass: false, dbPath, error: String(e) })}`;
+    return `${SENTINEL} ${JSON.stringify({ pass: false, error: String(e) })}`;
   }
 }
 

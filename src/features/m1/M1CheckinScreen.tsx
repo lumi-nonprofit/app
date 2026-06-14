@@ -82,7 +82,8 @@ export default function M1CheckinScreen() {
     requestAnimationFrame(() => {
       try {
         LumiVault.open(DB_PATH); // idempotent; opens the persistent vault DB
-      } catch {
+      } catch (e) {
+        console.error('M1CheckinScreen open failed', e);
         setUnlockError('Trezor se nepodařilo otevřít (soubor databáze je nedostupný nebo poškozený).');
         setUnlocking(false);
         return;

@@ -1,10 +1,10 @@
 # Lumi shared core — Rust workspace.
 # All security- and correctness-critical logic lives here (see docs/adr/0001, 0004).
 # Dependency-free crates build/test under the musl + rust-lld target (see rust-build-env memory):
-#   cargo test --workspace --exclude lumi-store --target x86_64-unknown-linux-musl
-# NOTE: lumi-store uses rusqlite `bundled`, so compiling SQLite for musl needs an
-# x86_64-linux-musl-gcc cross-compiler (not installed) -> build/test it on the host/NDK toolchain:
-#   cargo test -p lumi-store
+#   cargo test --workspace --exclude lumi-store --exclude lumi-ffi-cabi --target x86_64-unknown-linux-musl
+# NOTE: lumi-store (rusqlite `bundled`) and lumi-ffi-cabi (depends on lumi-store) need a musl C
+# cross-compiler (x86_64-linux-musl-gcc, not installed) -> build/test them on the host/NDK toolchain:
+#   cargo test -p lumi-store -p lumi-ffi-cabi
 [workspace]
 resolver = "2"
-members = ["lumi-core", "lumi-crdt", "lumi-sync-client", "lumi-ffi", "lumi-wasm", "lumi-vault", "lumi-store"]
+members = ["lumi-core", "lumi-crdt", "lumi-sync-client", "lumi-ffi", "lumi-wasm", "lumi-vault", "lumi-store", "lumi-ffi-cabi"]

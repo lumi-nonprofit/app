@@ -1,0 +1,15 @@
+{
+  "$schema": "https://nitro.margelo.com/nitro.schema.json",
+  "cxxNamespace": ["lumivault"],
+  "ios": { "iosModuleName": "LumiVault" },
+  "android": {
+    "androidNamespace": ["lumivault"],
+    "androidCxxLibName": "lumivault"
+  },
+  "autolinking": {
+    "LumiVault": {
+      "all": { "language": "c++", "implementationClassName": "HybridLumiVault" }
+    }
+  },
+  "ignorePaths": ["node_modules"]
+}

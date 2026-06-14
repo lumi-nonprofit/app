@@ -1,0 +1,12 @@
+{
+  "name": "lumi-vault",
+  "version": "0.0.0",
+  "description": "Lumi at-rest vault — local Expo module hosting the pure-C++ LumiVault Nitro Hybrid Object over the lumi-ffi-cabi C ABI (ADR 0004 (a); Gate-C-clean: no com.facebook.react / RN-core codegen).",
+  "private": true,
+  "main": "src/LumiVault.ts",
+  "peerDependencies": {
+    "expo": "*",
+    "react-native": "*",
+    "react-native-nitro-modules": "*"
+  }
+}

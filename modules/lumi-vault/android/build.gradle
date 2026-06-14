@@ -1,0 +1,70 @@
+// Local Expo module hosting the pure-C++ LumiVault Nitro Hybrid Object (ADR 0004 (a), Option 3).
+// Gate-C-clean BY CONSTRUCTION: it applies the Expo module plugin (com.android.library +
+// expo-module-gradle-plugin), NOT "com.facebook.react" — so no RN-core codegen runs here and the
+// com.facebook.fbreact.specs release-dex collision (builder-bob #774) cannot occur. The Nitro
+// `+autolinking.gradle` (applied below) only adds the generated Kotlin OnLoad sourceSet.
+// Pattern grounded in a real shipped C++ Expo module (expo-sqlite/android/build.gradle).
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+def reactNativeArchitectures() {
+  def value = project.getProperties().get("reactNativeArchitectures")
+  return value ? value.split(",") : ["arm64-v8a", "x86_64"]
+}
+
+// expo-autolinking + maven-publish (applied by expo-module-gradle-plugin) read group + version;
+// expo-autolinking also requires android.defaultConfig.versionName/versionCode. The plugin supplies
+// compileSdk/minSdk but NOT these (expo-sqlite declares them explicitly too) — so set them here.
+group = 'expo.modules.lumivault'
+version = '1.0.0'
+
+android {
+  namespace "expo.modules.lumivault"
+
+  defaultConfig {
+    versionCode 1
+    versionName "1.0.0"
+    externalNativeBuild {
+      cmake {
+        abiFilters (*reactNativeArchitectures())
+        // C++20 for Nitro; shared STL to match RN/Nitro/fbjni.
+        arguments "-DANDROID_STL=c++_shared"
+      }
+    }
+  }
+
+  externalNativeBuild {
+    cmake {
+      path "CMakeLists.txt"
+    }
+  }
+
+  buildFeatures {
+    // Consume the fbjni / ReactAndroid / NitroModules prefab packages (what +autolinking.cmake's
+    // find_package() calls resolve against). Prefab is the CONSUMER's responsibility — this is why
+    // we do NOT need the com.facebook.react plugin to build native code.
+    prefab true
+  }
+
+  packagingOptions {
+    // These ship with the app already; don't bundle a second copy from this module's .so deps.
+    excludes += [
+      "**/libc++_shared.so",
+      "**/libfbjni.so",
+    ]
+  }
+}
+
+// Nitro autolinking (generated): adds nitrogen/generated/android/kotlin (lumivaultOnLoad.kt) to the
+// sourceSet. Applied AFTER the android{} block so the `android` extension exists. It does NOT apply
+// com.facebook.react.
+apply from: "${projectDir}/../nitrogen/generated/android/lumivault+autolinking.gradle"
+
+dependencies {
+  // ReactAndroid prefab (jsi, reactnative, fbjni) — a dependency, NOT the com.facebook.react plugin.
+  implementation 'com.facebook.react:react-android'
+  // NitroModules prefab (react-native-nitro-modules publishes prefab { NitroModules }).
+  implementation project(':react-native-nitro-modules')
+}

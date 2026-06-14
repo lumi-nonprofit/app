@@ -1,0 +1,21 @@
+# Lumi C ABI (cbindgen) over lumi-vault — the *unsafe boundary* the Nitro C++ HybridObject will
+# link against (ADR 0004 (a): this crate carries the `unsafe`; lumi-ffi stays a safe facade;
+# lumi-vault is unchanged). It marshals only handles, the PIN inbound, plaintext domain JSON,
+# record ids, created_at, and error codes — never key bytes (S1). Keys live in lumi-vault behind
+# the handle. Depends on lumi-store to instantiate the production VaultManager<SqliteStore>.
+#
+# Host/NDK-only (pulls lumi-store -> bundled SQLite C); NOT in the dependency-free musl loop.
+# NOTE: no `[profile.release] panic = "abort"` — the catch_unwind backstop needs unwinding panics.
+[package]
+name = "lumi-ffi-cabi"
+version = "0.0.0"
+edition = "2021"
+publish = false
+description = "Lumi C ABI (cbindgen) over lumi-vault: the unsafe boundary for the Nitro C++ layer. Marshals handles/PIN/plaintext-JSON/record-ids/error-codes only; keys stay in lumi-vault."
+
+[lib]
+crate-type = ["staticlib", "cdylib", "lib"]
+
+[dependencies]
+lumi-vault = { path = "../lumi-vault" }
+lumi-store = { path = "../lumi-store" }

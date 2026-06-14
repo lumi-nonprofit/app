@@ -99,8 +99,10 @@ go there without poisoning that loop. Recommended split:
 
 - **New crate `core/lumi-vault`** — the vetted at-rest crypto (Argon2id + XChaCha20-Poly1305 +
   HKDF + zeroize) + the vault/per-record-key tree + the in-Rust key registry. **Crypto-only** —
-  keeps `lumi-core` dep-free (the crisis logic stays musl-green), and stays musl-green *itself*
-  except for its storage-integration tests.
+  keeps `lumi-core` dep-free (`lumi-core` remains the **only truly toolchain-free** crate: it builds
+  in a no-C-compiler musl loop). `lumi-vault` itself is **musl-green but NOT toolchain-free** — it
+  cross-compiles to musl, but its argon2/generic-array/libc build scripts invoke a host `cc`, so it
+  builds only where a C compiler is present (CI runners + this dev box), not in a truly no-cc loop.
 - **Storage engine in a thin `core/lumi-store` crate** (or a feature-gated module `lumi-vault`
   calls) — isolates the SQLite/redb dependency so its C/musl consequences don't spread (see b1/b2
   in §1(b) and the per-engine musl note in §2.1).
@@ -108,10 +110,11 @@ go there without poisoning that loop. Recommended split:
   either *replace* the `core/lumi-ffi` stub, accepting that this crate drops `forbid(unsafe)`, or a
   new `core/lumi-ffi-cabi` so `lumi-ffi` stays a safe facade). The C ABI **depends on `lumi-vault`**
   and only marshals (handles/pointers/CStr) — no crypto logic duplicated from the spike.
-- **musl dev-loop command becomes:** test `lumi-core`/`lumi-crdt` (and `lumi-vault`'s pure-crypto
-  unit tests) on musl as today; test the C-dep crates (`lumi-store` under b1, the C-ABI crate) on a
-  full toolchain (CI already does this — the matrix uses the host toolchain, not musl). The sandbox
-  loop `--exclude`s the C-dep crates; under b2 (redb) even `lumi-store` stays musl-green.
+- **musl dev-loop command becomes:** cross-build `lumi-core`/`lumi-crdt` (truly toolchain-free) and
+  `lumi-vault` (musl-green, but its build scripts need a host `cc`) on musl; the bundled-SQLite
+  crates (`lumi-store`, `lumi-ffi-cabi`) need a *musl* C cross-compiler we don't install, so they are
+  `--exclude`d from the musl loop and tested on the host/NDK toolchain only (the CI matrix uses the
+  host target, not musl). Under b2 (redb) even `lumi-store` would stay musl-green.
 
 **Downstream implications of (a):** no `apps/` dir is created (see §4); `core/` gains 2 crates;
 CI path-filters/excludes need a small update (§3); the existing root app's persistence layer is

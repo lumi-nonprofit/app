@@ -25,10 +25,45 @@ jobs:
           workspaces: |
             core
             server
-      - name: Build + test core (dependency-free shared core)
+      # --workspace covers every core member on the host runner, including the M1 crates added in
+      # this milestone: lumi-vault (17 tests), lumi-store (9), lumi-ffi-cabi (4). The runner's C
+      # compiler (gcc on ubuntu, clang on macos, MSVC on windows) builds rusqlite's bundled SQLite.
+      - name: Build + test the shared core workspace (incl. lumi-vault / lumi-store / lumi-ffi-cabi)
         run: cargo test --manifest-path core/Cargo.toml --workspace --verbose
       - name: Build + test sync server (stub)
         run: cargo test --manifest-path server/Cargo.toml --workspace --verbose
+
+  # Cross-compile guard: the shared core must stay buildable for a constrained (musl) target.
+  # ONLY the musl-clean crates are covered:
+  #   - lumi-core / lumi-crdt / lumi-sync-client / lumi-ffi / lumi-wasm: pure-Rust, truly toolchain-free.
+  #   - lumi-vault: musl-GREEN but NOT toolchain-free — it cross-compiles to musl, yet its
+  #     argon2/generic-array/libc build scripts invoke a HOST `cc` (present on the runner). It is a
+  #     lib crate, so this is a compile-check (rlibs, no final link => no musl C toolchain needed).
+  # EXCLUDED ON PURPOSE — do NOT re-add: lumi-store + lumi-ffi-cabi bundle SQLite, whose C sources
+  # would need an x86_64-linux-musl C cross-compiler we deliberately don't depend on in CI. They are
+  # host-only and are already fully tested by the `rust` job above. (Mirrors core/Cargo.toml's note.)
+  musl:
+    name: Rust musl cross-build (core portability guard)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-musl
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: core
+      - name: Cross-build the musl-clean core crates (exclude the bundled-SQLite crates)
+        run: >
+          cargo build --manifest-path core/Cargo.toml
+          --target x86_64-unknown-linux-musl
+          --workspace --exclude lumi-store --exclude lumi-ffi-cabi --verbose
+
+  # NOTE — deliberately NOT a job here: the Android native build (cargo-ndk cross-compile of
+  # lumi-ffi-cabi -> .a per ABI, nitrogen codegen, gradle assembleRelease of the Nitro module + app).
+  # It is a separate, heavier later lane that needs Android SDK + NDK runners. M1's CI proves the Rust
+  # slice (host test + musl portability) and the JS/TS; the on-device Android build is verified
+  # locally for now and gets its own workflow when the mobile CI lane is set up. Not silently omitted.
 
   js:
     name: JS app (RN/Expo)

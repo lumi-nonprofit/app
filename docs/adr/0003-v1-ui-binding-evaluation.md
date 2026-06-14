@@ -1,12 +1,51 @@
 # ADR 0003 — v1 UI + Rust-binding choice (§2.4a re-evaluation after the ubrn NO-GO)
 
-- **Status:** **Evaluation — awaiting Anna's pick.** Analysis only; nothing built;
-  `apps/` stays empty. Refines ADR 0001 §2.4a for the **v1 = mobile-only** reopening
-  triggered by the spike #1 NO-GO (`spikes/rn-ffi/SPIKE-REPORT.md`).
-- **Date:** 2026-06-13
+- **Status:** **Decided + empirically validated.** Anna picked the recommended lead
+  (**RN**, keep React Native + reuse the accessible UI); the hand-written-JSI binding
+  mechanism was then swapped to **Nitro** (create-react-native-library 0.49 dropped its
+  C++ TurboModule template) — same RN stack, so the accessibility / UI-preservation
+  reasoning below is unchanged. The gating spike #1b **passed (GO, 2026-06-14)** on real
+  arm64 hardware → see the validation note immediately below. (Original status: Evaluation —
+  awaiting Anna's pick. Analysis only; refines ADR 0001 §2.4a for the **v1 = mobile-only**
+  reopening triggered by the spike #1 NO-GO, `spikes/rn-ffi/SPIKE-REPORT.md`.)
+- **Date:** 2026-06-13 (evaluation) · 2026-06-14 (binding validated)
 - **Method:** 8-agent web research → 5 priority-weighted criterion-judges → adversarial
   skeptic + completeness critic (workflow `lumi-2-4a-ui-binding-eval`). Repo facts
   verified at file:line.
+
+## Validation — spike #1b GO (2026-06-14)
+
+The recommended lead's gating spike has **passed**, empirically validating the v1 binding
+choice. **Full report + evidence: `spikes/rn-nitro/SPIKE-REPORT.md`.** Summary:
+
+- **Validated stack:** React Native (New Arch) → **Nitro Modules** → C++ HybridObject
+  (`HybridLumiCrypto`) → **Rust C ABI** (`lumi-ffi-cabi`). A live JS→Rust→JS round-trip
+  (`sealCheckin → openCheckin`, plus the throwing path) ran on a **real arm64 device**
+  (Pixel 8a, GrapheneOS) on the New Architecture — `LUMI_SPIKE_RESULT
+  {"pass":true,"roundtrip":true,"threw":true}`; logcat confirmed
+  `Successfully registered HybridObject "LumiCrypto"` + `fabric:true`.
+- **§1 holds** at runtime (JS held only the opaque `handle`; the X25519 private key never
+  left Rust's `SECRETS` registry) and statically (no secret/private type in any signature).
+- **Mechanism change, not stack change:** the bus-factor-1 *hand-written JSI glue* risk
+  this ADR flagged is **retired** — Nitrogen statically generates the JSI marshalling; we
+  own only the C++ method bodies over the Rust C ABI. The C ABI (cbindgen) re-authoring
+  noted in the RN-handjsi tradeoffs still applies (and remains compatible with keeping
+  UniFFI for the deferred desktop/watch targets).
+- **Honest scope:** GO rests on the **live arm64-device** leg plus a **clean x86_64
+  build** (the x86_64-emulator *runtime* leg was optional and not run). The spike text
+  below also names a **4-ABI** Android build+run; that was narrowed **by design** (RUNBOOK
+  Step 7 restricts `reactNativeArchitectures` to `arm64-v8a,x86_64`) to the **2 ABIs** we
+  ship-test — arm64-v8a (built + run) and x86_64 (built only); armeabi-v7a/x86 were out of
+  scope. Reached via the **debug dev-loop** — `assembleRelease` compiled the native code
+  clean for both ABIs but failed at Java dex-merge (a create-react-native-library packaging
+  issue, **deferred** as production hygiene, not a binding blocker). **iOS remains deferred**
+  per ADR 0001 (no Mac), so the iOS-xcframework-link clause of the spike text below is
+  satisfied by deferral, not by execution — it stays an open risk for the iOS milestone.
+  (Net: the binding *mechanism* is validated on real arm64 hardware; the iOS and full
+  4-ABI clauses are satisfied by narrowed scope, not executed as literally written.)
+
+*The analysis, scoreboard, tradeoffs, and recommendation below are unchanged — kept as the
+record of how the decision was reached.*
 
 ## Established facts carried forward (not re-litigated)
 

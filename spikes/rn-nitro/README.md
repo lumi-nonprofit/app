@@ -31,9 +31,20 @@ Android-first; iOS deferred.
 - Gotcha documented + fixed in the runbook: codegen renamed `nitro-codegen` → `nitrogen`
   (old one deprecated at 0.29.4; the create-react-native-library template still pins it).
 
-## GO / NO-GO
-GO = reliable live round-trip on the x86_64 emulator AND the arm64 Pixel, §1 intact →
-RN-via-Nitro confirmed for v1. NO-GO = can't be made reliable even with the local loop →
-fall back to CMP-uniffi (ADR 0003). Honest expectation: the Rust C ABI + Nitrogen codegen
-are the solid parts; the per-ABI NDK/CMake link + Android registration are where iteration
-(1–2 rounds) is likely. Paste errors as you hit them.
+## GO / NO-GO — **result: GO (2026-06-14)**
+**GO.** A live JS→Rust→JS round-trip ran on a real **arm64 device** (Pixel 8a, GrapheneOS)
+on the New Architecture, §1 intact — `LUMI_SPIKE_RESULT
+{"pass":true,"roundtrip":true,"threw":true}`. **RN-via-Nitro is empirically validated as
+the v1 binding path** (proceed to real integration after Anna's review). Full report +
+evidence + the three fixes hit during the run: **`SPIKE-REPORT.md`** (and the inline
+annotations in `RUNBOOK.md`). As predicted, the Rust C ABI + Nitrogen codegen were
+the solid parts; the iteration was in the per-ABI NDK build + Android autolinking/
+registration (three fixes, one round).
+
+Honest scope: GO rests on the live arm64-device leg + a clean x86_64 build (the
+x86_64-emulator runtime leg was optional, not run); reached via the **debug dev-loop**
+(release Java packaging is a deferred production-hygiene item, not a blocker); **iOS
+deferred** per ADR 0001.
+
+The throwaway scaffold (`~/lumi-crypto-spike`) **can now be deleted**; this `spikes/rn-nitro/`
+kit stays as the reference. No real RN↔core integration built yet; `apps/` stays empty.

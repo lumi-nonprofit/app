@@ -1,5 +1,20 @@
 # ADR 0001 — Lumi cross-platform architecture (Milestone 0)
 
+> **⚠ PARTIALLY SUPERSEDED (2026-06-14) — preserved as the historical M0 record.** The original
+> text below is kept intact (with inline `[Superseded …]` notes at each point); the reasoning is
+> not rewritten. Two areas are overtaken by later ratified ADRs:
+> - **The RN↔core binding is Nitro**, not UniFFI. Per **ADR 0003** (validated by spike #1b GO —
+>   `spikes/rn-nitro/SPIKE-REPORT.md`), the v1 mobile binding is `react-native-nitro-modules` +
+>   `nitrogen` over a hand-written **C ABI (cbindgen)** — **not** `uniffi-bindgen-react-native`.
+>   (UniFFI remains the planned binding for the *deferred* Swift/Kotlin desktop/watch targets, and
+>   `wasm-bindgen` for web — so the §1 "Distribution (UniFFI, locked)" block is still correct for
+>   those.)
+> - **The §7 `apps/` tree is CMP-shaped and predates the D-rn ratification.** The v1 app is the
+>   existing **root** RN app; per **ADR 0004** the M1 slice does **not** create `apps/`.
+> - **M1 foundational decisions** (module structure, storage, PQ timing, the `apps/` ruling, the
+>   §1 PIN-passphrase reading) are recorded in **ADR 0004**, which adds crates `core/lumi-vault`,
+>   `core/lumi-store`, and `core/lumi-ffi-cabi`.
+
 - **Status:** **Ratified** (2026-06-13) — M0 step (b) in progress. See the sign-off record
   below. The shared Rust core, the locked crypto/sync design, and the
   *defer-the-UI-lock-to-M3 + spikes + A-native-fallback* strategy are
@@ -147,6 +162,10 @@ bytes**. (This is the explicit fix for the current anti-pattern at
   **nightly-free**. Pin the UniFFI version; bump deliberately (0.x has breaking
   minors); gate binding regeneration in CI.
 
+> **[Superseded in part by ADR 0003/0004]** This UniFFI distribution is correct for the *deferred*
+> Swift/Kotlin desktop/watch targets + `wasm-bindgen` for web. The **v1 mobile (RN) binding is
+> Nitro over a hand-written C ABI (cbindgen)** — see ADR 0003 + `spikes/rn-nitro/SPIKE-REPORT.md`.
+
 ---
 
 ## 2. UI framework — the deferred decision (signed off as a *process*)
@@ -229,6 +248,11 @@ first-platform sprint. There is no free lunch; the choice is a priority ordering
 > with its own framework decision (rn-windows vs a Tauri / web shell over the same
 > core vs native). Re-evaluate a broad-surface rewrite (CMP / Flutter) or A-native
 > only when desktop + watch become committed scope.**
+
+> **[Superseded by ADR 0003/0004]** "keep RN for v1" still holds, but the binder is **Nitro**, not
+> `uniffi-bindgen-react-native`: spike #1 (ubrn) returned **NO-GO**, and spike #1b proved RN→Nitro→
+> C++→Rust-C-ABI on real hardware (GO). The "pre-1.0 `uniffi-bindgen-react-native` binder" residual
+> risk noted in point 2 below is therefore moot for v1. See ADR 0003.
 
 Why this now wins **for v1**:
 1. **Fastest, lowest-risk M3 with full reuse** — ~6,200 LOC of accessible,
@@ -547,6 +571,13 @@ lumi/
 
 Exact `apps/` shape is finalised at the §2 sign-off + M3.
 
+> **[Superseded in part by ADR 0003/0004]** This tree predates the D-rn ratification: (1)
+> `lumi-ffi` is the **Nitro C ABI (cbindgen)** facade, not a UniFFI surface, and the M1 slice adds
+> `core/lumi-vault` (crypto), `core/lumi-store` (storage engine), and `core/lumi-ffi-cabi` (the
+> `unsafe` C ABI) — ADR 0004; (2) the `apps/<broad-surface># CMP (recommended)` shape is **not**
+> the v1 path — v1 is the existing **root** RN app, and per ADR 0004 the M1 slice does **not**
+> create `apps/`. The CMP/desktop/watch tree remains the post-v1 (§2.4a) analysis only.
+
 ---
 
 ## 8. CI / supply-chain / SBOM (S10) — currently **absent**, build from zero
@@ -699,6 +730,13 @@ local op-log+HLC for offline writes — §3.)*
 milestone.
 
 *M1 spikes for the v1 mobile path (D-rn):*
+
+> **[Superseded by ADR 0003 — gate resolved]** Spike #1 (`uniffi-bindgen-react-native`) fired
+> **NO-GO** (`spikes/rn-ffi/SPIKE-REPORT.md`); the v1 binding was re-decided to **Nitro** and
+> proved by **spike #1b GO** on real arm64 hardware (`spikes/rn-nitro/SPIKE-REPORT.md`). The
+> criteria below (builds on New Arch; handles/plaintext only — §1; pinnable/vendorable) were all
+> met by the Nitro path. The "on fail → reopen to §2.4a broad-surface" branch did **not** fire.
+
 1. **`uniffi-bindgen-react-native` binding — HARD GO/NO-GO GATE for D-rn-for-v1.**
    Run **early in M1** and **report the outcome before** building out the RN↔core
    integration further. **Pass criteria (all required):** (a) builds + runs against

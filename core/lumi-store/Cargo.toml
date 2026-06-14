@@ -1,0 +1,26 @@
+# Lumi at-rest persistence: a rusqlite (bundled SQLite) implementation of the `VaultStore`
+# trait that lumi-vault already defines. Plain SQLite, NO SQLCipher (ADR 0004 (e): at-rest
+# content is sealed by lumi-vault's app-layer per-record AEAD; SQLCipher index-hardening is a
+# committed pre-ship follow-up, not built here). The Rust core owns the connection.
+#
+# `bundled` compiles SQLite from C and ships it in the binary -> this is the real C-compiler +
+# SQLite build dependency the crate split anticipated; lumi-store is host/NDK-only, NOT part of
+# the dependency-free musl loop (exclude it: `--workspace --exclude lumi-store`).
+[package]
+name = "lumi-store"
+version = "0.0.0"
+edition = "2021"
+publish = false
+description = "Lumi at-rest persistence: rusqlite (bundled SQLite) implementation of lumi-vault's VaultStore. Plain SQLite (no SQLCipher); the Rust core owns the connection."
+
+[dependencies]
+lumi-vault = { path = "../lumi-vault" }
+rusqlite = { version = "0.40", features = ["bundled"] }
+
+[dev-dependencies]
+# Same crate as above (no extra compile) — lets tests open a raw connection to inject malformed
+# rows and prove the store fails closed (StoreError) without panicking on corrupt DB content.
+rusqlite = { version = "0.40", features = ["bundled"] }
+
+[lints.rust]
+unsafe_code = "forbid"

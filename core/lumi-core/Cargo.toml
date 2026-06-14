@@ -3,7 +3,7 @@ name = "lumi-core"
 version = "0.0.0"
 edition = "2021"
 publish = false
-description = "Lumi shared core: data model, crypto, sync/merge, validation (privacy-first, on-device)."
+description = "Lumi shared core: data model, validation, crisis recommender (dependency-free, on-device). Crypto + key hierarchy live in lumi-vault (ADR 0004); sync/merge in lumi-crdt + lumi-sync-client."
 
 [dependencies]
 # None. The crate is intentionally dependency-free: a small in-house JSON reader

@@ -22,7 +22,7 @@ Lumi is pre-release (0.x). Only the latest `main` receives security fixes.
 - **Preferred:** GitHub *private vulnerability reporting* — repository **Security**
   tab → **Report a vulnerability**. (Maintainers: enable this under Settings →
   Code security.)
-- **Email fallback:** `TODO(Anna)` — confirm a dedicated security contact address.
+- **Email fallback:** anna.zezulka@pm.me
 
 What to expect: acknowledgement within ~7 days; an assessment and, if accepted, a
 fix plan with a coordinated disclosure timeline. We do not run a paid bug bounty

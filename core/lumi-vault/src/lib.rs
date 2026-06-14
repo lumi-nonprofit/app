@@ -606,7 +606,7 @@ mod kat {
     #[test]
     fn aead_integrity_fails_closed() {
         let key = [0x07u8; KEY_LEN];
-        let nonce = [0x09u8; NONCE_LEN];
+        let nonce = random_nonce().expect("nonce");
         let aad = b"record-aad-v1";
         let pt = b"a secret check-in payload";
 

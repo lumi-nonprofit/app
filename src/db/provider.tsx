@@ -25,8 +25,10 @@ export function DbProvider({ children }: { children: React.ReactNode }) {
       })
       .catch(() => {
         // S12: žádné citlivé logy v produkci. Klíč/PRAGMA/cesty se nelogují nikdy;
-        // ani chybový objekt (může nést PRAGMA či cestu k souboru). V dev buildu
-        // jen obecná zpráva. Bez DB se UI nevykreslí (provider vrací null).
+        // ani chybový objekt (může nést PRAGMA či cestu k souboru).
+        // Rejection reason je záměrně ignorován (callback nemá parametr), aby se
+        // omylem nelogovaly citlivé detaily. V dev buildu jen obecná zpráva.
+        // Bez DB se UI nevykreslí (provider vrací null).
         if (__DEV__) console.error("Lumi: databázi se nepodařilo otevřít.");
       });
     return () => {

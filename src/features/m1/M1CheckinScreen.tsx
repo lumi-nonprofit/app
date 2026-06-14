@@ -82,11 +82,20 @@ export default function M1CheckinScreen() {
     requestAnimationFrame(() => {
       try {
         LumiVault.open(DB_PATH); // idempotent; opens the persistent vault DB
+      } catch (e) {
+        console.error('M1CheckinScreen open failed', e);
+        setUnlockError('Trezor se nepodařilo otevřít (soubor databáze je nedostupný nebo poškozený).');
+        setUnlocking(false);
+        return;
+      }
+
+      try {
         const h = LumiVault.unlock(pin); // real Argon2id (creates vault on first run)
         setHandle(h);
         refresh(h);
-      } catch {
-        setUnlockError('Trezor se nepodařilo otevřít/odemknout (špatný PIN nebo poškozený trezor).');
+      } catch (e) {
+        console.error('M1CheckinScreen unlock failed', e);
+        setUnlockError('Trezor se nepodařilo odemknout (zkontrolujte PIN).');
       } finally {
         setUnlocking(false);
       }
@@ -104,7 +113,9 @@ export default function M1CheckinScreen() {
       setNote('');
       refresh(handle);
     } catch (e) {
-      setSaveError(`Uložení se nepodařilo: ${String(e)}`);
+      console.error('Failed to save check-in', e);
+      const safeDetail = e instanceof Error && e.message ? ` (${e.message})` : '';
+      setSaveError(`Uložení se nepodařilo.${safeDetail}`);
     }
   }, [handle, mood, intensity, note, refresh]);
 
@@ -140,7 +151,7 @@ export default function M1CheckinScreen() {
           {unlocking ? (
             <View style={styles.row}>
               <ActivityIndicator />
-              <Text style={styles.ctaText}>{'  '}Odemykám…</Text>
+              <Text style={[styles.ctaText, styles.ctaTextBusy]}>Odemykám…</Text>
             </View>
           ) : (
             <Text style={styles.ctaText}>Odemknout</Text>
@@ -318,6 +329,7 @@ const styles = StyleSheet.create({
   ctaBusy: { opacity: 0.9 },
   ctaDisabled: { backgroundColor: '#9e9e9e' },
   ctaText: { color: '#fff', fontSize: 17, fontWeight: '700' },
+  ctaTextBusy: { marginLeft: 8 },
   error: { color: '#b00020', fontSize: 14, marginTop: 8 },
   item: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, gap: 2 },
   itemTitle: { fontSize: 16, fontWeight: '600' },

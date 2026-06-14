@@ -184,6 +184,27 @@ fn str_field(v: Option<&Json>) -> String {
     v.and_then(Json::as_str).unwrap_or("").trim().to_string()
 }
 
+fn apply_scope_tag(scope: &mut Option<Scope>, tag: &str) -> bool {
+    // Precedence required by spec: National > Region > City.
+    if tag == "Celorepublikové" {
+        *scope = Some(Scope::National);
+        return true;
+    }
+    if KRAJS.contains(&tag) {
+        if !matches!(*scope, Some(Scope::National)) {
+            *scope = Some(Scope::Region(tag.to_string()));
+        }
+        return true;
+    }
+    if CITIES.contains(&tag) {
+        if scope.is_none() {
+            *scope = Some(Scope::City(tag.to_string()));
+        }
+        return true;
+    }
+    false
+}
+
 fn demux_categories(cats: &[String]) -> (Scope, BTreeSet<Audience>, Cost) {
     let mut scope: Option<Scope> = None;
     let mut audiences: BTreeSet<Audience> = BTreeSet::new();
@@ -203,20 +224,7 @@ fn demux_categories(cats: &[String]) -> (Scope, BTreeSet<Audience>, Cost) {
             continue;
         }
         // --- scope (National wins over Region wins over City) ---
-        if cs == "Celorepublikové" {
-            scope = Some(Scope::National);
-            continue;
-        }
-        if KRAJS.contains(&cs) {
-            if !matches!(scope, Some(Scope::National)) {
-                scope = Some(Scope::Region(c.clone()));
-            }
-            continue;
-        }
-        if CITIES.contains(&cs) {
-            if scope.is_none() {
-                scope = Some(Scope::City(c.clone()));
-            }
+        if apply_scope_tag(&mut scope, cs) {
             continue;
         }
         // --- audience ---

@@ -5,6 +5,6 @@
     "allowJs": true,
     "types": ["jest", "node", "react"]
   },
-  "exclude": ["node_modules"],
+  "exclude": ["node_modules", "spikes"],
   "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
 }

@@ -44,9 +44,11 @@ delivered**, via **three independent paths.**
 
 ### (a) The vault key (VK) and the per-record hierarchy — unchanged
 
-- **VK is a random 256-bit key** (not derived from the PIN). It is the root the M1 per-record
-  scheme already wraps content keys under; **per-record AEAD sealing (XChaCha20-Poly1305, per-record
-  content key, AAD, crypto-shredding) is untouched.**
+- **VK is a random 256-bit key** (not derived from the PIN) — **as it already is in M1**, where VK is
+  a random 32-byte key and only the *key that wraps it* is PIN-derived (the Argon2id PIN key →
+  `wrapped_vault_key`). It is the root the M1 per-record scheme already wraps content keys under;
+  **per-record AEAD sealing (XChaCha20-Poly1305, per-record content key, AAD, crypto-shredding) is
+  untouched.**
 
 ### (b) Path 1 — Local unlock (keystore-held, PIN-gated)
 
@@ -64,7 +66,9 @@ delivered**, via **three independent paths.**
 ### (c) Path 2 — Add a device (authenticated device-to-device transfer)
 
 - **No stored wrap; an authenticated device-to-device transfer.** The **new device generates an
-  ephemeral X-Wing (X25519 + ML-KEM-768) keypair**; the **existing device encapsulates VK to it.**
+  ephemeral X-Wing (X25519 + ML-KEM-768) keypair**; the **existing device uses the X-Wing KEM to
+  establish a shared secret with the new device's ephemeral public key, then wraps VK under that
+  shared secret.**
 - A **short authentication string (SAS) or QR** confirms the **receiving key is the genuine device,
   not a man-in-the-middle.**
 - **The server never sees VK** — at most it **relays PQ-protected blobs it cannot read.**
@@ -141,18 +145,22 @@ the server or another device can hold.
 
 ## Change vs M1
 
-- **The vault-key wrapping / unlock layer changes:** **VK stops being PIN-derived**; it becomes
-  **keystore-held and PIN-gated** (Path 1), with device-to-device (Path 2) and optional recovery
-  (Path 3) added.
+- **The vault-key *wrapping / unlock* layer changes — but VK itself does not.** In M1, VK is already
+  a **random 32-byte key**; what is PIN-derived is only the **key that wraps it** (Argon2id PIN key →
+  AEAD-wraps VK → `wrapped_vault_key`). Under M2 the **PIN stops wrapping VK and instead gates the
+  keystore** that holds the device key wrapping VK (Path 1), with device-to-device (Path 2) and
+  optional recovery (Path 3) added. **VK is unchanged, so the per-record content keys are *not*
+  re-wrapped — only VK's *outer* wrap changes.**
 - **The per-record AEAD sealing is unchanged** (per-record content keys under VK, XChaCha20-Poly1305,
   AAD, crypto-shredding).
 - **The existing vault crypto will need re-testing after this layer is reworked.** (M1 ships only the
   PIN-wrap; the vault row was deliberately versioned to admit the keystore copy + recovery wrap
   without reformatting persisted data — ADR 0004 Deferred item 5.)
-- **No M1→M2 data migration is required:** the M1 vault is a **dev skeleton with no real user data**,
-  so existing PIN-wrapped vaults can simply be **re-created** under the new key layer — there is
-  nothing to migrate. (Distinct from, and compatible with, ADR 0004 Deferred-5's *format*
-  forward-compatibility, which still holds.)
+- **No M1→M2 data migration is required:** the M1 vault is a **dev skeleton with no real user data.**
+  For a *real* vault the change would be **adding a keystore (and optional recovery) wrap of the
+  *same* VK** — not minting a new VK and not re-sealing records; but because the skeleton holds
+  nothing, simply **starting fresh** under the new key layer is fine here. (Distinct from, and
+  compatible with, ADR 0004 Deferred-5's *format* forward-compatibility, which still holds.)
 - **Changing the PIN re-gates the keystore (device-key access) but does *not* rotate VK** — a PIN
   change is therefore **cheap: no record re-wrap, no re-sealing.**
 

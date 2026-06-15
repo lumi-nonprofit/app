@@ -1,5 +1,17 @@
 # Dependabot — version updates across all of Lumi's ecosystems (S10).
 # JS app (RN/Expo), the Rust shared core, and the GitHub Actions used by CI.
+#
+# Policy (hardened after the PR #4 grouped-major bump broke CI — eslint 10 / jest 30 / RN 0.86):
+#  - Security stays enabled (Dependabot is NOT disabled; the npm-audit visibility is the point).
+#  - npm: minor + patch are grouped for convenience; MAJORS are NOT grouped, so each major arrives
+#    as its own reviewable PR you can decline.
+#  - Expo-SDK-managed packages are ignored entirely (all update types): their versions are dictated
+#    by the Expo SDK and move only via `expo install` on a deliberate Expo upgrade, never
+#    independently — a standalone bump breaks the Expo/RN pairing and the verified Nitro module ABI.
+#    (Their security fixes arrive through an Expo SDK upgrade.)
+#  - eslint and jest/@types/jest: MAJORS ignored (peer-coupled — eslint-plugin-react-native-a11y
+#    peers eslint <=8; jest 30 is coupled to the RN jest-preset). Patches/minors within the current
+#    major still flow. esbuild/uuid/drizzle-kit etc. are NOT ignored, so their advisories stay visible.
 version: 2
 updates:
   - package-ecosystem: "npm"
@@ -8,8 +20,28 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 10
     groups:
-      js-dependencies:
+      # Group only minor + patch; majors stay ungrouped -> individual, decline-able PRs.
+      js-minor-patch:
+        applies-to: version-updates
         patterns: ["*"]
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      # Expo-SDK-managed — pinned to the SDK; only move via `expo install` on an SDK upgrade.
+      - dependency-name: "react-native"
+      - dependency-name: "react"
+      - dependency-name: "react-dom"
+      - dependency-name: "react-native-svg"
+      - dependency-name: "react-native-safe-area-context"
+      - dependency-name: "react-native-screens"
+      # Peer-coupled toolchain — majors break the build; patches/minors within the current major flow.
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "jest"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/jest"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "cargo"
     directory: "/core"

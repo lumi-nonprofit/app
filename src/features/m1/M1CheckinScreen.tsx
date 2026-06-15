@@ -83,7 +83,7 @@ export default function M1CheckinScreen() {
       try {
         LumiVault.open(DB_PATH); // idempotent; opens the persistent vault DB
       } catch (e) {
-        console.error('M1CheckinScreen open failed', e);
+        if (__DEV__) console.error('M1CheckinScreen open failed', e); // S12: no error logs in prod
         setUnlockError('Trezor se nepodařilo otevřít (soubor databáze je nedostupný nebo poškozený).');
         setUnlocking(false);
         return;
@@ -94,7 +94,7 @@ export default function M1CheckinScreen() {
         setHandle(h);
         refresh(h);
       } catch (e) {
-        console.error('M1CheckinScreen unlock failed', e);
+        if (__DEV__) console.error('M1CheckinScreen unlock failed', e); // S12: no error logs in prod
         setUnlockError('Trezor se nepodařilo odemknout (zkontrolujte PIN).');
       } finally {
         setUnlocking(false);
@@ -113,8 +113,9 @@ export default function M1CheckinScreen() {
       setNote('');
       refresh(handle);
     } catch (e) {
-      console.error('Failed to save check-in', e);
-      const safeDetail = e instanceof Error && e.message ? ` (${e.message})` : '';
+      if (__DEV__) console.error('Failed to save check-in', e); // S12: no error logs in prod
+      // Surface raw core error text only in dev; production shows the generic message only.
+      const safeDetail = __DEV__ && e instanceof Error && e.message ? ` (${e.message})` : '';
       setSaveError(`Uložení se nepodařilo.${safeDetail}`);
     }
   }, [handle, mood, intensity, note, refresh]);

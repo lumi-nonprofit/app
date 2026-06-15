@@ -1,11 +1,16 @@
 # M1 — Vertical-slice proposal (mood check-in, end-to-end through the production stack)
 
-> **STATUS: DECIDED (2026-06-14) — ratified; foundational decisions recorded in
-> [ADR 0004](adr/0004-m1-vertical-slice-foundational-decisions.md).** This document is retained as
-> the *analysis + options* behind those decisions (the reasoning record); the ratified choices —
-> module structure, storage engine, post-quantum timing, the `apps/` ruling, and the `created_at`
-> hardening follow-up — live in ADR 0004. **Implementation has not started**; build-plan step 1
-> (test-first `lumi-vault` crypto) is the next step, after Anna reviews ADR 0004.
+> **STATUS: COMPLETE (2026-06-15) — M1 shipped and verified end-to-end.** Foundational decisions
+> are recorded in [ADR 0004](adr/0004-m1-vertical-slice-foundational-decisions.md); this document is
+> retained as the *analysis + options* behind them (the reasoning record) — module structure, storage
+> engine, post-quantum timing, the `apps/` ruling, and the `created_at` hardening follow-up.
+>
+> **Verified end-to-end chain (2026-06-15):** at-rest crypto (`core/lumi-vault`) → encrypted
+> persistence (`core/lumi-store`) → unsafe C ABI (`core/lumi-ffi-cabi`) → RN↔Rust binding (Nitro
+> `modules/lumi-vault`) → on-device mood check-in screen (`/m1-checkin`: captures → persists →
+> survives a cold restart) → **green CI** (host Rust matrix on ubuntu/macos/windows + musl portability
+> guard + JS typecheck/lint/jest). The §1 FFI boundary was re-verified clean (only handles / PIN-input
+> / plaintext records / record-ids / ciphertext / error-codes cross) and `panic=unwind` preserved.
 >
 > - **Date:** 2026-06-14
 > - **Inputs read:** ADR 0001 (§1 invariant, §3 key hierarchy, §4 storage/crypto-shred,

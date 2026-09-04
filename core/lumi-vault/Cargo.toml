@@ -10,10 +10,10 @@ publish = false
 description = "Lumi at-rest crypto: vault key hierarchy (Argon2id PIN-wrap), per-record content keys (XChaCha20-Poly1305), crypto-shredding. Persistence via a storage trait."
 
 [dependencies]
-argon2 = "0.5"                                       # RustCrypto pure-Rust Argon2id (NOT a C binding)
-chacha20poly1305 = "0.10"                            # XChaCha20Poly1305 (24-byte nonce)
+argon2 = "0.6"                                       # RustCrypto pure-Rust Argon2id (NOT a C binding)
+chacha20poly1305 = "0.11"                            # XChaCha20Poly1305 (24-byte nonce)
 zeroize = { version = "1", features = ["alloc"] }    # no `derive` feature -> no proc-macro
-getrandom = "0.2"                                    # OS CSPRNG
+getrandom = "0.4"                                    # OS CSPRNG
 
 [lints.rust]
 unsafe_code = "forbid"

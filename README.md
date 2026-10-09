@@ -3,6 +3,8 @@
 Česká aplikace pro podporu duševní pohody — check-in emocí, klidová cvičení,
 přehledy a pomoc v krizi. Zdarma, neziskově, česky.
 
+**Stav projektu a další postup:** [`docs/STATUS.md`](docs/STATUS.md) (anglicky).
+
 Implementace vychází z high-fidelity prototypu **„Lumi Prototyp“** z Claude
 Designu (handoff z 12. 6. 2026) a z **Lumi design systemu** (tokeny v
 `src/theme.ts` jsou převzaté 1:1, komponenty v `src/ds/` odpovídají DS bundle).

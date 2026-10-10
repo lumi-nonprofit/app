@@ -21,6 +21,7 @@ import {
 } from "@expo-google-fonts/instrument-sans";
 import { AppStateProvider, useAppStore } from "../src/store";
 import { DbProvider } from "../src/db/provider";
+import { M1_VAULT_SKELETON_ENABLED } from "../src/lib/featureFlags";
 import { colors } from "../src/theme";
 
 SplashScreen.preventAutoHideAsync().catch(() => {
@@ -48,6 +49,11 @@ function RootNavigator() {
       </Stack.Protected>
       <Stack.Protected guard={!state.onboarded}>
         <Stack.Screen name="onboarding" />
+      </Stack.Protected>
+      {/* M1 skeleton nad Rust trezorem: dokud je flag vypnutý, routa neexistuje
+          a deep link na ni otevře první dostupnou obrazovku. */}
+      <Stack.Protected guard={M1_VAULT_SKELETON_ENABLED}>
+        <Stack.Screen name="m1-checkin" />
       </Stack.Protected>
     </Stack>
   );

@@ -7,6 +7,11 @@ Built in-sandbox? No — no device/full build here; this is the scaffold for you
 me on errors. **Supersedes** the `spikes/rn-nitro-app/` config-plugin kit (do NOT add
 `withLumiVault` to `app.json` — the Expo module autolinks instead).
 
+> **Since 2026-10-10 Android builds leave this module out.** Before Step 2, remove `"lumi-vault"`
+> from `expo.autolinking.exclude` in `package.json` and set `M1_VAULT_SKELETON_ENABLED` to `true`
+> in `src/lib/featureFlags.ts`. Keep both changes out of a pilot build (`docs/STATUS.md`,
+> `docs/pilot-release.md`).
+
 ## What's verified vs unproven
 - VERIFIED (in-sandbox): the Rust lib cross-compiles for arm64 (bundled SQLite via NDK); Nitrogen
   generates the spec/autolinking; the Expo plugin doesn't run RN-core codegen (Gate-C-clean).

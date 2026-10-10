@@ -68,5 +68,12 @@
     "jest-expo": "~56.0.5",
     "nitrogen": "^0.35.9",
     "prettier": "^3.8.4"
+  },
+  "expo": {
+    "autolinking": {
+      "exclude": [
+        "lumi-vault"
+      ]
+    }
   }
 }

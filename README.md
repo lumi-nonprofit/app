@@ -28,7 +28,8 @@ npm test          # testy (jest-expo + @testing-library/react-native)
 ```
 
 Produkční buildy řeší standardní Expo pipeline (`eas build`, případně
-`npx expo export` pro web).
+`npx expo export` pro web). Pilotní Android APK staví GitHub Actions; postup
+je v [`docs/pilot-release.md`](docs/pilot-release.md) (anglicky).
 
 ## Vývoj
 

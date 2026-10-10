@@ -31,6 +31,13 @@ The MVP is not one of these milestones. The MVP is a pilot Android build of the 
   `modules/lumi-vault`) is a development skeleton. Only the screen `/m1-checkin` uses it. It stores
   check-ins only. It wraps the vault key under a PIN key only. It exists for Android only. It writes
   to its own file, `lumi-vault.db`.
+- **Android builds leave the Rust vault out** (since 2026-10-10). `package.json` excludes
+  `modules/lumi-vault` from Expo autolinking. While `M1_VAULT_SKELETON_ENABLED` is false
+  (`src/lib/featureFlags.ts`), the app has no screen `/m1-checkin` (`app/_layout.tsx`).
+- **A GitHub runner builds the Android APK** (`.github/workflows/android-apk.yml`). A pull request
+  gets a build check; this was checked on GitHub on 2026-10-10. A tag makes a draft release with
+  an APK that the pilot key signs; this path is not checked on GitHub yet.
+  [`docs/pilot-release.md`](pilot-release.md) has the steps.
 - **Sync does not exist.** `server/lumi-sync-server` keeps blobs in memory and has no
   authentication. `core/lumi-sync-client` defines the wire envelope; sealing is a stub.
 - **The crisis-line recommender** (`core/lumi-core/src/crisis/`) is complete as a core module. The
@@ -50,23 +57,30 @@ Fresh clone of `main` (commit `4872666`). Toolchain: rustc 1.97.0, Node 22.22.0 
 | `npm test`                                                 | 16 suites, 95 tests pass                         |
 | `npx expo export --platform web`                           | Export OK; the exported app is blank (finding 5) |
 
-Not checked: the Android build and all behaviour on a device.
+Not checked on 2026-10-09: the Android build and all behaviour on a device.
+
+On 2026-10-10 a GitHub runner built the Android APK for `arm64-v8a` (workflow `Android APK`). The
+APK is about 55 MB. It has no native library of the Rust vault. The JS bundle still has the M1
+screen and the vault binding; the app does not load them. The install and all behaviour on a
+device are still not checked.
 
 ## Findings on 2026-10-09
 
 File each finding as an issue. Then delete it from this list.
 
-1. **The Android build needs files that are not in git.** `modules/lumi-vault` links into every
-   Android build. Its CMake build needs `cpp/rust-libs/`, `cpp/lumi_ffi_cabi.h` and
-   `nitrogen/generated/`. `.gitignore` excludes all three. Steps 1 and 2 of
-   `modules/lumi-vault/RUNBOOK.md` make them (Rust, cargo-ndk, cbindgen, Android NDK, Nitrogen). CI
-   has no Android job. This finding comes from the build files; the build was not run.
-2. **`/m1-checkin` has no development-only guard.** Every build has the route (deep link
-   `lumi://m1-checkin`). The PIN field has the default value `1234`. Added on 2026-10-10: the route
-   is outside the onboarding guard in `app/_layout.tsx`. expo-router also adds a generated screen,
-   `/_sitemap`, that lists every route; the plugin option `sitemap` is on by default. These two
-   statements come from the source (`app/_layout.tsx`, expo-router 56.2.10). They were not checked
-   on a device.
+1. **An Android build with the Rust vault needs files that are not in git.** The CMake build of
+   `modules/lumi-vault` needs `cpp/rust-libs/`, `cpp/lumi_ffi_cabi.h` and `nitrogen/generated/`.
+   `.gitignore` excludes all three. Steps 1 and 2 of `modules/lumi-vault/RUNBOOK.md` make them
+   (Rust, cargo-ndk, cbindgen, Android NDK, Nitrogen). Changed on 2026-10-10: Android builds leave
+   the module out (`package.json`), so they do not need these files. CI builds the app without
+   the vault. No CI job builds the vault for Android.
+2. **`/m1-checkin` is off by default, and it is not safe to turn on for testers.** Changed on
+   2026-10-10: the app has no screen `/m1-checkin` while `M1_VAULT_SKELETON_ENABLED` is false. A
+   test covers this (`test/m1Route.test.tsx`). With the flag on, the old problems come back: the
+   route has no development-only guard, the PIN field has the default value `1234`, and the
+   route is outside the onboarding guard. expo-router also adds a generated screen, `/_sitemap`,
+   that lists every route; the plugin option `sitemap` is on by default. The statement about
+   `/_sitemap` comes from the source (expo-router 56.2.10). It was not checked on a device.
 3. **If the database does not open, the app shows nothing.** `src/db/provider.tsx` renders `null`,
    and the splash screen stays. The Help tab is inside the provider, so the crisis contacts are not
    available.
@@ -93,8 +107,8 @@ File each finding as an issue. Then delete it from this list.
    `ci.yml` from June says 3. Do not merge the old PRs without a check:
    - #31 (argon2 0.6, chacha20poly1305 0.11, getrandom 0.4) does not compile.
      `core/lumi-vault/src/lib.rs` calls `getrandom::getrandom`, which getrandom 0.4 does not have.
-   - #37 moves `react-native-nitro-modules` and `nitrogen` from 0.35.9 to 0.37.1. CI cannot verify
-     the Android binding.
+   - #37 moves `react-native-nitro-modules` and `nitrogen` from 0.35.9 to 0.37.1. CI builds the
+     Android app without the vault module, so CI cannot verify the vault binding.
    - #19 (shell-quote 1.10.0), #23 (brace-expansion 1.1.18) and #32 (js-yaml 3.15.2) target
      versions that are in the vulnerable ranges of `npm audit` on 2026-10-09 (shell-quote
      `<=1.10.0`, brace-expansion `<=1.1.20`, js-yaml `<=4.3.1`).
@@ -102,6 +116,18 @@ File each finding as an issue. Then delete it from this list.
 9. **One design document is missing.** ADR 0005 and the transport proposal cite the "M2 canonical
    data-model assessment (2026-06-15)". It is not in the repository. ADR 0005 states its conclusion.
 10. **Issue #8 is open** (test gap: crisis scope-tag precedence).
+11. **The APK declares permissions that the app code does not use** (added on 2026-10-10, from the
+    APK that the runner built). The manifest has `RECORD_AUDIO`, `INTERNET`,
+    `SYSTEM_ALERT_WINDOW`, `RECEIVE_BOOT_COMPLETED`, `USE_BIOMETRIC`, `READ_EXTERNAL_STORAGE` and
+    `WRITE_EXTERNAL_STORAGE` (only up to Android 12L), and more. `app.json` lists four
+    permissions, with `RECORD_AUDIO` among them. The Expo template and the libraries add the
+    others. The code in `app/` and `src/` does not record audio and makes no network call. Check
+    each permission before the pilot.
+12. **The release APK has parts of the development tools** (added on 2026-10-10, from the APK and
+    the build log). The APK has the classes of expo-dev-client and the URL scheme `exp+lumi`.
+    `expo-dev-client` is a normal dependency in `package.json`. The prebuild step prints a
+    warning: `userInterfaceStyle` needs `expo-system-ui`, which is not installed. The effect of
+    both points on a device is not checked.
 
 ## What blocks M2
 
@@ -124,13 +150,20 @@ These points block M2. They do not block the MVP (ADR 0007, "What follows from t
 
 **Decided on 2026-10-10 (ADR 0007):** the MVP is a pilot Android build of the existing app.
 
-**Not decided:** the steps and the two rules below. They are a proposal of 2026-10-09.
+**Done in code on 2026-10-10, not recorded in an ADR:** Android builds leave the Rust vault out. A
+GitHub runner builds the APK, signs it and puts it into a draft release. ADR 0007 lists both
+points as not decided.
 
-1. Bring the dependencies up to date (finding 8).
-2. Make a pilot Android build that does not link `modules/lumi-vault` and does not expose
-   `/m1-checkin`. The code stays in the repository.
-3. Do the open native checks on a device (finding 4). Add a fallback for finding 3.
-4. Close the content blockers (finding 6).
+**Not decided:** the steps and the two rules below. They are a proposal of 2026-10-09. The steps
+were updated on 2026-10-10.
+
+1. Make the pilot signing key and the first pilot build ([`pilot-release.md`](pilot-release.md)).
+   Install the build on a device.
+2. Do the open native checks on a device (finding 4). Add a fallback for finding 3.
+3. Bring the dependencies up to date (finding 8). The workflow `Android APK` checks each PR that
+   changes `package.json` or `package-lock.json`. An open Dependabot PR needs a rebase first.
+4. Close the content blockers (finding 6). Check the permissions and the development tools in
+   the APK (findings 11 and 12).
 5. Run a small pilot with adult students. Give the build to an expert reviewer.
 
 **Proposed rule for real data:** do not put real user data into the Rust vault before ADR 0005 is

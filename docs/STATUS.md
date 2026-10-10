@@ -1,6 +1,7 @@
 # Lumi — project status
 
-**Last updated:** 2026-10-09. The last commit on `main` before this review is from 2026-06-15.
+**Last updated:** 2026-10-10. The last commit on `main` before the review of 2026-10-09 is from
+2026-06-15.
 
 This file tells you where the project is and what comes next. Keep it short. Update it when a
 milestone changes state. Record decisions in ADRs (`docs/adr/`). Track work items as GitHub issues,
@@ -18,6 +19,9 @@ not in this file.
 
 Sources: ADR 0001 (milestones, §9, §12); commit `92f209e` (the M0 scaffold and CI, 2026-06-13);
 `docs/m1-vertical-slice-proposal.md` (the M1 result).
+
+The MVP is not one of these milestones. The MVP is a pilot Android build of the existing app
+(ADR 0007, decided on 2026-10-10). ADR 0007 explains why the MVP does not need M2 or M3.
 
 ## What the code does today
 
@@ -58,7 +62,11 @@ File each finding as an issue. Then delete it from this list.
    `modules/lumi-vault/RUNBOOK.md` make them (Rust, cargo-ndk, cbindgen, Android NDK, Nitrogen). CI
    has no Android job. This finding comes from the build files; the build was not run.
 2. **`/m1-checkin` has no development-only guard.** Every build has the route (deep link
-   `lumi://m1-checkin`). The PIN field has the default value `1234`.
+   `lumi://m1-checkin`). The PIN field has the default value `1234`. Added on 2026-10-10: the route
+   is outside the onboarding guard in `app/_layout.tsx`. expo-router also adds a generated screen,
+   `/_sitemap`, that lists every route; the plugin option `sitemap` is on by default. These two
+   statements come from the source (`app/_layout.tsx`, expo-router 56.2.10). They were not checked
+   on a device.
 3. **If the database does not open, the app shows nothing.** `src/db/provider.tsx` renders `null`,
    and the splash screen stays. The Help tab is inside the provider, so the crisis contacts are not
    available.
@@ -75,7 +83,11 @@ File each finding as an issue. Then delete it from this list.
    `src/features/help/crisisCard.ts`, `src/features/onboarding/AgeStep.tsx`) and again in
    `core/lumi-core/src/crisis/matcher.rs`. `docs/cz-crisis-data-checklist.md` has no sign-off.
 7. **The backup export is plain JSON** (`src/db/backup.ts`). ADR 0001 S2 requires an encrypted
-   export by default.
+   export by default. Added on 2026-10-10, from the source: the export writes the file to the
+   cache directory of the app and does not delete it after the share
+   (`src/features/stats/BackupCard.tsx`). The backup holds the check-ins, the questionnaire results
+   and three profile fields. It does not hold the crisis plan, the custom tags or the reminder
+   settings. The import adds check-ins and questionnaire results only.
 8. **The dependencies are from 2026-06-15.** 13 Dependabot PRs are open (the oldest is from
    2026-07-21). `npm audit` reports 83 advisories (1 critical, 63 high, 19 moderate); the comment in
    `ci.yml` from June says 3. Do not merge the old PRs without a check:
@@ -93,6 +105,8 @@ File each finding as an issue. Then delete it from this list.
 
 ## What blocks M2
 
+These points block M2. They do not block the MVP (ADR 0007, "What follows from the decision").
+
 1. ADR 0005 (key model) has the status "Proposed — NOT accepted; do not implement". It needs an
    independent crypto review and then Anna's ratification.
 2. The PIN to keystore gating is not resolved. ADR 0005 calls it the headline question. It needs a
@@ -106,31 +120,30 @@ File each finding as an issue. Then delete it from this list.
    four entities (entries, measurements, tags, settings), HLC stamps, device ids, the keystore
    wrap, the recovery wrap, and the screens for PIN, recovery and device pairing.
 
-## Proposed next steps
+## Next steps
 
-This section is a proposal of 2026-10-09. It is not a decision. Anna decides.
+**Decided on 2026-10-10 (ADR 0007):** the MVP is a pilot Android build of the existing app.
 
-**Proposal:** the MVP is a pilot Android build of the app as it is on 2026-10-09. M2 comes after
-the pilot.
+**Not decided:** the steps and the two rules below. They are a proposal of 2026-10-09.
 
-1. Decide the MVP definition. Record the decision in an ADR. Then update this file.
-2. Bring the dependencies up to date (finding 8).
-3. Make a pilot Android build that does not link `modules/lumi-vault` and does not expose
+1. Bring the dependencies up to date (finding 8).
+2. Make a pilot Android build that does not link `modules/lumi-vault` and does not expose
    `/m1-checkin`. The code stays in the repository.
-4. Do the open native checks on a device (finding 4). Add a fallback for finding 3.
-5. Close the content blockers (finding 6).
-6. Run a small pilot with adult students. Give the build to an expert reviewer.
+3. Do the open native checks on a device (finding 4). Add a fallback for finding 3.
+4. Close the content blockers (finding 6).
+5. Run a small pilot with adult students. Give the build to an expert reviewer.
 
 **Proposed rule for real data:** do not put real user data into the Rust vault before ADR 0005 is
 accepted. ADR 0005 ("Change vs M1") assumes that the vault holds no real user data and needs no
-migration.
+migration. ADR 0004 (e) already requires a hardening of the vault store before any real user. That
+hardening is not built.
 
 **Proposed rule for the return to M2:** start M2 when both conditions are true. (a) ADR 0005 passed
 an independent crypto review. (b) The pilot showed that users need a second device or a restore.
 
 ## Where the history is
 
-- Decisions: `docs/adr/` (0001 to 0006).
+- Decisions: `docs/adr/` (0001 to 0007).
 - Analysis behind the decisions: `docs/m1-vertical-slice-proposal.md`,
   `docs/m2-transport-proposal.md`.
 - Spike reports: `spikes/rn-ffi/SPIKE-REPORT.md`, `spikes/rn-nitro/SPIKE-REPORT.md`.

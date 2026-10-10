@@ -7,8 +7,8 @@
   quotes the message.
 - **Relates to:** ADR 0001 (§1 Rust core, §6 migration, §9 security requirements, §12 platform
   scope), ADR 0004 (e), ADR 0005 and [`docs/STATUS.md`](../STATUS.md). References to
-  `docs/STATUS.md` mean the version of 2026-10-10. This ADR does not change the earlier ADRs
-  (0001 to 0006).
+  `docs/STATUS.md` mean the version of 2026-10-10 at commit `36c5f63`. This ADR does not change
+  the earlier ADRs (0001 to 0006).
 
 ## Context
 

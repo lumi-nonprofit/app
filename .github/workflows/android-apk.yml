@@ -1,0 +1,215 @@
+name: Android APK
+
+# Builds the Android APK of the app on a GitHub runner. How to use it: docs/pilot-release.md
+#
+#   tag v*        build, sign with the pilot key, create a DRAFT pre-release with the APK
+#   pull request  build, sign with a throwaway key (a check that the build still works)
+#
+# Three jobs, so that each job has only the access that it needs:
+#   build    runs npm and Gradle (third-party code). No secrets. Read-only token.
+#   check    pull requests only. Signs with a throwaway key. No secrets.
+#   release  tags only. Gets the pilot key from the environment "pilot-release" and makes the
+#            draft release. The protection rule of the environment makes the job wait for a
+#            person. A repository secret would be open to every person and tool that can push.
+#
+# "check" and "release" call .github/scripts/sign-apk.sh. Both delete the artifact of "build",
+# because any signed-in GitHub user can download the artifacts of a public repository.
+
+on:
+  push:
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/android-apk.yml"
+      - ".github/scripts/**"
+      - "app/**"
+      - "src/**"
+      - "assets/**"
+      - "drizzle/**"
+      - "modules/**"
+      - "app.json"
+      - "app.config.ts"
+      - "babel.config.js"
+      - "metro.config.js"
+      - "package.json"
+      - "package-lock.json"
+
+permissions:
+  contents: read
+
+# "shell: bash" makes a step fail when any command in a pipe fails.
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: android-apk-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # One ABI keeps the build short. The APK has native code for 64-bit ARM only.
+  ABI: arm64-v8a
+  # The commit that the notes name. For a pull request this is the head commit.
+  COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+  DOCS_URL: ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.event.pull_request.head.sha || github.sha }}/docs
+
+jobs:
+  build:
+    name: Build APK
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    outputs:
+      artifact_id: ${{ steps.upload.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          # A tag needs the history, for the check that its commit is on main.
+          fetch-depth: ${{ startsWith(github.ref, 'refs/tags/') && '0' || '1' }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # app.config.ts reads LUMI_VERSION_NAME and LUMI_ANDROID_VERSION_CODE.
+      # The version code is the number of the run. Each run has a higher number than the run
+      # before, so Android accepts each build as an update. Do not rename this file: the
+      # numbers of a renamed workflow start again at 1.
+      - name: Set the version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]] ||
+              { echo "::error::The tag must look like v0.1.0 or v0.1.0-pilot.1."; exit 1; }
+            git rev-parse --verify --quiet origin/main > /dev/null ||
+              { echo "::error::The checkout has no origin/main."; exit 1; }
+            git merge-base --is-ancestor "$GITHUB_SHA" origin/main ||
+              { echo "::error::The commit of the tag is not on main."; exit 1; }
+            version_name="${GITHUB_REF_NAME#v}"
+          else
+            version_name="$(node -p "require('./app.json').expo.version")-ci.$GITHUB_RUN_NUMBER"
+          fi
+          {
+            echo "LUMI_VERSION_NAME=$version_name"
+            echo "LUMI_ANDROID_VERSION_CODE=$GITHUB_RUN_NUMBER"
+          } >> "$GITHUB_ENV"
+
+      - run: npm ci
+
+      # android/ is not in git. Expo generates it from app.json, app.config.ts and package.json.
+      - name: Generate the Android project
+        run: npx expo prebuild --platform android --no-install
+
+      # Gradle signs this APK with the debug key of the Expo template. That key is public.
+      # The jobs "check" and "release" replace the signature.
+      - name: Build the release APK
+        working-directory: android
+        run: >
+          ./gradlew assembleRelease --no-daemon --console=plain
+          -PreactNativeArchitectures="$ABI"
+          -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g"
+
+      - uses: actions/upload-artifact@v7
+        id: upload
+        with:
+          name: apk-from-build
+          path: android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 1
+
+  check:
+    name: Check the signing steps
+    if: github.event_name == 'pull_request'
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: write # to delete the artifact of the job "build"
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v8
+        with:
+          name: apk-from-build
+          path: ${{ runner.temp }}/apk
+      - name: Sign with a throwaway key
+        run: bash .github/scripts/sign-apk.sh throwaway "$RUNNER_TEMP/apk/app-release.apk" "$RUNNER_TEMP/out"
+      # The token of a pull request from a fork cannot delete. Then the artifact expires after
+      # one day.
+      - name: Delete the artifact of the job "build"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ARTIFACT_ID: ${{ needs.build.outputs.artifact_id }}
+        run: |
+          [[ "$ARTIFACT_ID" =~ ^[0-9]+$ ]] || { echo "::warning::No artifact id."; exit 0; }
+          gh api --method DELETE "repos/$GH_REPO/actions/artifacts/$ARTIFACT_ID" ||
+            echo "::warning::Could not delete the artifact apk-from-build. It expires after one day."
+
+  release:
+    name: Sign and draft the release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: pilot-release
+    permissions:
+      contents: write # for the draft release
+      actions: write # to delete the artifact of the job "build"
+    steps:
+      # This job has the pilot key. Its two actions are pinned to a commit.
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: apk-from-build
+          path: ${{ runner.temp }}/apk
+      - name: Sign with the pilot key
+        id: sign
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: bash .github/scripts/sign-apk.sh pilot "$RUNNER_TEMP/apk/app-release.apk" "$RUNNER_TEMP/out"
+
+      # A draft is visible only to people with write access. To publish it is a manual step.
+      # The job never adds an APK to a published release.
+      - name: Create the draft release
+        working-directory: ${{ runner.temp }}/out
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+          APK: ${{ steps.sign.outputs.apk }}
+        run: |
+          draft="$(gh release view "$TAG" --json isDraft --jq .isDraft 2> /dev/null || echo none)"
+          case "$draft" in
+            none)
+              gh release create "$TAG" "$APK" "$APK.sha256" --draft --prerelease --verify-tag \
+                --title "Lumi ${TAG#v} (pilot)" --notes-file release-notes.md
+              ;;
+            true)
+              gh release upload "$TAG" "$APK" "$APK.sha256" --clobber
+              gh release edit "$TAG" --draft --prerelease --notes-file release-notes.md
+              ;;
+            *)
+              echo "::error::The release $TAG is already published. This workflow does not add an APK to a published release. Make a new tag."
+              exit 1
+              ;;
+          esac
+
+      - name: Delete the artifact of the job "build"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ARTIFACT_ID: ${{ needs.build.outputs.artifact_id }}
+        run: |
+          [[ "$ARTIFACT_ID" =~ ^[0-9]+$ ]] || { echo "::warning::No artifact id."; exit 0; }
+          gh api --method DELETE "repos/$GH_REPO/actions/artifacts/$ARTIFACT_ID" ||
+            echo "::warning::Could not delete the artifact apk-from-build. It expires after one day."

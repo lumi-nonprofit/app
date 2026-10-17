@@ -9,6 +9,7 @@ import { SectionLabel } from "../../components/Header";
 import { useDb, useDbVersion } from "../../db/provider";
 import { useDbWriter } from "../../db/hooks";
 import { deleteCustomTag, listCustomTags, type Tag } from "../../db/repo";
+import { announce } from "../../lib/a11y";
 import { confirmDelete } from "../../lib/dialogs";
 import { createThemedStyles } from "../../theme";
 
@@ -28,7 +29,10 @@ export default function TagsSection() {
       message: "Záznamy, kde už je použitý, zůstanou beze změny.",
     })
       .then((ok) => {
-        if (ok) write((d) => deleteCustomTag(d, tag.id));
+        if (ok) {
+          write((d) => deleteCustomTag(d, tag.id));
+          announce(`Štítek ${tag.label} smazán.`);
+        }
       })
       .catch(() => {});
   };

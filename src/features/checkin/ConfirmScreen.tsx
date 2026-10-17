@@ -9,6 +9,7 @@ import Screen from "../../components/Screen";
 import { lastEntryForDate, recommendationForMood, toISODate } from "../../model";
 import type { MoodId } from "../../model";
 import { useEntries } from "../../db/hooks";
+import { announce } from "../../lib/a11y";
 import { createThemedStyles, useTheme } from "../../theme";
 import { useCheckinDraft } from "./draft";
 
@@ -21,6 +22,9 @@ export default function ConfirmScreen() {
   const todayEntries = useEntries({ from: today, to: today });
   const moodId: MoodId = draft.mood ?? lastEntryForDate(todayEntries, today)?.mood ?? "napeti";
   const tip = recommendationForMood(moodId);
+  React.useEffect(() => {
+    announce("Uloženo. Záznam zůstává v telefonu.");
+  }, []);
 
   const goHome = () => {
     router.dismissAll();

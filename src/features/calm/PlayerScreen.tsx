@@ -15,6 +15,7 @@ import { Redirect, useLocalSearchParams } from "expo-router";
 import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import { Badge, Button, Icon, Text } from "../../ds";
 import Screen from "../../components/Screen";
+import { announce } from "../../lib/a11y";
 import { haptics } from "../../lib/haptics";
 import { byId, type CalmActivity } from "./content";
 import BlindBreathScreen from "./BlindBreathScreen";
@@ -132,7 +133,13 @@ function BreathPlayer({ activity }: { activity: CalmActivity }) {
     if (!running) return;
     if (phase.label === "Nádech") haptics.inhale();
     else if (phase.label === "Výdech") haptics.exhale();
+    announce(phase.label);
   }, [running, phase.label]);
+
+  /* konec cvičení oznámí čtečka (iOS nemá live region) */
+  React.useEffect(() => {
+    if (finished) announce("Hotovo. Díky za chvilku klidu.");
+  }, [finished]);
 
   const ctaLabel = finished
     ? "Začít znovu"
@@ -154,7 +161,7 @@ function BreathPlayer({ activity }: { activity: CalmActivity }) {
       <View style={styles.centerBlock}>
         {finished ? (
           <>
-            <Text accessibilityLiveRegion="polite" variant="title1" align="center">
+            <Text variant="title1" align="center">
               Hotovo
             </Text>
             <Text variant="footnote" color="textMuted" align="center" style={styles.phaseHint}>
@@ -163,7 +170,7 @@ function BreathPlayer({ activity }: { activity: CalmActivity }) {
           </>
         ) : (
           <>
-            <Text accessibilityLiveRegion="polite" variant="title1" align="center">
+            <Text variant="title1" align="center">
               {phase.label}
             </Text>
             {/* vteřinový odpočet je pro čtečku skrytý — rytmus hlásí změna fáze výš */}

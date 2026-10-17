@@ -4,7 +4,8 @@
    Pod prahem dat jemné povzbuzení místo vzorců — žádná vina. */
 import React from "react";
 import { View } from "react-native";
-import { Card, Icon, Text } from "../../ds";
+import { useRouter } from "expo-router";
+import { Button, Card, Icon, Text } from "../../ds";
 import type { IconName } from "../../ds/Icon";
 import { SectionLabel } from "../../components/Header";
 import { computeInsights, TOO_FEW_DATA_TEXT, type Insight } from "./insights";
@@ -46,6 +47,7 @@ interface Props {
 }
 
 export default function InsightsCard({ entries, period }: Props) {
+  const router = useRouter();
   const styles = useStyles();
   /* týden = 7 ISO dnů aktuálního týdne (Po–Ne); měsíc = celé předané období
      (Přehledy už čtou jen ~35 dní zpět) */
@@ -63,9 +65,15 @@ export default function InsightsCard({ entries, period }: Props) {
         {insights.length ? (
           insights.map((i) => <InsightRow key={i.id} insight={i} />)
         ) : (
-          <Text variant="subheadline" color="textMuted">
-            {TOO_FEW_DATA_TEXT}
-          </Text>
+          <View style={styles.empty}>
+            <Text variant="subheadline" color="textMuted">
+              {TOO_FEW_DATA_TEXT}
+            </Text>
+            {/* prázdný stav s jasným dalším krokem (HIG Writing) */}
+            <Button variant="ghost" size="sm" onPress={() => router.push("/checkin")}>
+              Přidat zápis
+            </Button>
+          </View>
         )}
       </Card>
     </View>
@@ -86,4 +94,5 @@ const useStyles = createThemedStyles((t) => ({
     marginTop: 1,
   },
   rowText: { flex: 1, alignSelf: "center" },
+  empty: { gap: 8, alignItems: "flex-start" },
 }));

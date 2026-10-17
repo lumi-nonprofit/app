@@ -181,7 +181,9 @@ export default function StatsScreen() {
       {/* kalendář nálad */}
       <Card>
         <View style={styles.cardHead}>
-          <Text variant="headline">Nálada podle dní</Text>
+          <Text accessibilityRole="header" variant="headline">
+            Nálada podle dní
+          </Text>
           <Badge>{period === "týden" ? "tento týden" : "posledních 28 dní"}</Badge>
         </View>
 
@@ -266,7 +268,9 @@ export default function StatsScreen() {
             sublabel="WHO-5"
           />
           <View style={styles.wellBody}>
-            <Text variant="headline">Wellbeing index</Text>
+            <Text accessibilityRole="header" variant="headline">
+              Wellbeing index
+            </Text>
             {!measurement ? (
               <View>
                 <Text variant="subheadline" color="textMuted" style={styles.wellTextSpaced}>

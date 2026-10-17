@@ -12,6 +12,7 @@ import { SectionLabel } from "../../components/Header";
 import { buildBackup, importBackup, parseBackup, type ParseResult } from "../../db/backup";
 import { useDb } from "../../db/provider";
 import { useDbWriter } from "../../db/hooks";
+import { announce } from "../../lib/a11y";
 import { czPlural, toISODate, type ISODate } from "../../model";
 import { createThemedStyles } from "../../theme";
 
@@ -32,6 +33,10 @@ export default function BackupSection() {
   const write = useDbWriter();
   const styles = useStyles();
   const [flow, setFlow] = React.useState<Flow>({ kind: "idle" });
+  /* výsledek zůstává inline a oznámí se čtečce */
+  React.useEffect(() => {
+    if (flow.kind === "done" || flow.kind === "error") announce(flow.message);
+  }, [flow]);
 
   const exportBackup = async () => {
     try {

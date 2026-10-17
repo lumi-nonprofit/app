@@ -14,7 +14,7 @@ describe("Pomoc", () => {
     const openURL = jest.spyOn(Linking, "openURL").mockResolvedValue(undefined);
     writeProfile(getTestDb(), { onboarded: true, name: "Janko", age: "plus27", share: false });
     await renderRouter("app", { initialUrl: "/help" });
-    expect(await screen.findByText("Jsme tu s tebou")).toBeOnTheScreen();
+    expect(await screen.findByText("Pomoc je blízko")).toBeOnTheScreen();
 
     await user.press(screen.getByRole("link", { name: /Linka pomoci obětem · 116 006/ }));
     expect(openURL).toHaveBeenCalledWith("tel:116006");
@@ -34,7 +34,7 @@ describe("Pomoc", () => {
   it("bez uvedeného věku zůstávají obě linky k dispozici", async () => {
     writeProfile(getTestDb(), { onboarded: true, name: "", age: null, share: false });
     await renderRouter("app", { initialUrl: "/help" });
-    expect(await screen.findByText("Jsme tu s tebou")).toBeOnTheScreen();
+    expect(await screen.findByText("Pomoc je blízko")).toBeOnTheScreen();
     expect(screen.getAllByRole("link", { name: /Zavolat 116 111/ }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole("link", { name: /Zavolat 116 123/ }).length).toBeGreaterThan(0);
   });

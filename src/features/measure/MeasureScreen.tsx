@@ -24,6 +24,7 @@ import {
 } from "../../db/repo";
 import { HELP_LINES, toISODate, czPlural } from "../../model";
 import { useAppStore } from "../../store";
+import { announce } from "../../lib/a11y";
 import { haptics } from "../../lib/haptics";
 import { useDiscardGuard } from "../../lib/useDiscardGuard";
 import { INSTRUMENTS, PHQ9_RISK_QUESTION_INDEX, isMeasurementType } from "./definitions";
@@ -106,6 +107,19 @@ function Measure({ type }: { type: MeasurementType }) {
     message: "Dosavadní odpovědi se neuloží.",
     confirmLabel: "Ukončit",
   });
+
+  /* posun v dotazníku oznámí čtečka: číslo otázky, mezistránka, výsledek */
+  const questionIndex = phase.kind === "question" ? phase.index : -1;
+  React.useEffect(() => {
+    if (phase.kind === "question") {
+      announce(`Otázka ${phase.index + 1} z ${inst.questions.length}`);
+    } else if (phase.kind === "support") {
+      announce("Díky za upřímnost. Pomoc je tu i teď.");
+    } else if (phase.kind === "result") {
+      announce("Hotovo. Díky za chvilku.");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- oznámení jen při změně kroku, ne odpovědí
+  }, [phase.kind, questionIndex]);
 
   const lastAnsweredIndex = React.useRef(-1);
   const lastAdvanceAt = React.useRef(0);
@@ -192,7 +206,7 @@ function Measure({ type }: { type: MeasurementType }) {
               setPhase({ kind: "question", index: 0, answers: [] });
             }}
           >
-            Rozumím, pokračovat
+            Pokračovat
           </Button>
           <Button variant="ghost" fullWidth onPress={() => router.back()}>
             Teď ne
@@ -278,7 +292,7 @@ function Measure({ type }: { type: MeasurementType }) {
             <Icon name="heart-handshake" size={26} color={theme.colors.textDanger} />
           </View>
           <Text accessibilityRole="header" variant="title1" align="center">
-            Děkujeme za upřímnost.
+            Díky za upřímnost.
           </Text>
           <Text variant="body" align="center">
             Tahle odpověď je důležitá. Nemusíš v tom zůstávat o samotě — pomoc je tu i teď a

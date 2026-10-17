@@ -19,7 +19,7 @@ export default function NameStep() {
         body="Pomůžu ti všímat si, jak se máš, a hledat, co ti dělá dobře. Všechno zůstává u tebe."
       />
       <Input
-        label="Jak ti máme říkat?"
+        label="Jak ti říkat?"
         placeholder="Třeba Alex"
         hint="Nepovinné — jen pro oslovení, nikam se neposílá."
         value={state.name}

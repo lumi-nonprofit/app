@@ -17,6 +17,7 @@ import { StatusBar } from "expo-status-bar";
 import { useKeepAwake } from "expo-keep-awake";
 import { Button, RadioRow, Text } from "../../ds";
 import Screen from "../../components/Screen";
+import { announce } from "../../lib/a11y";
 import { haptics } from "../../lib/haptics";
 import type { CalmActivity } from "./content";
 import {
@@ -162,6 +163,10 @@ function Setup({ activity, rhythm, minutes, onRhythm, onMinutes, onStart }: Setu
 function Countdown({ onDone }: { onDone: () => void }) {
   const styles = useStyles();
   const [count, setCount] = React.useState(3);
+  /* odpočet oznamuje čtečka — na začátku i s pokynem schovat telefon */
+  React.useEffect(() => {
+    announce(count === 3 ? "3. Schovej telefon do kapsy." : String(count));
+  }, [count]);
   /* zrcadlo pro intervalový callback — stav se mění tam, ne v efektu */
   const countRef = React.useRef(3);
 
@@ -182,7 +187,7 @@ function Countdown({ onDone }: { onDone: () => void }) {
   return (
     <Screen contentStyle={styles.center}>
       <View style={styles.countBlock}>
-        <Text accessibilityLiveRegion="polite" variant="display" tabular align="center">
+        <Text variant="display" tabular align="center">
           {count}
         </Text>
         <Text variant="body" color="textMuted" align="center">
@@ -288,6 +293,9 @@ function Running({ rhythm, totalSeconds, onFinish, onCancel }: RunningProps) {
 
 function Done({ onAgain, onBack }: { onAgain: () => void; onBack: () => void }) {
   const styles = useStyles();
+  React.useEffect(() => {
+    announce("Hotovo. Díky za chvilku.");
+  }, []);
   return (
     <Screen contentStyle={styles.center}>
       <View style={styles.doneBlock}>

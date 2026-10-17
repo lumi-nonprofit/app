@@ -14,7 +14,7 @@ describe("Krizový plán", () => {
     writeProfile(getTestDb(), { onboarded: true, name: "Janko", age: "u26", share: false });
     await renderRouter("app", { initialUrl: "/help" });
 
-    expect(await screen.findByText("Jsme tu s tebou")).toBeOnTheScreen();
+    expect(await screen.findByText("Pomoc je blízko")).toBeOnTheScreen();
     await user.press(screen.getByRole("button", { name: /Moje varovné signály/ }));
 
     // editor sekce

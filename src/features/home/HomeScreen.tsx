@@ -104,7 +104,9 @@ export default function HomeScreen() {
               sublabel="wellbeing"
             />
             <View style={styles.flex1}>
-              <Text variant="headline">Wellbeing index</Text>
+              <Text accessibilityRole="header" variant="headline">
+                Wellbeing index
+              </Text>
               <Text variant="subheadline" color="textMuted">
                 {who5HomeText(who5)}
               </Text>
@@ -116,7 +118,9 @@ export default function HomeScreen() {
           <View style={styles.ringRow}>
             <ProgressRing value={0} size={78} label="—" sublabel="wellbeing" />
             <View style={styles.flex1}>
-              <Text variant="headline">Wellbeing index</Text>
+              <Text accessibilityRole="header" variant="headline">
+                Wellbeing index
+              </Text>
               <Text variant="subheadline" color="textMuted" style={styles.ringTextEmpty}>
                 Krátký dotazník (5 otázek) ti nastaví výchozí bod. Bez známek, bez porovnávání.
               </Text>
@@ -155,7 +159,12 @@ export default function HomeScreen() {
       <View style={styles.crisisSection}>
         <View style={styles.crisisHeader}>
           <Icon name="heart-handshake" size={20} color={theme.colors.textDanger} />
-          <Text variant="headline" color="textDanger" style={styles.flex1}>
+          <Text
+            accessibilityRole="header"
+            variant="headline"
+            color="textDanger"
+            style={styles.flex1}
+          >
             Není ti dobře?
           </Text>
         </View>

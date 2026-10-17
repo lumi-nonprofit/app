@@ -122,6 +122,29 @@ Prototyp přepínal varianty obrazovek ručně (tweaks panel); v aplikaci je
 - **Žádná gamifikace, žádné guilt mechaniky, žádné srovnávání s ostatními** —
   interpretace wellbeingu jen vůči vlastnímu průměru.
 
+## Přístupnost
+
+- **Platformní UI.** iOS podle Apple HIG (nativní navigation bar s velkým titulkem, systémový
+  tab bar, SF Symbols, action sheety), Android podle Android design guidelines / Material 3
+  (top app bar, navigation bar, Material Symbols, ripple, dialogy). Vzhled sleduje systém —
+  světlý i tmavý režim, žádný vlastní přepínač.
+- **Kontrast.** Každý barevný pár z `src/theme/contrastPairs.ts` musí v obou režimech projít
+  WCAG 2.2 AA (text 4,5:1, ne-textové prvky 3:1) — hlídá `test/contrast.test.ts`. Informace
+  nikdy jen barvou (tvar stavu, fajfka u výběru, text u stavu).
+- **Písmo.** Veškerý text jde přes `ds/Text`: varianty mapují iOS text styles (Dynamic Type) a
+  Material type scale; Bricolage Grotesque jen pro titulky, tělo textu systémový font. Limity
+  škálování jen tam, kde to layout vyžaduje (tlačítka 2×, chipy 1,6×, badge 1,5×).
+- **Dotykové cíle** ≥ 44 pt (iOS) / 48 dp (Android), řádky seznamu 56 dp na Androidu.
+- **Čtečky obrazovky.** Nadpisy mají roli `header`, stav nesou `accessibilityState` /
+  `accessibilityValue` (ne text labelu), změny obsahu oznamuje `announce()` z `src/lib/a11y.ts`
+  (fáze dechu, odpočet, posun otázky, uložení, výsledek zálohy). Ke každému gestu existuje
+  tlačítko nebo `accessibilityActions` (smazání štítku, ukončení Dechu naslepo).
+- **Hinty.** `accessibilityHint` jen tam, kde výsledek akce neplyne z labelu (pravidlo
+  `react-native-a11y/has-accessibility-hint` je vypnuté záměrně).
+- **Neuložená práce.** Zavření rozepsaného check-inu, dotazníku nebo editace plánu se nejdřív
+  zeptá (`src/lib/useDiscardGuard.ts`); návrat o krok zpět uvnitř úlohy ne.
+- **Haptika** je doplněk (nikdy jediný kanál) a dá se vypnout v Nastavení.
+
 ## Soukromí
 
 Záznamy se ukládají **jen do telefonu**, do SQLite šifrované SQLCipherem

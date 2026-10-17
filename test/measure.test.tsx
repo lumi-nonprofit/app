@@ -9,7 +9,7 @@ type User = ReturnType<typeof userEvent.setup>;
 
 async function finishOnboarding(user: User, age: "u26" | "plus27" = "u26"): Promise<void> {
   expect(await screen.findByText("Ahoj, tady Lumi.")).toBeOnTheScreen();
-  await user.type(screen.getByLabelText(/Jak ti máme říkat/), "Janko");
+  await user.type(screen.getByLabelText(/Jak ti říkat/), "Janko");
   await user.press(screen.getByRole("button", { name: "Začít" }));
   await user.press(screen.getByRole("radio", { name: age === "u26" ? /do 26 let/ : /27 a více/ }));
   await user.press(screen.getByRole("button", { name: "Pokračovat" }));
@@ -98,13 +98,13 @@ describe("PHQ-9", () => {
     await finishOnboarding(user);
     await openPhq9(user);
 
-    await user.press(await screen.findByRole("button", { name: "Rozumím, pokračovat" }));
+    await user.press(await screen.findByRole("button", { name: "Pokračovat" }));
     // otázky 1–8: „Vůbec ne“ (0), otázka 9: „Několik dní“ (1)
     for (let i = 1; i <= 8; i++) await answerQuestion(user, i, 9, "Vůbec ne");
     await answerQuestion(user, 9, 9, "Několik dní");
 
     // mezistránka místo výsledku: klidný tón, akce viditelné
-    expect(await screen.findByText("Děkujeme za upřímnost.")).toBeOnTheScreen();
+    expect(await screen.findByText("Díky za upřímnost.")).toBeOnTheScreen();
     expect(screen.getByText(/Nemusíš v tom zůstávat o samotě/)).toBeOnTheScreen();
     expect(screen.getByRole("button", { name: "Otevřít Pomoc" })).toBeOnTheScreen();
     expect(screen.getByRole("link", { name: /Zavolat Lince bezpečí · 116 111/ })).toBeOnTheScreen();
@@ -126,18 +126,18 @@ describe("PHQ-9", () => {
     await finishOnboarding(user, "plus27");
     await openPhq9(user);
 
-    await user.press(await screen.findByRole("button", { name: "Rozumím, pokračovat" }));
+    await user.press(await screen.findByRole("button", { name: "Pokračovat" }));
     for (let i = 1; i <= 8; i++) await answerQuestion(user, i, 9, "Vůbec ne");
     await answerQuestion(user, 9, 9, "Několik dní");
 
-    expect(await screen.findByText("Děkujeme za upřímnost.")).toBeOnTheScreen();
+    expect(await screen.findByText("Díky za upřímnost.")).toBeOnTheScreen();
     // 27+ → Linka první psychické pomoci (dativ, správné číslo)
     expect(
       screen.getByRole("link", { name: /Zavolat Lince první psychické pomoci · 116 123/ }),
     ).toBeOnTheScreen();
 
     await user.press(screen.getByRole("button", { name: "Otevřít Pomoc" }));
-    expect(await screen.findByText("Jsme tu s tebou")).toBeOnTheScreen();
+    expect(await screen.findByText("Pomoc je blízko")).toBeOnTheScreen();
   });
 
   it("krok zpět u otázky 9: přepsaná odpověď > 0 pořád vede na mezistránku", async () => {
@@ -146,7 +146,7 @@ describe("PHQ-9", () => {
     await finishOnboarding(user);
     await openPhq9(user);
 
-    await user.press(await screen.findByRole("button", { name: "Rozumím, pokračovat" }));
+    await user.press(await screen.findByRole("button", { name: "Pokračovat" }));
     for (let i = 1; i <= 7; i++) await answerQuestion(user, i, 9, "Vůbec ne");
     await answerQuestion(user, 8, 9, "Několik dní");
     // zpět na otázku 8 a oprava odpovědi
@@ -155,7 +155,7 @@ describe("PHQ-9", () => {
     await answerQuestion(user, 8, 9, "Vůbec ne");
     await answerQuestion(user, 9, 9, "Několik dní");
 
-    expect(await screen.findByText("Děkujeme za upřímnost.")).toBeOnTheScreen();
+    expect(await screen.findByText("Díky za upřímnost.")).toBeOnTheScreen();
     const saved = listMeasurements(getTestDb(), "phq9");
     expect(saved).toHaveLength(1);
     expect(saved[0].score).toBe(1); // jen přepsaná ot. 9, oprava ot. 8 se nepočítá dvakrát
@@ -168,7 +168,7 @@ describe("PHQ-9", () => {
 
     // první návštěva: odsouhlasit disclaimer, hned odejít krokem zpět
     await openPhq9(user);
-    await user.press(await screen.findByRole("button", { name: "Rozumím, pokračovat" }));
+    await user.press(await screen.findByRole("button", { name: "Pokračovat" }));
     expect(await screen.findByText("Otázka 1 z 9")).toBeOnTheScreen();
     await user.press(screen.getByRole("button", { name: "Zavřít dotazník" }));
 
@@ -176,6 +176,6 @@ describe("PHQ-9", () => {
     await user.press(await screen.findByRole("button", { name: /Nálada do hloubky/ }));
     for (let i = 1; i <= 9; i++) await answerQuestion(user, i, 9, "Vůbec ne");
     expect(await screen.findByText("Hotovo. Díky za chvilku.")).toBeOnTheScreen();
-    expect(screen.queryByText("Děkujeme za upřímnost.")).toBeNull();
+    expect(screen.queryByText("Díky za upřímnost.")).toBeNull();
   });
 });

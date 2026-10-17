@@ -28,7 +28,7 @@ export default function AgeStep() {
   const [declined, setDeclined] = React.useState(false);
   return (
     <ObShell step={2} onBack={() => router.back()}>
-      <ObTitle title="Kolik ti je?" body="Podle věku ti nabídneme správnou krizovou linku." />
+      <ObTitle title="Kolik ti je?" body="Podle věku se nabídne správná krizová linka." />
       <View
         accessibilityRole="radiogroup"
         accessibilityLabel="Věkové pásmo"

@@ -12,6 +12,7 @@ import { SectionLabel } from "../../components/Header";
 import { useDb } from "../../db/provider";
 import { useDbWriter } from "../../db/hooks";
 import { getSetting, setSetting } from "../../db/repo";
+import { announce } from "../../lib/a11y";
 import {
   DEFAULT_REMINDER_TIME,
   EVENING_ENABLED_KEY,
@@ -69,6 +70,7 @@ export default function RemindersSection() {
     if (!granted) {
       /* bez povolení přepínač zůstává vypnutý; vysvětlení bez výčitek + cesta do systému */
       setDenied(true);
+      announce("Bez povolení notifikací to nepůjde. Povol je v nastavení systému.");
       return;
     }
     setDenied(false);

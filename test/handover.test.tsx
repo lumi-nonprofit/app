@@ -41,7 +41,7 @@ describe("Předání telefonu (/handover)", () => {
     writeProfile(getTestDb(), { onboarded: true, name: "Janko", age: "u26", share: false });
     await renderRouter("app", { initialUrl: "/help" });
 
-    expect(await screen.findByText("Jsme tu s tebou")).toBeOnTheScreen();
+    expect(await screen.findByText("Pomoc je blízko")).toBeOnTheScreen();
     await user.press(screen.getByRole("button", { name: /Pomáháš někomu blízkému/ }));
 
     // handover otevřen přes Pomoc → existuje kam se vrátit
@@ -49,6 +49,6 @@ describe("Předání telefonu (/handover)", () => {
       await screen.findByText("Jste tu pro někoho — to je to nejdůležitější."),
     ).toBeOnTheScreen();
     await user.press(screen.getByRole("button", { name: "Vrátit telefon" }));
-    expect(await screen.findByText("Jsme tu s tebou")).toBeOnTheScreen();
+    expect(await screen.findByText("Pomoc je blízko")).toBeOnTheScreen();
   });
 });

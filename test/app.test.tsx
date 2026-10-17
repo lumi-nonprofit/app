@@ -16,7 +16,7 @@ async function finishOnboarding(user: User, name = "Janko"): Promise<void> {
   expect(await screen.findByText("Ahoj, tady Lumi.")).toBeOnTheScreen();
   // jméno je nepovinné — Začít je aktivní hned
   expect(screen.getByRole("button", { name: "Začít" })).not.toBeDisabled();
-  await user.type(screen.getByLabelText(/Jak ti máme říkat/), name);
+  await user.type(screen.getByLabelText(/Jak ti říkat/), name);
   await user.press(screen.getByRole("button", { name: "Začít" }));
 
   // věk — určuje primární krizovou linku
@@ -136,7 +136,7 @@ describe("Lumi app", () => {
     await finishOnboarding(user); // do 26 let
 
     await user.press(screen.getByRole("tab", { name: "Pomoc" }));
-    expect(await screen.findByText("Jsme tu s tebou")).toBeOnTheScreen();
+    expect(await screen.findByText("Pomoc je blízko")).toBeOnTheScreen();
     expect(screen.getByText("tvoje linka")).toBeOnTheScreen();
 
     // tel: odkazy se v RN otevírají přes Linking.openURL

@@ -31,7 +31,9 @@ export default function CrisisFallback({ title, message, action }: Props) {
       <Text variant="body">{message}</Text>
       {action ? <View style={styles.action}>{action}</View> : null}
       <View style={styles.lines}>
-        <Text variant="headline">Potřebuješ si promluvit hned?</Text>
+        <Text accessibilityRole="header" variant="headline">
+          Potřebuješ si promluvit hned?
+        </Text>
         <CrisisLines />
       </View>
     </ScrollView>

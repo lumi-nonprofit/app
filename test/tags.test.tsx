@@ -13,7 +13,7 @@ type User = ReturnType<typeof userEvent.setup>;
 async function finishOnboarding(user: User): Promise<void> {
   // hydratace je asynchronní — první obrazovka se objeví až po načtení
   expect(await screen.findByText("Ahoj, tady Lumi.")).toBeOnTheScreen();
-  await user.type(screen.getByLabelText(/Jak ti máme říkat/), "Janko");
+  await user.type(screen.getByLabelText(/Jak ti říkat/), "Janko");
   await user.press(screen.getByRole("button", { name: "Začít" }));
   await user.press(screen.getByRole("radio", { name: /do 26 let/ }));
   await user.press(screen.getByRole("button", { name: "Pokračovat" }));

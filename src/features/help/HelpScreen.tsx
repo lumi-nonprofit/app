@@ -99,13 +99,19 @@ export default function HelpScreen() {
   };
   return (
     <Screen>
-      <LumiHeader title="Jsme tu s tebou" />
+      {/* titulek obrazovky „Pomoc“ nese hlavička; lead bez „my“ (HIG Writing) */}
+      <LumiHeader title="Pomoc je blízko" />
 
       {/* krizová karta — primární linka podle věku z onboardingu */}
       <View style={styles.crisisCard}>
         <View style={styles.crisisHead}>
           <Icon name="heart-handshake" size={20} color={theme.colors.textDanger} />
-          <Text variant="headline" color="textDanger" style={styles.flex1}>
+          <Text
+            accessibilityRole="header"
+            variant="headline"
+            color="textDanger"
+            style={styles.flex1}
+          >
             Potřebuješ si promluvit hned?
           </Text>
         </View>
@@ -130,7 +136,9 @@ export default function HelpScreen() {
       {/* krizový plán — tři sekce + tisk kartičky do peněženky */}
       <Card style={styles.planCard}>
         <View style={styles.planHead}>
-          <Text variant="headline">Můj krizový plán</Text>
+          <Text accessibilityRole="header" variant="headline">
+            Můj krizový plán
+          </Text>
           <Text variant="footnote" color="textMuted" style={styles.planSub}>
             Připrav si kroky, dokud je klid.
           </Text>

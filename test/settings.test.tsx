@@ -46,7 +46,7 @@ describe("Nastavení", () => {
   });
 
   it("haptika: vypnutí se uloží a modul ji přestane pouštět", async () => {
-    const user = await openSettings();
+    await openSettings();
     const toggle = screen.getByRole("switch", { name: "Haptická odezva" });
     expect(toggle).toBeChecked();
     await fireEvent(toggle, "valueChange", false);

@@ -11,9 +11,9 @@
       uživatele hrát dál, „duck“ ji po dobu přehrávání jen ztiší. */
 import React from "react";
 import { View } from "react-native";
-import { Redirect, useLocalSearchParams, useRouter } from "expo-router";
+import { Redirect, useLocalSearchParams } from "expo-router";
 import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
-import { Badge, Button, Icon, IconButton, Text } from "../../ds";
+import { Badge, Button, Icon, Text } from "../../ds";
 import Screen from "../../components/Screen";
 import { haptics } from "../../lib/haptics";
 import { byId, type CalmActivity } from "./content";
@@ -31,28 +31,8 @@ export default function PlayerScreen() {
   return <AudioPlayer key={activity.id} activity={activity} file={activity.file} />;
 }
 
-/* ---------- společné kusy ---------- */
-
-/** Horní řádek: zpět + kicker (vzor MeasureScreen). */
-function TopBar() {
-  const router = useRouter();
-  const styles = useStyles();
-  return (
-    <View style={styles.topRow}>
-      <IconButton
-        icon="arrow-left"
-        label="Zpět na Klid"
-        accessibilityHint="Vrátí se na obrazovku Klid."
-        onPress={() => {
-          /* po deep linku nemusí být kam couvnout — pak na Klid napřímo */
-          if (router.canGoBack()) router.back();
-          else router.replace("/calm");
-        }}
-      />
-      <Text variant="kicker">Klid</Text>
-    </View>
-  );
-}
+/* ---------- společné kusy (titulek „Klid“ a Zavřít nese nativní hlavička
+   celoobrazovkového modalu, viz app/_layout) ---------- */
 
 /** Hlavička aktivity: badge(y) + titulek + podtitulek. */
 function ActivityHead({ activity, extraBadge }: { activity: CalmActivity; extraBadge?: string }) {
@@ -169,7 +149,6 @@ function BreathPlayer({ activity }: { activity: CalmActivity }) {
 
   return (
     <Screen>
-      <TopBar />
       <ActivityHead activity={activity} />
 
       <View style={styles.centerBlock}>
@@ -235,7 +214,6 @@ function ComingSoon({ activity }: { activity: CalmActivity }) {
   const styles = useStyles();
   return (
     <Screen>
-      <TopBar />
       <ActivityHead activity={activity} extraBadge="připravujeme" />
 
       <View style={styles.centerBlock}>
@@ -291,7 +269,6 @@ function AudioPlayer({ activity, file }: { activity: CalmActivity; file: number 
 
   return (
     <Screen>
-      <TopBar />
       <ActivityHead activity={activity} />
 
       <View style={styles.centerBlock}>
@@ -323,8 +300,6 @@ function AudioPlayer({ activity, file }: { activity: CalmActivity; file: number 
 }
 
 const useStyles = createThemedStyles((t) => ({
-  topRow: { flexDirection: "row", alignItems: "center", gap: 8, marginHorizontal: -6 },
-
   headBlock: { alignItems: "center", gap: 10, marginTop: 10 },
   badgeRow: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 8 },
 

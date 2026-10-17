@@ -5,7 +5,7 @@
 import React from "react";
 import { View } from "react-native";
 import { Redirect, useLocalSearchParams, useRouter } from "expo-router";
-import { Input, IconButton, Text } from "../../ds";
+import { Input, Text } from "../../ds";
 import LumiCTA from "../../components/CTA";
 import Screen from "../../components/Screen";
 import { LumiHeader } from "../../components/Header";
@@ -43,17 +43,9 @@ function PlanSection({ section }: { section: PlanSectionId }) {
   };
 
   return (
-    <Screen>
-      <View style={styles.topRow}>
-        <IconButton
-          icon="arrow-left"
-          label="Zpět bez uložení"
-          accessibilityHint="Vrátí se do Pomoci a změny v této sekci neuloží."
-          onPress={() => router.back()}
-        />
-      </View>
-
-      <LumiHeader kicker="Krizový plán" title={meta.title} />
+    <Screen keyboard>
+      {/* titulek „Krizový plán“ a systémové Zpět nese nativní hlavička */}
+      <LumiHeader title={meta.title} />
       <Text variant="body" color="textMuted" style={styles.subtitle}>
         {meta.subtitle}
       </Text>
@@ -78,7 +70,6 @@ function PlanSection({ section }: { section: PlanSectionId }) {
 }
 
 const useStyles = createThemedStyles(() => ({
-  topRow: { flexDirection: "row", alignItems: "center", marginHorizontal: -6 },
   subtitle: { paddingHorizontal: 4 },
   actions: { marginTop: 8 },
 }));

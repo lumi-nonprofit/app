@@ -3,7 +3,8 @@
    Data žijí v SQLite (v testech better-sqlite3, viz helpers/testDb);
    navigaci vlastní router a nikam se nepersistuje. */
 import { Linking } from "react-native";
-import { fireEvent, userEvent } from "@testing-library/react-native";
+import { act, fireEvent, userEvent } from "@testing-library/react-native";
+import { router } from "expo-router";
 import { renderRouter, screen } from "expo-router/testing-library";
 import { listEntries, readProfile } from "../src/db/repo";
 import { getTestDb } from "./helpers/testDb";
@@ -100,8 +101,11 @@ describe("Lumi app", () => {
     await user.press(screen.getByRole("button", { name: "Pokračovat" }));
     expect(await screen.findByText("Které slovo to vystihuje nejlíp?")).toBeOnTheScreen();
 
-    // zpět na krok 1 — výběr stavu zůstává (draft žije v provideru stacku)
-    await user.press(screen.getByRole("button", { name: "Zpět na krok 1" }));
+    // zpět na krok 1 — výběr stavu zůstává (draft žije v provideru stacku);
+    // Zpět je systémové tlačítko nativní hlavičky, v jestu se vrací přes router
+    await act(async () => {
+      router.back();
+    });
     expect(await screen.findByText("Jak se právě teď cítíš?")).toBeOnTheScreen();
     expect(screen.getByRole("radio", { name: /Klid/ })).toBeChecked();
   });

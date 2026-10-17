@@ -30,7 +30,7 @@ export default function CalmScreen() {
   const [breathing, setBreathing] = React.useState(false);
   return (
     <Screen>
-      <LumiHeader kicker="Klid" title="Na chvilku se zastav" />
+      <LumiHeader title="Na chvilku se zastav" />
 
       {/* dechový launcher */}
       <Card style={styles.breathCard}>

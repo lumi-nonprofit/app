@@ -99,7 +99,7 @@ export default function HelpScreen() {
   };
   return (
     <Screen>
-      <LumiHeader kicker="Pomoc" title="Jsme tu s tebou" />
+      <LumiHeader title="Jsme tu s tebou" />
 
       {/* krizová karta — primární linka podle věku z onboardingu */}
       <View style={styles.crisisCard}>

@@ -12,7 +12,7 @@
    ne v efektu) — stejný vzor jako BreathPlayer v PlayerScreen. */
 import React from "react";
 import { Pressable, View, type GestureResponderEvent } from "react-native";
-import { useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useKeepAwake } from "expo-keep-awake";
 import { Text } from "../../ds";
@@ -42,30 +42,48 @@ export default function BlindBreathScreen({ activity }: { activity: CalmActivity
   const [rhythm, setRhythm] = React.useState<BlindRhythmId>("4-7-8");
   const [minutes, setMinutes] = React.useState<number>(3);
 
+  /* běžící plocha je celoobrazovková a tmavá — nativní hlavička se na ni nehodí */
+  const header = <Stack.Screen options={{ headerShown: stage !== "running" }} />;
   switch (stage) {
     case "countdown":
-      return <Countdown onDone={() => setStage("running")} />;
+      return (
+        <>
+          {header}
+          <Countdown onDone={() => setStage("running")} />
+        </>
+      );
     case "running":
       return (
-        <Running
-          rhythm={rhythm}
-          totalSeconds={minutes * 60}
-          onFinish={() => setStage("done")}
-          onCancel={() => setStage("setup")}
-        />
+        <>
+          {header}
+          <Running
+            rhythm={rhythm}
+            totalSeconds={minutes * 60}
+            onFinish={() => setStage("done")}
+            onCancel={() => setStage("setup")}
+          />
+        </>
       );
     case "done":
-      return <Done onAgain={() => setStage("setup")} onBack={() => router.back()} />;
+      return (
+        <>
+          {header}
+          <Done onAgain={() => setStage("setup")} onBack={() => router.back()} />
+        </>
+      );
     default:
       return (
-        <Setup
-          activity={activity}
-          rhythm={rhythm}
-          minutes={minutes}
-          onRhythm={setRhythm}
-          onMinutes={setMinutes}
-          onStart={() => setStage("countdown")}
-        />
+        <>
+          {header}
+          <Setup
+            activity={activity}
+            rhythm={rhythm}
+            minutes={minutes}
+            onRhythm={setRhythm}
+            onMinutes={setMinutes}
+            onStart={() => setStage("countdown")}
+          />
+        </>
       );
   }
 }

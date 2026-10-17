@@ -1,6 +1,7 @@
-/* LumiHeader — obsahový nadpis (kicker + display titulek), SectionLabel —
+/* LumiHeader — obsahový nadpis (kicker + titulek, title2 — o stupeň pod
+   velkým titulkem nativní hlavičky, kterou nese navigátor), SectionLabel —
    mikropopisek sekce. Oba jsou pro čtečku nadpisy (VoiceOver rotor / TalkBack
-   navigace po nadpisech). Titulek obrazovky samotné nese nativní hlavička. */
+   navigace po nadpisech). */
 import React from "react";
 import { View } from "react-native";
 import { Text } from "../ds";
@@ -22,7 +23,7 @@ export function LumiHeader({ kicker, title, trailing }: LumiHeaderProps) {
             {kicker}
           </Text>
         ) : null}
-        <Text accessibilityRole="header" variant="title1">
+        <Text accessibilityRole="header" variant="title2">
           {title}
         </Text>
       </View>

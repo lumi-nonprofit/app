@@ -139,7 +139,6 @@ export default function StatsScreen() {
   return (
     <Screen>
       <LumiHeader
-        kicker="Přehledy"
         title="Tvůj týden"
         trailing={
           <View

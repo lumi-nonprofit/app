@@ -79,9 +79,8 @@ describe("Ohlédnutí za týdnem (/reflection)", () => {
 
     await renderRouter("app", { initialUrl: "/reflection" });
 
-    expect(await screen.findByText("Ohlédnutí")).toBeOnTheScreen();
     // v neděli „Tvůj týden“, jinak „Tvůj minulý týden“ — test nezná den spuštění
-    expect(screen.getByRole("header", { name: /Tvůj (minulý )?týden/ })).toBeOnTheScreen();
+    expect(await screen.findByRole("header", { name: /Tvůj (minulý )?týden/ })).toBeOnTheScreen();
     expect(screen.getByText(/3 záznamy/)).toBeOnTheScreen();
     expect(screen.getByText("Nejčastější slova")).toBeOnTheScreen();
     expect(screen.getByText("stres")).toBeOnTheScreen();
@@ -89,14 +88,13 @@ describe("Ohlédnutí za týdnem (/reflection)", () => {
       screen.getByText("Napětí se ti tenhle týden nejčastěji pojilo se školou."),
     ).toBeOnTheScreen();
     expect(screen.getByText("Ať byl týden jakýkoliv, díky, že si ho všímáš.")).toBeOnTheScreen();
-    expect(screen.getByRole("button", { name: "Zpět" })).toBeOnTheScreen();
   });
 
   it("prázdný týden: nulový počet bez viny, povzbuzení místo vzorců", async () => {
     seedProfile();
     await renderRouter("app", { initialUrl: "/reflection" });
 
-    expect(await screen.findByText("Ohlédnutí")).toBeOnTheScreen();
+    expect(await screen.findByRole("header", { name: /Tvůj (minulý )?týden/ })).toBeOnTheScreen();
     expect(screen.getByText(/0 záznamů/)).toBeOnTheScreen();
     expect(screen.getByText(TOO_FEW_DATA_TEXT)).toBeOnTheScreen();
     expect(screen.queryByText("Nejčastější slova")).toBeNull();

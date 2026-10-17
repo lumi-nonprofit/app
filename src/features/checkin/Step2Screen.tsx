@@ -3,7 +3,7 @@
 import React from "react";
 import { View, TextInput, Alert } from "react-native";
 import { useRouter } from "expo-router";
-import { Button, Chip, IconButton, Input, Text } from "../../ds";
+import { Button, Chip, Input, Text } from "../../ds";
 import { textStyle } from "../../ds/Text";
 import { LumiHeader } from "../../components/Header";
 import LumiCTA from "../../components/CTA";
@@ -109,12 +109,9 @@ export default function Step2Screen() {
   };
 
   return (
-    <Screen>
-      <View style={styles.backRow}>
-        <IconButton icon="arrow-left" label="Zpět na krok 1" onPress={() => router.back()} />
-        <Text variant="kicker">Check-in · krok 2 ze 2</Text>
-      </View>
-      <LumiHeader title="Které slovo to vystihuje nejlíp?" />
+    <Screen keyboard>
+      {/* Zpět na krok 1 = systémové Zpět v nativní hlavičce */}
+      <LumiHeader kicker="Check-in · krok 2 ze 2" title="Které slovo to vystihuje nejlíp?" />
 
       {/* shrnutí zvoleného stavu — na měkké výplni jen textStrong/textBody */}
       <View style={[styles.moodSummary, { backgroundColor: moodColors.soft }]}>
@@ -213,7 +210,6 @@ export default function Step2Screen() {
 }
 
 const useStyles = createThemedStyles((t) => ({
-  backRow: { flexDirection: "row", alignItems: "center", gap: 8, marginHorizontal: -6 },
   moodSummary: {
     flexDirection: "row",
     flexWrap: "wrap",

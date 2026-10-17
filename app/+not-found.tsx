@@ -9,7 +9,7 @@ export default function NotFoundScreen() {
   const styles = useStyles();
   return (
     <>
-      <Stack.Screen options={{ title: "Stránka nenalezena" }} />
+      <Stack.Screen options={{ headerShown: true, title: "Nenalezeno" }} />
       <View style={styles.wrap}>
         <Text accessibilityRole="header" variant="title2" align="center">
           Tahle stránka v Lumi není

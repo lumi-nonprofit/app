@@ -4,8 +4,7 @@
    jen co tu je, plus poděkování za všímavost. */
 import React from "react";
 import { View } from "react-native";
-import { useRouter } from "expo-router";
-import { Card, IconButton, Text } from "../../ds";
+import { Card, Text } from "../../ds";
 import Screen from "../../components/Screen";
 import { LumiHeader, SectionLabel } from "../../components/Header";
 import MoodShape from "../../components/MoodShape";
@@ -85,7 +84,6 @@ function ReflectionDay({ index, dayEntries }: ReflectionDayProps) {
 }
 
 export default function ReflectionScreen() {
-  const router = useRouter();
   const styles = useStyles();
   /* okamžik otevření drží rozsah i titulek stabilní po celý život obrazovky */
   const [now] = React.useState(() => new Date());
@@ -99,20 +97,9 @@ export default function ReflectionScreen() {
 
   return (
     <Screen>
-      <View style={styles.topRow}>
-        <IconButton
-          icon="arrow-left"
-          label="Zpět"
-          accessibilityHint="Zavře ohlédnutí za týdnem."
-          onPress={() => router.back()}
-        />
-      </View>
-
-      {/* v neděli se ohlížíme za právě končícím týdnem — „minulý“ by mátl */}
-      <LumiHeader
-        kicker="Ohlédnutí"
-        title={now.getDay() === 0 ? "Tvůj týden" : "Tvůj minulý týden"}
-      />
+      {/* v neděli se ohlížíme za právě končícím týdnem — „minulý“ by mátl;
+          titulek „Ohlédnutí“ a Zpět nese nativní hlavička */}
+      <LumiHeader title={now.getDay() === 0 ? "Tvůj týden" : "Tvůj minulý týden"} />
 
       {/* tečky dní + počet záznamů */}
       <Card>
@@ -166,8 +153,6 @@ export default function ReflectionScreen() {
 }
 
 const useStyles = createThemedStyles((t) => ({
-  topRow: { flexDirection: "row", alignItems: "center" },
-
   weekRow: { flexDirection: "row", gap: 4 },
   day: { flex: 1, alignItems: "center", gap: 7 },
   dayShape: { height: 32, alignItems: "center", justifyContent: "center" },

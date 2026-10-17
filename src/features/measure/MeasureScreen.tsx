@@ -7,10 +7,11 @@
    žádné blokování (k výsledku se dá pokračovat). */
 import React from "react";
 import { Pressable, View, type GestureResponderEvent } from "react-native";
-import { Redirect, useLocalSearchParams, useRouter } from "expo-router";
-import { Button, Icon, IconButton, ProgressRing, Text } from "../../ds";
+import { Redirect, Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Button, Icon, ProgressRing, Text } from "../../ds";
 import { pressFeedback, pressedStyle } from "../../ds/press";
 import LumiCTA from "../../components/CTA";
+import { backItem, closeItem, headerItems } from "../../components/HeaderItems";
 import Screen from "../../components/Screen";
 import { useDb } from "../../db/provider";
 import { useDbWriter } from "../../db/hooks";
@@ -29,6 +30,33 @@ import { bandFor, scoreFor, trendText } from "./scoring";
 import { createThemedStyles, useTheme } from "../../theme";
 
 const DISCLAIMER_SEEN_KEY = "measure-disclaimer-seen";
+
+/** Hlavička otázky: titulek = název nástroje; vlevo Zavřít u první otázky,
+    pak Zpět na předchozí otázku (krok uvnitř jedné routy, ne pop stacku). */
+function QuestionHeader({
+  title,
+  first,
+  onBack,
+}: {
+  title: string;
+  first: boolean;
+  onBack: () => void;
+}) {
+  const theme = useTheme();
+  return (
+    <Stack.Screen
+      options={{
+        title,
+        gestureEnabled: true,
+        ...headerItems(theme, {
+          left: [
+            first ? closeItem(onBack, "Zavřít dotazník") : backItem(onBack, "Předchozí otázka"),
+          ],
+        }),
+      }}
+    />
+  );
+}
 
 type Phase =
   | { kind: "disclaimer" }
@@ -125,6 +153,12 @@ function Measure({ type }: { type: MeasurementType }) {
   if (phase.kind === "disclaimer") {
     return (
       <Screen contentStyle={styles.center}>
+        <Stack.Screen
+          options={{
+            title: inst.title,
+            ...headerItems(theme, { left: [closeItem(() => router.back(), "Zavřít dotazník")] }),
+          }}
+        />
         <View style={styles.headBlock}>
           <View style={styles.iconCircle}>
             <Icon name="shield" size={26} color={theme.colors.textInfo} />
@@ -162,14 +196,7 @@ function Measure({ type }: { type: MeasurementType }) {
     const num = phase.index + 1;
     return (
       <Screen>
-        <View style={styles.topRow}>
-          <IconButton
-            icon="arrow-left"
-            label={phase.index > 0 ? "Předchozí otázka" : "Zavřít dotazník"}
-            onPress={stepBack}
-          />
-          <Text variant="kicker">{inst.title}</Text>
-        </View>
+        <QuestionHeader title={inst.title} first={phase.index === 0} onBack={stepBack} />
 
         {/* progres: text i pruh — informace nikdy jen barvou; pruh je pro
             čtečky dekorativní (text „Otázka X z Y“ už postup nese) */}
@@ -225,6 +252,15 @@ function Measure({ type }: { type: MeasurementType }) {
     const line = state.age === "u26" ? HELP_LINES.u26 : HELP_LINES.plus27;
     return (
       <Screen contentStyle={styles.center}>
+        {/* mezistránka se nedá odswipovat ani zavřít křížkem — ven vedou jen akce níž */}
+        <Stack.Screen
+          options={{
+            title: inst.title,
+            gestureEnabled: false,
+            headerBackVisible: false,
+            ...headerItems(theme, {}),
+          }}
+        />
         <View style={styles.headBlock}>
           <View style={styles.iconCircle}>
             <Icon name="heart-handshake" size={26} color={theme.colors.textDanger} />
@@ -274,6 +310,14 @@ function Measure({ type }: { type: MeasurementType }) {
   const trend = trendText(phase.score, prevScore, type === "who5" ? "percent" : "points");
   return (
     <Screen contentStyle={styles.center}>
+      <Stack.Screen
+        options={{
+          title: inst.title,
+          gestureEnabled: true,
+          headerBackVisible: false,
+          ...headerItems(theme, {}),
+        }}
+      />
       <View style={styles.headBlock}>
         {type === "who5" ? (
           <ProgressRing
@@ -319,8 +363,6 @@ function Measure({ type }: { type: MeasurementType }) {
 
 const useStyles = createThemedStyles((t) => ({
   center: { justifyContent: "center" },
-  topRow: { flexDirection: "row", alignItems: "center", gap: 8, marginHorizontal: -6 },
-
   progressText: { marginBottom: 6 },
   progressTrack: {
     height: 6,

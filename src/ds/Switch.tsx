@@ -22,6 +22,9 @@ export default function Switch({
   return (
     <View style={[styles.row, style]}>
       <RNSwitch
+        /* explicitně přístupný prvek: čtečky i testy (RNTL) ho berou jako „switch“ i na Androidu */
+        accessible
+        accessibilityState={{ checked }}
         value={checked}
         onValueChange={(v) => onChange && onChange(v)}
         trackColor={{ false: palette.cream200, true: palette.sun500 }}

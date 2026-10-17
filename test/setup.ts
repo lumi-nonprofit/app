@@ -32,6 +32,35 @@ jest.mock("expo-audio", () => ({
   }),
 }));
 
+/* @react-native-community/datetimepicker: pod Android presetem vyžaduje nativní
+   modul RNCDatePicker; testy s výběrem času neinteragují, stačí tichá komponenta. */
+jest.mock("@react-native-community/datetimepicker", () => {
+  const React = jest.requireActual("react");
+  const { View } = jest.requireActual("react-native");
+  const DateTimePicker = (props: { accessibilityLabel?: string }) =>
+    React.createElement(View, { testID: "datetimepicker", accessibilityLabel: props.accessibilityLabel });
+  return {
+    __esModule: true,
+    default: DateTimePicker,
+    DateTimePickerAndroid: { open: jest.fn(), dismiss: jest.fn() },
+  };
+});
+
+/* expo-notifications: pod Android presetem jest simuluje Expo Go a modul při
+   importu vyhazuje chybu („push notifications removed from Expo Go“). Lokální
+   plánování mockujeme globálně; test připomínek si mock dál přepisuje vlastním. */
+jest.mock("expo-notifications", () => ({
+  setNotificationHandler: jest.fn(),
+  getPermissionsAsync: jest.fn(async () => ({ granted: true })),
+  requestPermissionsAsync: jest.fn(async () => ({ granted: true })),
+  scheduleNotificationAsync: jest.fn(async () => "id"),
+  cancelScheduledNotificationAsync: jest.fn(async () => undefined),
+  setNotificationChannelAsync: jest.fn(async () => null),
+  SchedulableTriggerInputTypes: { DAILY: "daily", WEEKLY: "weekly" },
+  AndroidImportance: { DEFAULT: 3 },
+  AndroidNotificationVisibility: { PRIVATE: 0, PUBLIC: 1, SECRET: -1 },
+}));
+
 /* expo-print: tisk kartičky vrací v testu fiktivní soubor. */
 jest.mock("expo-print", () => ({
   printToFileAsync: jest.fn(async () => ({ uri: "file:///tmp/lumi-karticka.pdf" })),

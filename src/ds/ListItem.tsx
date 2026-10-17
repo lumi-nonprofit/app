@@ -1,10 +1,13 @@
-/* ListItem — klepnutelný řádek: tónovaná dlaždice s ikonou + titulek/podtitulek + šipka.
-   Doplněk nad rámec DS: `href` otevírá odkaz přes Linking (tel: na krizové linky). */
+/* ListItem — klepnutelný řádek: tónovaná dlaždice s ikonou + titulek/podtitulek.
+   iOS: disclosure chevron pro drill-down (HIG Lists); Android: bez indikátoru
+   (Android guides: listy bez chevronů a dividerů), ripple. `href` otevírá odkaz
+   přes Linking (tel: na krizové linky) — řádek je link s ikonou telefonu. */
 import type { ComponentProps, ReactNode } from "react";
-import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import { Linking, Pressable, Text, View } from "react-native";
 import type { StyleProp, ViewStyle } from "react-native";
 import Icon from "./Icon";
-import { colors, palette, radius, font, type } from "../theme";
+import { createThemedStyles, font, type, useTheme } from "../theme";
+import { pressFeedback, pressedStyle } from "./press";
 
 interface Props {
   /* název ikony odvozený z Icon — drží se v synchronu s jeho sadou */
@@ -14,37 +17,48 @@ interface Props {
   title: string;
   subtitle?: string;
   trailing?: ReactNode;
+  /** Disclosure indikátor; výchozí podle platformy (iOS ano, Android ne). */
   chevron?: boolean;
   onPress?: () => void;
   href?: string;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
   style?: StyleProp<ViewStyle>;
 }
 
 export default function ListItem({
   icon,
-  iconTint = colors.accentSoft,
-  iconColor = palette.sun700,
+  iconTint,
+  iconColor,
   title,
   subtitle,
   trailing,
-  chevron = true,
+  chevron,
   onPress,
   href,
+  accessibilityLabel,
+  accessibilityHint,
   style,
 }: Props) {
+  const theme = useTheme();
+  const styles = useStyles();
+  const showChevron = chevron ?? (theme.platform.isIOS && !href);
   const handlePress = () => {
     if (onPress) onPress();
-    if (href) Linking.openURL(href);
+    if (href) Linking.openURL(href).catch(() => {});
   };
   return (
     <Pressable
       accessibilityRole={href ? "link" : "button"}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
       onPress={handlePress}
-      style={({ pressed }) => [styles.row, pressed && { transform: [{ scale: 0.995 }] }, style]}
+      {...pressFeedback(theme)}
+      style={({ pressed }) => [styles.row, pressedStyle(theme, pressed), style]}
     >
       {icon ? (
-        <View style={[styles.leading, { backgroundColor: iconTint }]}>
-          <Icon name={icon} size={20} color={iconColor} />
+        <View style={[styles.leading, { backgroundColor: iconTint ?? theme.colors.accentSoft }]}>
+          <Icon name={icon} size={20} color={iconColor ?? theme.colors.textAccent} />
         </View>
       ) : null}
       <View style={styles.body}>
@@ -53,13 +67,16 @@ export default function ListItem({
       </View>
       <View style={styles.trailing}>
         {trailing}
-        {chevron ? <Icon name="chevron-right" size={18} color={colors.textFaint} /> : null}
+        {href ? <Icon name="phone" size={18} color={theme.colors.textMuted} /> : null}
+        {showChevron ? (
+          <Icon name="chevron-right" size={18} color={theme.colors.textMuted} />
+        ) : null}
       </View>
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((t) => ({
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -67,19 +84,20 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingVertical: 12,
     paddingHorizontal: 8,
-    borderRadius: radius.md,
-    minHeight: 56,
+    borderRadius: t.radius.md,
+    minHeight: t.platform.listRowMinHeight,
+    overflow: "hidden",
   },
   leading: {
     width: 40,
     height: 40,
-    borderRadius: radius.sm,
+    borderRadius: t.radius.sm,
     flexShrink: 0,
     alignItems: "center",
     justifyContent: "center",
   },
   body: { flex: 1, minWidth: 0 },
-  title: { ...font.body(600), fontSize: type.base, color: colors.textStrong },
-  sub: { ...font.body(400), fontSize: type.sm, color: colors.textMuted, marginTop: 1 },
+  title: { ...font.body(600), fontSize: type.base, color: t.colors.textStrong },
+  sub: { ...font.body(400), fontSize: type.sm, color: t.colors.textMuted, marginTop: 1 },
   trailing: { flexDirection: "row", alignItems: "center", gap: 8, flexShrink: 0 },
-});
+}));

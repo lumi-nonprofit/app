@@ -1,29 +1,29 @@
-/* Button — pill tlačítko pro všechny akce Lumi; primary je plný ink (nikdy zlatá —
-   zlatá jako výplň neprojde kontrastem). Crisis = plný clay.
-   Doplněk nad rámec DS: `href` otevírá odkaz přes Linking se stejným vzhledem (tel: linky). */
+/* Button — pill tlačítko pro všechny akce Lumi.
+   primary = plný ink (zlatá jako výplň neprojde kontrastem), crisis = clay700
+   (bílý text 6,5:1; v dark clay300 + inkoust), soft = zlatý wash s textem sun700.
+   Disabled = obrys + inkoustový text na zapuštěném podkladu, NIKDY snížená opacita
+   (README, ADR 0001 §11); volitelný `hint` pod tlačítkem říká, co chybí.
+   Press state: Android ripple, iOS opacita (HIG Buttons). `loading` ukáže
+   indikátor a volitelný náhradní label („Ukládám…“). `href` otevírá odkaz přes
+   Linking se stejným vzhledem (tel: linky) a rolí link. */
 import React from "react";
 import {
+  ActivityIndicator,
   GestureResponderEvent,
   Linking,
   Pressable,
   StyleProp,
-  StyleSheet,
   Text,
   TextStyle,
+  View,
   ViewStyle,
 } from "react-native";
-import { colors, font, leading, palette, radius, type } from "../theme";
+import { createThemedStyles, font, leading, type, useTheme } from "../theme";
+import { pressFeedback, pressedStyle } from "./press";
 
-type ButtonVariant = "primary" | "secondary" | "soft" | "ghost" | "crisis";
-type ButtonSize = "sm" | "md" | "lg";
+export type ButtonVariant = "primary" | "secondary" | "soft" | "ghost" | "crisis";
+export type ButtonSize = "sm" | "md" | "lg";
 
-const TEXT_COLORS: Record<ButtonVariant, string> = {
-  primary: colors.textOnInk,
-  secondary: colors.textStrong,
-  soft: palette.sun700,
-  ghost: colors.textBody,
-  crisis: colors.textOnAccent,
-};
 const TEXT_SIZES: Record<ButtonSize, number> = { sm: type.sm, md: type.base, lg: type.md };
 
 interface Props {
@@ -32,8 +32,15 @@ interface Props {
   size?: ButtonSize;
   fullWidth?: boolean;
   disabled?: boolean;
+  /** Vysvětlení disabled stavu pod tlačítkem (HIG Feedback: říct, proč nelze). */
+  hint?: string;
+  /** Probíhající akce: indikátor + volitelný náhradní label. */
+  loading?: boolean;
+  loadingLabel?: string;
   onPress?: (e: GestureResponderEvent) => void;
   href?: string;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
   style?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
 }
@@ -44,18 +51,37 @@ export default function Button({
   size = "md",
   fullWidth = false,
   disabled = false,
+  hint,
+  loading = false,
+  loadingLabel,
   onPress,
   href,
+  accessibilityLabel,
+  accessibilityHint,
   style,
   textStyle,
 }: Props) {
+  const theme = useTheme();
+  const styles = useStyles();
+  const inactive = disabled || loading;
+
   const handlePress = (e: GestureResponderEvent) => {
-    if (disabled) return;
+    if (inactive) return;
     if (onPress) onPress(e);
     /* bez dialeru/handleru (tablet, web) nesmí spadnout unhandled rejection —
        číslo je vždy viditelné v popisku tlačítka, dá se vytočit ručně */
     if (href) Linking.openURL(href).catch(() => {});
   };
+
+  const textColor = disabled
+    ? theme.colors.textOnSunken
+    : {
+        primary: theme.colors.textOnPrimary,
+        secondary: theme.colors.textStrong,
+        soft: theme.colors.textAccent,
+        ghost: theme.colors.textBody,
+        crisis: theme.colors.textOnCrisis,
+      }[variant];
 
   /* Stringové děti obalíme do <Text>; sousední texty slučujeme do jednoho uzlu,
      aby je gap 8 neroztrhal. Krajní mezery (JSX kolem ikon) odřezáváme — web je
@@ -64,11 +90,7 @@ export default function Button({
   const fontSize = TEXT_SIZES[size] || TEXT_SIZES.md;
   const textStyles: StyleProp<TextStyle> = [
     styles.text,
-    {
-      fontSize,
-      lineHeight: leading.body(fontSize),
-      color: TEXT_COLORS[variant] || TEXT_COLORS.primary,
-    },
+    { fontSize, lineHeight: leading.body(fontSize), color: textColor },
     textStyle,
   ];
   const content: React.ReactNode[] = [];
@@ -78,13 +100,14 @@ export default function Button({
     run = "";
     if (piece) {
       content.push(
-        <Text key={`text-${content.length}`} style={textStyles}>
+        <Text key={`text-${content.length}`} style={textStyles} maxFontSizeMultiplier={2}>
           {piece}
         </Text>,
       );
     }
   };
-  React.Children.toArray(children).forEach((child) => {
+  const source = loading && loadingLabel ? [loadingLabel] : React.Children.toArray(children);
+  source.forEach((child) => {
     if (typeof child === "string" || typeof child === "number") {
       run += child;
     } else {
@@ -94,11 +117,14 @@ export default function Button({
   });
   flush();
 
-  return (
+  const button = (
     <Pressable
       accessibilityRole={href ? "link" : "button"}
-      accessibilityState={{ disabled: !!disabled }}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={{ disabled: !!disabled, busy: !!loading }}
       onPress={handlePress}
+      {...pressFeedback(theme)}
       style={({ pressed }) => [
         styles.base,
         styles[variant] || styles.primary,
@@ -106,41 +132,57 @@ export default function Button({
         fullWidth && styles.full,
         disabled && styles.disabled,
         style,
-        pressed && !disabled && styles.pressed,
+        !inactive && pressedStyle(theme, pressed),
       ]}
     >
+      {loading ? <ActivityIndicator size="small" color={textColor} /> : null}
       {content}
     </Pressable>
   );
+  if (!hint) return button;
+  return (
+    <View style={[styles.wrap, fullWidth && styles.full]}>
+      {button}
+      {disabled ? <Text style={styles.hint}>{hint}</Text> : null}
+    </View>
+  );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((t) => ({
+  wrap: { flexDirection: "column", gap: 8, alignSelf: "flex-start" },
   base: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    borderRadius: radius.pill,
+    borderRadius: t.radius.pill,
     borderWidth: 1.5,
     borderColor: "transparent",
+    overflow: "hidden",
   },
 
   /* varianty */
-  primary: { backgroundColor: colors.surfaceInk },
-  secondary: { backgroundColor: colors.surfaceCard, borderColor: colors.borderStrong },
-  soft: { backgroundColor: colors.accentSoft },
+  primary: { backgroundColor: t.colors.surfacePrimary },
+  secondary: { backgroundColor: t.colors.surfaceCard, borderColor: t.colors.borderStrong },
+  soft: { backgroundColor: t.colors.accentSoft },
   ghost: { backgroundColor: "transparent" },
-  crisis: { backgroundColor: palette.clay500 },
+  crisis: { backgroundColor: t.colors.surfaceCrisis },
 
-  /* velikosti */
-  /* i sm drží dotykový cíl ≥ 44 pt (závazné pravidlo přístupnosti) */
-  sm: { paddingVertical: 7, paddingHorizontal: 14, minHeight: 44 },
-  md: { paddingVertical: 10, paddingHorizontal: 20, minHeight: 44 },
+  /* velikosti — i sm drží dotykový cíl ≥ 44/48 pt (HIG / Android) */
+  sm: { paddingVertical: 7, paddingHorizontal: 14, minHeight: t.platform.minTouch },
+  md: { paddingVertical: 10, paddingHorizontal: 20, minHeight: t.platform.minTouch },
   lg: { paddingVertical: 14, paddingHorizontal: 28, minHeight: 52 },
 
-  full: { width: "100%" },
-  disabled: { opacity: 0.45 },
-  pressed: { transform: [{ scale: 0.98 }] },
+  full: { width: "100%", alignSelf: "stretch" },
+  /* disabled: obrys + inkoust na zapuštěném podkladu, ne opacita */
+  disabled: { backgroundColor: t.colors.surfaceSunken, borderColor: t.colors.borderStrong },
 
   text: { ...font.body(600) },
-});
+  hint: {
+    ...font.body(400),
+    fontSize: type.sm,
+    lineHeight: leading.body(type.sm),
+    color: t.colors.textMuted,
+    textAlign: "center",
+  },
+}));

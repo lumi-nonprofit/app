@@ -1,0 +1,68 @@
+{
+  "theme": {
+    "light": {
+      "surfacePage": { "value": "{color.cream.50}", "type": "color" },
+      "surfaceCard": { "value": "#FFFFFF", "type": "color" },
+      "surfaceSunken": { "value": "{color.cream.100}", "type": "color" },
+      "surfaceElevated": { "value": "#FFFFFF", "type": "color", "comment": "sheets, modals" },
+      "surfacePrimary": { "value": "{color.ink.900}", "type": "color", "comment": "primary button fill" },
+      "surfaceCrisis": { "value": "{color.clay.700}", "type": "color", "comment": "crisis button fill; white text 6.46:1" },
+
+      "textStrong": { "value": "{color.ink.900}", "type": "color" },
+      "textBody": { "value": "{color.ink.800}", "type": "color" },
+      "textMuted": { "value": "{color.ink.500}", "type": "color", "comment": ">= 4.5:1 on page and card only" },
+      "textOnSunken": { "value": "{color.ink.700}", "type": "color", "comment": "placeholders, badges, hints on sunken surfaces" },
+      "textOnPrimary": { "value": "#FFF8EC", "type": "color" },
+      "textOnCrisis": { "value": "#FFFFFF", "type": "color" },
+      "textAccent": { "value": "{color.sun.700}", "type": "color" },
+      "textPositive": { "value": "{color.sage.700}", "type": "color" },
+      "textInfo": { "value": "{color.lake.700}", "type": "color" },
+      "textDanger": { "value": "{color.clay.700}", "type": "color" },
+      "textLilac": { "value": "{color.lilac.700}", "type": "color" },
+
+      "accentSoft": { "value": "{color.sun.100}", "type": "color" },
+      "positiveSoft": { "value": "{color.sage.100}", "type": "color" },
+      "infoSoft": { "value": "{color.lake.100}", "type": "color" },
+      "dangerSoft": { "value": "{color.clay.100}", "type": "color" },
+      "lilacSoft": { "value": "{color.lilac.100}", "type": "color" },
+      "accentFill": { "value": "{color.sun.600}", "type": "color", "comment": "ring, slider, progress: >= 3:1 on white/cream" },
+      "selectionBorder": { "value": "{color.sun.600}", "type": "color" },
+
+      "borderSubtle": { "value": "rgba(74, 62, 42, 0.10)", "type": "color", "comment": "decorative only" },
+      "borderStrong": { "value": "{color.ink.450}", "type": "color", "comment": "interactive outlines" },
+      "focusRing": { "value": "{color.sun.600}", "type": "color" }
+    },
+    "dark": {
+      "surfacePage": { "value": "#17140F", "type": "color" },
+      "surfaceCard": { "value": "#221E19", "type": "color" },
+      "surfaceSunken": { "value": "#100E0B", "type": "color" },
+      "surfaceElevated": { "value": "#2C2722", "type": "color", "comment": "sheets, modals (HIG: elevated is lighter)" },
+      "surfacePrimary": { "value": "{color.cream.50}", "type": "color" },
+      "surfaceCrisis": { "value": "{color.clay.300}", "type": "color", "comment": "ink text 7.24:1" },
+
+      "textStrong": { "value": "{color.cream.50}", "type": "color" },
+      "textBody": { "value": "{color.cream.200}", "type": "color" },
+      "textMuted": { "value": "#B9AD99", "type": "color" },
+      "textOnSunken": { "value": "#9C9080", "type": "color" },
+      "textOnPrimary": { "value": "{color.ink.900}", "type": "color" },
+      "textOnCrisis": { "value": "{color.ink.900}", "type": "color" },
+      "textAccent": { "value": "{color.sun.300}", "type": "color" },
+      "textPositive": { "value": "{color.sage.300}", "type": "color" },
+      "textInfo": { "value": "{color.lake.300}", "type": "color" },
+      "textDanger": { "value": "{color.clay.300}", "type": "color" },
+      "textLilac": { "value": "{color.lilac.300}", "type": "color" },
+
+      "accentSoft": { "value": "#3A2A0F", "type": "color" },
+      "positiveSoft": { "value": "#1F2A1A", "type": "color" },
+      "infoSoft": { "value": "#1B2430", "type": "color" },
+      "dangerSoft": { "value": "#3A1F17", "type": "color" },
+      "lilacSoft": { "value": "#272233", "type": "color" },
+      "accentFill": { "value": "{color.sun.400}", "type": "color" },
+      "selectionBorder": { "value": "{color.sun.400}", "type": "color" },
+
+      "borderSubtle": { "value": "rgba(251, 247, 239, 0.12)", "type": "color", "comment": "card hairline in dark (shadows are invisible)" },
+      "borderStrong": { "value": "#8C8577", "type": "color" },
+      "focusRing": { "value": "{color.sun.300}", "type": "color" }
+    }
+  }
+}

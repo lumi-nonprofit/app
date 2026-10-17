@@ -1,0 +1,14 @@
+{
+  "space": {
+    "s1": { "value": 4, "type": "number", "comment": "4 pt grid (HIG) / 4 dp (Material)" },
+    "s2": { "value": 8, "type": "number" },
+    "s3": { "value": 12, "type": "number" },
+    "s4": { "value": 16, "type": "number" },
+    "s5": { "value": 20, "type": "number" },
+    "s6": { "value": 24, "type": "number" },
+    "s8": { "value": 32, "type": "number" },
+    "s10": { "value": 40, "type": "number" },
+    "s12": { "value": 48, "type": "number" },
+    "s16": { "value": 64, "type": "number" }
+  }
+}

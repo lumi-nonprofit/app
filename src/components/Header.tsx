@@ -1,7 +1,9 @@
-/* LumiHeader — hlavička obrazovky (kicker + display titulek), SectionLabel — mikropopisek sekce. */
+/* LumiHeader — obsahový nadpis (kicker + display titulek), SectionLabel —
+   mikropopisek sekce. Oba jsou pro čtečku nadpisy (VoiceOver rotor / TalkBack
+   navigace po nadpisech). Titulek obrazovky samotné nese nativní hlavička. */
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { palette, colors, font, leading, tracking, type } from "../theme";
+import { Text, View } from "react-native";
+import { createThemedStyles, font, leading, tracking, type } from "../theme";
 
 interface LumiHeaderProps {
   kicker?: string;
@@ -10,9 +12,10 @@ interface LumiHeaderProps {
 }
 
 export function LumiHeader({ kicker, title, trailing }: LumiHeaderProps) {
+  const styles = useStyles();
   return (
     <View style={styles.row}>
-      <View>
+      <View style={styles.titleColumn}>
         {kicker ? <Text style={styles.kicker}>{kicker}</Text> : null}
         <Text accessibilityRole="header" style={styles.title}>
           {title}
@@ -28,25 +31,31 @@ interface SectionLabelProps {
 }
 
 export function SectionLabel({ children }: SectionLabelProps) {
-  return <Text style={[styles.kicker, styles.sectionLabel]}>{children}</Text>;
+  const styles = useStyles();
+  return (
+    <Text accessibilityRole="header" style={[styles.kicker, styles.sectionLabel]}>
+      {children}
+    </Text>
+  );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((t) => ({
   row: {
     flexDirection: "row",
     alignItems: "flex-end",
     justifyContent: "space-between",
+    gap: 12,
     paddingTop: 6,
     paddingHorizontal: 4,
     paddingBottom: 2,
   },
-  /* .lumi-kicker z app.css */
+  titleColumn: { flexShrink: 1 },
   kicker: {
     ...font.body(600),
     fontSize: type.xxs,
     letterSpacing: tracking.label(type.xxs),
     textTransform: "uppercase",
-    color: palette.ink700,
+    color: t.colors.textOnSunken,
     marginBottom: 4,
   },
   /* titulek obrazovky: xl — hero na onboardingu zůstává xxl, hlavičky tabů o stupeň níž */
@@ -54,8 +63,8 @@ const styles = StyleSheet.create({
     ...font.display(700),
     fontSize: type.xl,
     letterSpacing: tracking.display(type.xl),
-    color: colors.textStrong,
+    color: t.colors.textStrong,
     lineHeight: leading.tight(type.xl),
   },
   sectionLabel: { paddingTop: 4, paddingHorizontal: 4, paddingBottom: 0 },
-});
+}));

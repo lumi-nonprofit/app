@@ -23,9 +23,10 @@ import {
 import { AppStateProvider, useAppStore } from "../src/store";
 import { DbProvider } from "../src/db/provider";
 import { M1_VAULT_SKELETON_ENABLED } from "../src/lib/featureFlags";
+import * as SystemUI from "expo-system-ui";
 import { Button } from "../src/ds";
 import { HELP_LINES } from "../src/model";
-import { colors, font, leading, type } from "../src/theme";
+import { ThemeProvider, colors, font, leading, type, useTheme } from "../src/theme";
 
 /* Deep link (např. z notifikace) na detail dostane pod sebe taby,
    aby systémové Zpět vedlo do aplikace, ne mimo ni. */
@@ -70,13 +71,21 @@ export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
 
 function RootNavigator() {
   const { state } = useAppStore();
+  const theme = useTheme();
   React.useEffect(() => {
     // stav i fonty jsou načtené (jinak by se RootNavigator nevykreslil)
     SplashScreen.hideAsync().catch(() => {});
   }, []);
+  /* pozadí okna sleduje schéma — bez bílého/černého probliknutí při přechodech (HIG Dark Mode) */
+  React.useEffect(() => {
+    SystemUI.setBackgroundColorAsync(theme.colors.surfacePage).catch(() => {});
+  }, [theme.colors.surfacePage]);
   return (
     <Stack
-      screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.surfacePage } }}
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: theme.colors.surfacePage },
+      }}
     >
       <Stack.Protected guard={state.onboarded}>
         <Stack.Screen name="(tabs)" />
@@ -113,13 +122,15 @@ export default function RootLayout() {
   if (!fontsLoaded && !fontError) return null;
   return (
     <SafeAreaProvider>
-      <DbProvider>
-        <AppStateProvider>
-          {/* „auto“ sleduje systémový vzhled; ikony stavové lišty se přepnou s Dark Mode */}
-          <StatusBar style="auto" />
-          <RootNavigator />
-        </AppStateProvider>
-      </DbProvider>
+      <ThemeProvider>
+        <DbProvider>
+          <AppStateProvider>
+            {/* „auto“ sleduje systémový vzhled; ikony stavové lišty se přepnou s Dark Mode */}
+            <StatusBar style="auto" />
+            <RootNavigator />
+          </AppStateProvider>
+        </DbProvider>
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

@@ -1,20 +1,15 @@
-/* IconButton — kulaté tlačítko jen s ikonou; vždy s českým `label`. */
+/* IconButton — kulaté tlačítko jen s ikonou; vždy s českým `label`.
+   Dotykový cíl 44 pt (HIG) / 48 dp (Android), press state podle platformy. */
 import React from "react";
-import { GestureResponderEvent, Pressable, StyleProp, StyleSheet, ViewStyle } from "react-native";
-import { colors, radius } from "../theme";
+import { GestureResponderEvent, Pressable, StyleProp, ViewStyle } from "react-native";
+import { createThemedStyles, useTheme } from "../theme";
 import Icon from "./Icon";
+import { pressFeedback, pressedStyle } from "./press";
 
 type IconButtonVariant = "ghost" | "outline" | "ink";
 
 /* Typ názvu ikony odvozujeme z Icon — drží krok s jeho unií názvů. */
 type IconName = React.ComponentProps<typeof Icon>["name"];
-
-/* currentColor v RN není — barva ikony podle varianty (barva textu ve webovém CSS) */
-const ICON_COLORS: Record<IconButtonVariant, string> = {
-  ghost: colors.textBody,
-  outline: colors.textBody,
-  ink: colors.textOnInk,
-};
 
 interface Props {
   icon: IconName;
@@ -32,41 +27,45 @@ export default function IconButton({
   label,
   accessibilityHint,
   variant = "ghost",
-  size = 44,
+  size,
   iconSize = 22,
   onPress,
   style,
 }: Props) {
+  const theme = useTheme();
+  const styles = useStyles();
+  const dimension = size ?? theme.platform.minTouch;
+  const iconColor = variant === "ink" ? theme.colors.textOnPrimary : theme.colors.textBody;
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityHint={accessibilityHint}
       onPress={onPress}
+      {...pressFeedback(theme, { borderless: true, radius: dimension / 2 })}
       style={({ pressed }) => [
         styles.btn,
         variant === "outline" && styles.outline,
         variant === "ink" && styles.ink,
-        { width: size, height: size },
+        { width: dimension, height: dimension },
         style,
-        pressed && styles.pressed,
+        pressedStyle(theme, pressed),
       ]}
     >
-      <Icon name={icon} size={iconSize} color={ICON_COLORS[variant] || colors.textBody} />
+      <Icon name={icon} size={iconSize} color={iconColor} />
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((t) => ({
   btn: {
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: radius.pill,
+    borderRadius: t.radius.pill,
     borderWidth: 1.5,
     borderColor: "transparent",
     backgroundColor: "transparent",
   },
-  outline: { borderColor: colors.borderStrong, backgroundColor: colors.surfaceCard },
-  ink: { backgroundColor: colors.surfaceInk },
-  pressed: { transform: [{ scale: 0.95 }] },
-});
+  outline: { borderColor: t.colors.borderStrong, backgroundColor: t.colors.surfaceCard },
+  ink: { backgroundColor: t.colors.surfacePrimary },
+}));

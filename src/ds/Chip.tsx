@@ -1,8 +1,18 @@
-/* Chip — pill pro štítky a odpovědi; výběr = zlatý wash + glow ring. */
+/* Chip — pill pro slova a štítky. Výběr = zlatý wash + obrys sun600 (≥ 3:1)
+   + fajfka, nikdy jen barva. Dotykový cíl ≥ 44/48 pt; `accessibilityActions`
+   dávají čtečce negestovou alternativu k dlouhému podržení (smazání štítku). */
 import React from "react";
-import { Pressable, StyleSheet, Text } from "react-native";
-import type { GestureResponderEvent, StyleProp, ViewStyle } from "react-native";
-import { colors, font, leading, palette, radius, shadow, type } from "../theme";
+import { Pressable, Text } from "react-native";
+import type {
+  AccessibilityActionEvent,
+  AccessibilityActionInfo,
+  GestureResponderEvent,
+  StyleProp,
+  ViewStyle,
+} from "react-native";
+import { createThemedStyles, font, leading, type, useTheme } from "../theme";
+import Icon from "./Icon";
+import { pressFeedback, pressedStyle } from "./press";
 
 interface Props {
   children: React.ReactNode;
@@ -10,7 +20,10 @@ interface Props {
   onPress?: (event: GestureResponderEvent) => void;
   /** Dlouhé podržení (např. mazání vlastního štítku) — bez vizuální změny chipu. */
   onLongPress?: () => void;
+  accessibilityLabel?: string;
   accessibilityHint?: string;
+  accessibilityActions?: readonly AccessibilityActionInfo[];
+  onAccessibilityAction?: (event: AccessibilityActionEvent) => void;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -19,27 +32,39 @@ export default function Chip({
   selected = false,
   onPress,
   onLongPress,
+  accessibilityLabel,
   accessibilityHint,
+  accessibilityActions,
+  onAccessibilityAction,
   style,
 }: Props) {
-  const textColor = selected ? palette.sun700 : colors.textBody;
+  const theme = useTheme();
+  const styles = useStyles();
+  const textColor = selected ? theme.colors.textAccent : theme.colors.textBody;
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
       accessibilityState={{ selected: !!selected }}
       accessibilityHint={accessibilityHint}
+      accessibilityActions={accessibilityActions}
+      onAccessibilityAction={onAccessibilityAction}
       onPress={onPress}
       onLongPress={onLongPress}
+      {...pressFeedback(theme)}
       style={({ pressed }) => [
         styles.chip,
         selected && styles.selected,
         style,
-        pressed && !!onPress && styles.pressed,
+        !!onPress && pressedStyle(theme, pressed),
       ]}
     >
+      {selected ? <Icon name="check" size={14} strokeWidth={2.4} color={textColor} /> : null}
       {React.Children.map(children, (child) =>
         typeof child === "string" || typeof child === "number" ? (
-          <Text style={[styles.text, { color: textColor }]}>{child}</Text>
+          <Text style={[styles.text, { color: textColor }]} maxFontSizeMultiplier={1.6}>
+            {child}
+          </Text>
         ) : (
           child
         ),
@@ -48,27 +73,27 @@ export default function Chip({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((t) => ({
   chip: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
+    minHeight: t.platform.minTouch,
     paddingVertical: 7,
     paddingHorizontal: 14,
-    borderRadius: radius.pill,
+    borderRadius: t.radius.pill,
     borderWidth: 1.5,
-    borderColor: colors.borderStrong,
-    backgroundColor: colors.surfaceCard,
+    borderColor: t.colors.borderStrong,
+    backgroundColor: t.colors.surfaceCard,
+    overflow: "hidden",
   },
   selected: {
-    backgroundColor: colors.accentSoft,
-    borderColor: palette.sun400,
-    ...shadow.glow,
+    backgroundColor: t.colors.accentSoft,
+    borderColor: t.colors.selectionBorder,
   },
-  pressed: { transform: [{ scale: 0.98 }] },
   text: {
     ...font.body(500),
     fontSize: type.sm,
     lineHeight: leading.body(type.sm),
   },
-});
+}));

@@ -61,6 +61,13 @@ jest.mock("expo-notifications", () => ({
   AndroidNotificationVisibility: { PRIVATE: 0, PUBLIC: 1, SECRET: -1 },
 }));
 
+/* Pressable.android_ripple volá nativní příkaz hotspotUpdate, který mock View
+   v jestu nemá (RN limitace); ripple je čistě vizuální, v testech ho vypneme. */
+jest.mock("react-native/Libraries/Components/Pressable/useAndroidRippleForView", () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 /* expo-print: tisk kartičky vrací v testu fiktivní soubor. */
 jest.mock("expo-print", () => ({
   printToFileAsync: jest.fn(async () => ({ uri: "file:///tmp/lumi-karticka.pdf" })),

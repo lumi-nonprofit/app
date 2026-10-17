@@ -1,9 +1,10 @@
-/* Screen — obrazovka se scrollem (náhrada .app-scroll z webové verze):
-   dole rezerva na tab bar + safe area, nahoře safe area + 20. */
+/* Screen — obrazovka se scrollem. Přechodně drží rezervu na vlastní tab bar
+   (fáze 3 přejde na nativní hlavičky a insety navigátoru). Okraj obsahu podle
+   platformy (HIG 20 pt / Material 16 dp). */
 import React from "react";
-import { ScrollView, StyleSheet, type StyleProp, type ViewStyle } from "react-native";
+import { ScrollView, type StyleProp, type ViewStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { colors } from "../theme";
+import { createThemedStyles } from "../theme";
 
 interface Props {
   children: React.ReactNode;
@@ -12,6 +13,7 @@ interface Props {
 
 export default function Screen({ children, contentStyle }: Props) {
   const insets = useSafeAreaInsets();
+  const styles = useStyles();
   return (
     <ScrollView
       style={styles.fill}
@@ -21,13 +23,14 @@ export default function Screen({ children, contentStyle }: Props) {
         contentStyle,
       ]}
       keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="interactive"
     >
       {children}
     </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
-  fill: { flex: 1, backgroundColor: colors.surfacePage },
-  content: { paddingHorizontal: 20, gap: 14, flexGrow: 1 },
-});
+const useStyles = createThemedStyles((t) => ({
+  fill: { flex: 1, backgroundColor: t.colors.surfacePage },
+  content: { paddingHorizontal: t.platform.screenMargin, gap: 14, flexGrow: 1 },
+}));

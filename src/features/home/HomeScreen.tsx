@@ -2,10 +2,11 @@
    procenta zobrazí výzva k prvnímu dotazníku (varianta „první den“),
    po dnešním zápisu se check-in karta změní na shrnutí. */
 import { View } from "react-native";
-import { useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import type { Href } from "expo-router";
 import { Badge, Button, Card, Icon, ListItem, ProgressRing, Text } from "../../ds";
 import { LumiHeader, SectionLabel } from "../../components/Header";
+import { headerItems } from "../../components/HeaderItems";
 import MoodShape from "../../components/MoodShape";
 import Screen from "../../components/Screen";
 import {
@@ -42,6 +43,12 @@ export default function HomeScreen() {
   const measurement = latestWho5(who5);
   return (
     <Screen>
+      {/* „+“ v hlavičce: check-in je akce, ne tab (HIG Tab bars) */}
+      <Stack.Screen
+        options={headerItems(theme, {
+          right: [{ label: "Nový check-in", icon: "plus", sf: "plus", onPress: startCheckin }],
+        })}
+      />
       <LumiHeader kicker={czToday()} title={czGreeting(name)} />
 
       {/* Check-in karta (dominantní) */}

@@ -36,7 +36,7 @@ async function finishOnboarding(user: User): Promise<void> {
 }
 
 async function openStats(user: User): Promise<void> {
-  await user.press(screen.getByRole("button", { name: "Přehledy" }));
+  await user.press(screen.getByRole("tab", { name: "Přehledy" }));
   expect(await screen.findByText("Tvůj týden")).toBeOnTheScreen();
 }
 

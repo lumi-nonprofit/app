@@ -115,7 +115,7 @@ describe("Lumi app", () => {
     await renderRouter("app");
     await finishOnboarding(user);
 
-    await user.press(screen.getByRole("button", { name: "Přehledy" }));
+    await user.press(screen.getByRole("tab", { name: "Přehledy" }));
     expect(await screen.findByText("Tvůj týden")).toBeOnTheScreen();
     expect(screen.getByText(/Zatím tu toho moc není — každý zápis se počítá/)).toBeOnTheScreen();
 
@@ -133,7 +133,7 @@ describe("Lumi app", () => {
     await renderRouter("app");
     await finishOnboarding(user); // do 26 let
 
-    await user.press(screen.getByRole("button", { name: "Pomoc" }));
+    await user.press(screen.getByRole("tab", { name: "Pomoc" }));
     expect(await screen.findByText("Jsme tu s tebou")).toBeOnTheScreen();
     expect(screen.getByText("tvoje linka")).toBeOnTheScreen();
 
@@ -151,7 +151,7 @@ describe("Lumi app", () => {
     await renderRouter("app");
     await finishOnboarding(user);
 
-    await user.press(screen.getByRole("button", { name: "Klid" }));
+    await user.press(screen.getByRole("tab", { name: "Klid" }));
     expect(await screen.findByText("Na chvilku se zastav")).toBeOnTheScreen();
     expect(screen.getByText("Začneme?")).toBeOnTheScreen();
 

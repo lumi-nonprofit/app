@@ -25,6 +25,7 @@ import {
 import { HELP_LINES, toISODate, czPlural } from "../../model";
 import { useAppStore } from "../../store";
 import { haptics } from "../../lib/haptics";
+import { useDiscardGuard } from "../../lib/useDiscardGuard";
 import { INSTRUMENTS, PHQ9_RISK_QUESTION_INDEX, isMeasurementType } from "./definitions";
 import { bandFor, scoreFor, trendText } from "./scoring";
 import { createThemedStyles, useTheme } from "../../theme";
@@ -98,6 +99,14 @@ function Measure({ type }: { type: MeasurementType }) {
      2. časový lockout 250 ms z timestampu dotyku (odraz přes commit),
      3. jednorázové id měření + synchronní zámek uložení (duplicitní
         submit koliduje na id a ON CONFLICT ho zahodí). */
+  /* rozpracovaný dotazník (≥ 1 odpověď) se nezavře bez dotazu — swipe-down ani Back */
+  useDiscardGuard({
+    dirty: phase.kind === "question" && phase.answers.length > 0,
+    title: "Ukončit dotazník?",
+    message: "Dosavadní odpovědi se neuloží.",
+    confirmLabel: "Ukončit",
+  });
+
   const lastAnsweredIndex = React.useRef(-1);
   const lastAdvanceAt = React.useRef(0);
   const measurementId = React.useRef(newMeasurementId(type));

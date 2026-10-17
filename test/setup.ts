@@ -81,8 +81,13 @@ jest.mock("expo-symbols", () => {
       React.createElement(View, {
         style: [{ width: props.size, height: props.size }, props.style],
       }),
+    /* nativní taby na Androidu kreslí Material ikony jako obrázky — v jestu bez obrázku */
+    unstable_getMaterialSymbolSourceAsync: jest.fn(async () => null),
   };
 });
+
+/* Nativní taby (react-native-screens) nemají v jestu JS lištu — viz mocks/nativeTabs. */
+jest.mock("expo-router/unstable-native-tabs", () => jest.requireActual("./mocks/nativeTabs"));
 
 /* expo-print: tisk kartičky vrací v testu fiktivní soubor. */
 jest.mock("expo-print", () => ({

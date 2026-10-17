@@ -2,7 +2,7 @@
    poznámka; uložení zapíše Entry do stavu aplikace a vede na potvrzení. */
 import React from "react";
 import { View, TextInput, Alert } from "react-native";
-import { useRouter } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import { Button, Chip, Input, Text } from "../../ds";
 import { textStyle } from "../../ds/Text";
 import { LumiHeader } from "../../components/Header";
@@ -23,15 +23,30 @@ import { useDbWriter } from "../../db/hooks";
 import { addCustomTag, deleteCustomTag, insertEntry, listCustomTags } from "../../db/repo";
 import type { Tag } from "../../db/repo";
 import { haptics } from "../../lib/haptics";
+import { useDiscardGuard } from "../../lib/useDiscardGuard";
 import { createThemedStyles, useTheme } from "../../theme";
-import { useCheckinDraft } from "./draft";
+import { isDraftDirty, useCheckinDraft } from "./draft";
 
 export default function Step2Screen() {
   const router = useRouter();
   const theme = useTheme();
   const styles = useStyles();
-  const { draft, setDraft } = useCheckinDraft();
+  const { draft, setDraft, saved, markSaved } = useCheckinDraft();
   const writeDb = useDbWriter();
+  const navigation = useNavigation();
+  /* Guard zachytí jen zavření celého sheetu (swipe-down = POP cílený na kořenový
+     stack). Zpět (GO_BACK) a pop uvnitř stacku check-inu jen vrací na krok 1 —
+     draft žije v provideru, nic se nezahazuje; uložení projde přes leave(). */
+  const { leave } = useDiscardGuard({
+    dirty: !saved && isDraftDirty(draft),
+    title: "Zahodit rozepsaný zápis?",
+    message: "Vybraný stav, slova ani poznámka se neuloží.",
+    allow: (action) =>
+      action.type === "GO_BACK" ||
+      action.type === "REPLACE" ||
+      (action.type === "POP" &&
+        (action.target === undefined || action.target === navigation.getState()?.key)),
+  });
 
   /* draft.mood může být null — fallback za `||` to jistí, přetypování jen pro index */
   const mood = MOOD_BY_ID[draft.mood as MoodId] || MOOD_BY_ID.napeti;
@@ -103,8 +118,9 @@ export default function Step2Screen() {
     };
     writeDb((d) => insertEntry(d, entry)); // INSERT, žádné přepisování celku
     haptics.success();
+    markSaved();
     /* replace, ne push: hardware back z potvrzení se nevrací na už uložený krok */
-    router.replace("/checkin/confirm");
+    leave(() => router.replace("/checkin/confirm"));
   };
 
   return (

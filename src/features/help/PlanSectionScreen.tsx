@@ -11,6 +11,7 @@ import { LumiHeader } from "../../components/Header";
 import { useDb } from "../../db/provider";
 import { useDbWriter } from "../../db/hooks";
 import { getSetting, setSetting } from "../../db/repo";
+import { useDiscardGuard } from "../../lib/useDiscardGuard";
 import { PLAN_SECTIONS, PLAN_SECTION_KEYS, isPlanSectionId, type PlanSectionId } from "./plan";
 import { createThemedStyles } from "../../theme";
 
@@ -31,14 +32,21 @@ function PlanSection({ section }: { section: PlanSectionId }) {
   const key = PLAN_SECTION_KEYS[section];
 
   /* počáteční hodnota se čte jednou při otevření (lazy initializer) */
-  const [value, setValue] = React.useState<string>(() => getSetting<string>(db, key) ?? "");
+  const [initial] = React.useState<string>(() => getSetting<string>(db, key) ?? "");
+  const [value, setValue] = React.useState<string>(initial);
+  /* Zpět s neuloženou změnou se nejdřív zeptá; Uložit odchází bez dotazu */
+  const { leave } = useDiscardGuard({
+    dirty: value.trim() !== initial.trim(),
+    title: "Zahodit změny v plánu?",
+    message: "Text v této sekci se neuloží.",
+  });
 
   /* meta je vždy nalezeno (section prošlo isPlanSectionId) — pojistka pro TS */
   if (!meta) return <Redirect href="/help" />;
 
   const save = () => {
     write((d) => setSetting(d, key, value.trim()));
-    router.back();
+    leave(() => router.back());
   };
 
   return (

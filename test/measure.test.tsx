@@ -73,7 +73,7 @@ describe("WHO-5", () => {
 
 describe("PHQ-9", () => {
   async function openPhq9(user: User) {
-    await user.press(screen.getByRole("button", { name: "Přehledy" }));
+    await user.press(screen.getByRole("tab", { name: "Přehledy" }));
     expect(await screen.findByText("Chceš jít víc do hloubky?")).toBeOnTheScreen();
     await user.press(screen.getByRole("button", { name: /Nálada do hloubky/ }));
   }

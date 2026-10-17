@@ -40,7 +40,7 @@ describe("Co se ukazuje (Přehledy)", () => {
 
     const user = userEvent.setup();
     await renderRouter("app");
-    await user.press(await screen.findByRole("button", { name: "Přehledy" }));
+    await user.press(await screen.findByRole("tab", { name: "Přehledy" }));
 
     expect(await screen.findByText("Co se ukazuje")).toBeOnTheScreen();
     expect(
@@ -59,7 +59,7 @@ describe("Co se ukazuje (Přehledy)", () => {
     seedProfile();
     const user = userEvent.setup();
     await renderRouter("app");
-    await user.press(await screen.findByRole("button", { name: "Přehledy" }));
+    await user.press(await screen.findByRole("tab", { name: "Přehledy" }));
 
     expect(await screen.findByText("Co se ukazuje")).toBeOnTheScreen();
     expect(screen.getByText(TOO_FEW_DATA_TEXT)).toBeOnTheScreen();

@@ -1,56 +1,54 @@
-/* Taby: Dnes · Klid · Check-in (+) · Přehledy · Pomoc. Každý tab má vlastní
-   stack (nativní hlavičky, tab bar zůstává při pushi viditelný — HIG Tab bars).
-   Vlastní LumiTabBar je přechodný: fáze 5 ho nahradí nativním tab barem
-   (4 taby, check-in z Dnes). Prostřední „tab“ není route, ale akce. */
-import React from "react";
-import { useRouter } from "expo-router";
-import { Tabs, type BottomTabBarProps } from "expo-router/tabs";
-import LumiTabBar, { type TabId } from "../../src/components/TabBar";
-import { TAB_BAR_RESERVE, TabBarInsetContext } from "../../src/components/TabBarInset";
+/* Nativní taby: Dnes · Klid · Přehledy · Pomoc (HIG Tab bars: navigace, ne
+   akce — check-in se spouští z Dnes). iOS: systémový tab bar s Liquid Glass
+   a vyplněnými symboly aktivního tabu; Android: Material navigation bar
+   s indikátorem, ripple a vždy viditelnými popisky. Každý tab má vlastní
+   stack, takže tab bar zůstává viditelný i na vnořených obrazovkách. */
+import { NativeTabs } from "expo-router/unstable-native-tabs";
+import { TabContentContext } from "../../src/components/TabContent";
 import { useTheme } from "../../src/theme";
-
-const TAB_FOR_ROUTE: Record<string, TabId> = {
-  "(home)": "home",
-  "(calm)": "calm",
-  "(stats)": "stats",
-  "(help)": "help",
-};
-const ROUTE_FOR_TAB: Record<Exclude<TabId, "checkin">, string> = {
-  home: "(home)",
-  calm: "(calm)",
-  stats: "(stats)",
-  help: "(help)",
-};
-
-function TabBarAdapter({ state, navigation }: BottomTabBarProps) {
-  const router = useRouter();
-  const active = TAB_FOR_ROUTE[state.routes[state.index]?.name] ?? "home";
-  const onSelect = (id: TabId) => {
-    if (id === "checkin") {
-      router.push("/checkin");
-      return;
-    }
-    navigation.navigate(ROUTE_FOR_TAB[id]);
-  };
-  return <LumiTabBar active={active} onSelect={onSelect} />;
-}
 
 export default function TabsLayout() {
   const theme = useTheme();
+  const c = theme.colors;
   return (
-    <TabBarInsetContext.Provider value={TAB_BAR_RESERVE}>
-      <Tabs
-        tabBar={(props) => <TabBarAdapter {...props} />}
-        screenOptions={{
-          headerShown: false,
-          sceneStyle: { backgroundColor: theme.colors.surfacePage },
-        }}
+    <TabContentContext.Provider value>
+      <NativeTabs
+        iconColor={{ default: c.textMuted, selected: c.textAccent }}
+        labelStyle={{ default: { color: c.textMuted }, selected: { color: c.textAccent } }}
+        tintColor={c.textAccent}
+        /* iOS: bez vlastního pozadí (Liquid Glass / blur dodá systém); Android: plocha */
+        backgroundColor={theme.platform.isAndroid ? c.surfaceCard : undefined}
+        indicatorColor={c.accentSoft}
+        rippleColor={theme.ripple}
+        labelVisibilityMode="labeled"
+        minimizeBehavior="automatic"
       >
-        <Tabs.Screen name="(home)" />
-        <Tabs.Screen name="(calm)" />
-        <Tabs.Screen name="(stats)" />
-        <Tabs.Screen name="(help)" />
-      </Tabs>
-    </TabBarInsetContext.Provider>
+        <NativeTabs.Trigger name="(home)">
+          <NativeTabs.Trigger.Label>Dnes</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Icon
+            sf={{ default: "sun.max", selected: "sun.max.fill" }}
+            md="light_mode"
+          />
+        </NativeTabs.Trigger>
+        <NativeTabs.Trigger name="(calm)">
+          <NativeTabs.Trigger.Label>Klid</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Icon sf={{ default: "leaf", selected: "leaf.fill" }} md="spa" />
+        </NativeTabs.Trigger>
+        <NativeTabs.Trigger name="(stats)">
+          <NativeTabs.Trigger.Label>Přehledy</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Icon
+            sf={{ default: "chart.bar", selected: "chart.bar.fill" }}
+            md="bar_chart"
+          />
+        </NativeTabs.Trigger>
+        <NativeTabs.Trigger name="(help)">
+          <NativeTabs.Trigger.Label>Pomoc</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Icon
+            sf={{ default: "heart", selected: "heart.fill" }}
+            md="volunteer_activism"
+          />
+        </NativeTabs.Trigger>
+      </NativeTabs>
+    </TabContentContext.Provider>
   );
 }

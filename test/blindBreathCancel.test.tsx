@@ -11,7 +11,7 @@ it("poklepání na plochu ukončí cvičení předčasně, bez haptiky dokončen
   const user = userEvent.setup();
   writeProfile(getTestDb(), { onboarded: true, name: "Janko", age: "u26", share: false });
   await renderRouter("app");
-  await user.press(await screen.findByRole("button", { name: "Klid" }));
+  await user.press(await screen.findByRole("tab", { name: "Klid" }));
   await user.press(await screen.findByText("Dech naslepo"));
   await user.press(await screen.findByRole("radio", { name: /4-4/ }));
 

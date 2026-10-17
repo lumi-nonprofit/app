@@ -13,14 +13,21 @@ import Screen from "../../components/Screen";
 import { INTENSITY_LABELS, MOODS } from "../../model";
 import type { Intensity } from "../../model";
 import { haptics } from "../../lib/haptics";
+import { useDiscardGuard } from "../../lib/useDiscardGuard";
 import { createThemedStyles, useTheme } from "../../theme";
-import { useCheckinDraft } from "./draft";
+import { isDraftDirty, useCheckinDraft } from "./draft";
 
 export default function Step1Screen() {
   const router = useRouter();
   const theme = useTheme();
   const styles = useStyles();
-  const { draft, setDraft } = useCheckinDraft();
+  const { draft, setDraft, saved } = useCheckinDraft();
+  /* Zrušit, swipe-down i hardware Back se při rozepsaném zápisu nejdřív zeptají */
+  useDiscardGuard({
+    dirty: !saved && isDraftDirty(draft),
+    title: "Zahodit rozepsaný zápis?",
+    message: "Vybraný stav, slova ani poznámka se neuloží.",
+  });
   return (
     <Screen>
       <LumiHeader kicker="Check-in · krok 1 ze 2" title="Jak se právě teď cítíš?" />

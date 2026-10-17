@@ -6,10 +6,13 @@ přehledy a pomoc v krizi. Zdarma, neziskově, česky.
 **Stav projektu a další postup:** [`docs/STATUS.md`](docs/STATUS.md) (anglicky).
 
 Implementace vychází z high-fidelity prototypu **„Lumi Prototyp“** z Claude
-Designu (handoff z 12. 6. 2026) a z **Lumi design systemu** (tokeny v
-`src/theme.ts` jsou převzaté 1:1, komponenty v `src/ds/` odpovídají DS bundle).
-Nativní mobilní aplikace v **Expo / React Native** (iOS, Android, web přes
-react-native-web), návrhový rozměr 390×844, světlý režim.
+Designu (handoff z 12. 6. 2026) a z **Lumi design systemu** (tokeny jsou zdroj
+pravdy v `design/tokens/`, generují se do `src/theme/tokens.generated.ts`;
+komponenty v `src/ds/` odpovídají DS bundle). Nativní mobilní aplikace
+v **Expo / React Native** (iOS, Android, web přes react-native-web). Rozhraní
+se řídí **Apple HIG** na iOS a **Android design guidelines (Material 3)** na
+Androidu; světlý i tmavý režim podle systému, text škáluje s Dynamic Type
+(viz [Přístupnost](#přístupnost)).
 
 **Stack:** Expo SDK 56 · React Native 0.85 · React 19 · TypeScript (strict) ·
 expo-router (typed routes) · šifrovaná SQLite (SQLCipher) + Drizzle ORM ·
@@ -61,11 +64,13 @@ Kontroly: `npm test`, `npm run typecheck`, `npm run lint`, `npx expo-doctor`.
 
 ## Co je hotové
 
-- **Onboarding (3 obrazovky):** jméno → věkové pásmo (určuje primární
-  krizovou linku) → soukromí. Bez tab baru.
+- **Onboarding (3 obrazovky):** jméno (nepovinné) → věkové pásmo (určuje
+  primární krizovou linku; jde neuvést) → soukromí. Tlačítka Začít →
+  Pokračovat → Hotovo, na každém kroku odkaz na krizovou pomoc (`/crisis`).
 - **Dnes:** pozdrav podle denní doby, dominantní check-in karta (po dnešním
   zápisu se změní na shrnutí), wellbeing index z reálných dat, „Pro tebe“
-  (jeden zdroj doporučení), krizová karta.
+  (jeden zdroj doporučení), krizová karta. V hlavičce „+“ (nový check-in)
+  a ozubené kolo (Nastavení).
 - **Check-in:** krok 1 (stav + intenzita 1–5) → krok 2 (slova 1–2, kontextové
   i **vlastní** štítky, nepovinná poznámka) → potvrzení s kontextovým tipem
   podle stavu. Výběr a uložení provází decentní **haptika**.
@@ -77,15 +82,25 @@ Kontroly: `npm test`, `npm run typecheck`, `npm run lint`, `npx expo-doctor`.
 - **Klid:** dechový kruh, přehrávač aktivit (Dech 4-7-8 s časovanými fázemi
   i bez audia, audio aktivity připravené), **Dech naslepo** (telefon v kapse,
   vedení vibracemi).
-- **Přehledy:** týden/měsíc jako tečky, wellbeing index, **insights**
-  („Co se ukazuje“ — deskriptivní vzorce), **týdenní reflexe**, **připomínky**
-  (lokální notifikace, default vypnuto), **záloha** (export/import JSON),
-  přepínač „Data pro výzkum“ (default vypnuto).
-- **Pomoc:** krizové linky s `tel:` odkazy, trvalý řádek 155/112, editovatelný
-  krizový plán + **tisk kartičky do peněženky** (PDF), rychlé zklidnění,
-  režim **„Podej telefon“** pro třetí osobu, rozcestník, kontakty.
+- **Přehledy:** týden/měsíc jako tečky (každá buňka má popisek pro čtečku),
+  wellbeing index, **insights** („Co se ukazuje“ — deskriptivní vzorce),
+  **týdenní reflexe**, hlubší screeningy.
+- **Nastavení** (modal z Dnes a Přehledů): profil (jméno, věk), **připomínky**
+  (lokální notifikace, default vypnuto; na Androidu kanál se soukromým
+  zobrazením na zámku), přepínač „Sdílet data pro výzkum“ (default vypnuto),
+  haptika, vlastní štítky, **záloha** (export/import JSON), o aplikaci.
+  Vzhled se nenastavuje — sleduje systém.
+- **Pomoc:** krizové linky s `tel:` odkazy (primární podle věku), volatelné
+  řádky 155/112, kontakty z jednoho zdroje (`src/features/help/lines.ts`,
+  vč. 116 006), editovatelný krizový plán + **tisk kartičky do peněženky**
+  (PDF), rychlé zklidnění, režim **„Podej telefon“** pro třetí osobu.
+  Rozcestník „Co dělat, když…“ se ukáže, až bude mít obsah (`guides.ts`).
 
-Spodní navigace: **Dnes · Klid · Check-in (+) · Přehledy · Pomoc**.
+Spodní navigace: nativní tab bar **Dnes · Klid · Přehledy · Pomoc** (iOS
+systémový tab bar, Android navigation bar); check-in je akce z Dnes. Každý
+tab má vlastní stack s nativní hlavičkou, modální úlohy (check-in, dotazník,
+přehrávač, předání telefonu, nastavení, krizová pomoc) se zavírají
+standardním Zrušit/Zavřít a rozpracovaný obsah se nezahodí bez dotazu.
 
 ### Stavy obrazovek jsou datové
 
@@ -152,27 +167,34 @@ Záznamy se ukládají **jen do telefonu**, do SQLite šifrované SQLCipherem
 Keychain/Keystore (expo-secure-store) a nikdy neopouští zařízení. Žádný
 backend, žádná telemetrie. Přepínač „Data pro výzkum“ je výhradně opt-in,
 default vypnuto — a zatím nic neodesílá; je to připravené UI pro budoucí
-anonymní export. Záloha v Přehledech exportuje **nešifrovaný** JSON — o jeho
+anonymní export. Záloha v Nastavení exportuje **nešifrovaný** JSON — o jeho
 bezpečné uložení se stará uživatel (appka to říká rovnou v kartě zálohy).
 
 ## Adaptace na Expo / React Native
 
-- CSS tokeny DS jsou převedené 1:1 do `src/theme.ts` (barvy, spacing, rádiusy,
-  typografie, stíny, motion). RN Text nedědí styly, proto theme nabízí helpery
-  `font.display(weight)` / `font.body(weight)` (statické řezy fontů),
-  `leading.*` a `tracking.*` (převod em/unitless hodnot na body).
-- Ikony: `lucide-react-native` (stejná sada jako CDN substituce deklarovaná
-  v DS), stroke 1.75; `currentColor` v RN není — barva se předává explicitně.
-- Fonty: Bricolage Grotesque + Instrument Sans přes `@expo-google-fonts/*`
-  a `expo-font`; nahradit self-hosted, až budou brand fonty.
-- Safe-area insety řeší `react-native-safe-area-context`; poslední karta
-  zůstává celá viditelná nad tab barem.
-- Dechový kruh animuje `Animated` API a respektuje systémové nastavení
-  redukce pohybu (`AccessibilityInfo.isReduceMotionEnabled`).
-- Tab bar je bez backdrop-bluru (web měl `backdrop-filter`), místo toho
-  téměř neprůhledná krémová výplň.
+- Tokeny DS žijí v `design/tokens/*.json` (Style Dictionary, `cd design &&
+npm run build`) a generují se do `src/theme/tokens.generated.ts` — CI hlídá,
+  že vygenerovaný soubor odpovídá. `src/theme/` nad nimi staví světlé a tmavé
+  schéma (`ThemeProvider`, `useTheme`, `createThemedStyles`), platformní
+  konstanty (dotykové cíle 44/48, okraje 20/16) a kontrastní manifest.
+- Text: jediná komponenta `ds/Text` s variantami (largeTitle … caption2,
+  label, kicker) mapovanými na iOS text styles (`dynamicTypeRamp`) a Material
+  type scale; Bricolage Grotesque 600/700 jen pro titulky, tělo textu systémový
+  font (SF Pro / Roboto). RN `Text` je v obrazovkách zakázaný lintem.
+- Ikony: `ds/Icon` kreslí SF Symbols na iOS a Material Symbols na Androidu
+  (`expo-symbols`), Lucide na webu — jedna mapa názvů.
+- Navigace: nativní stack (`expo-router`) s hlavičkami podle platformy
+  (velké titulky, systémové Zpět bez textu, položky lišty přes
+  `src/components/HeaderItems.tsx`), nativní taby
+  (`expo-router/unstable-native-tabs`); horní i spodní insety řeší navigátor,
+  `Screen` používá `contentInsetAdjustmentBehavior`.
+- Zpětná vazba stisku podle platformy (`src/ds/press.ts`): Android ripple,
+  iOS opacita. Dialogy a action sheety podle platformy (`src/lib/dialogs.ts`).
+- Dechový kruh animuje `Animated` API a respektuje systémovou redukci pohybu
+  (listener `reduceMotionChanged`); fáze oznamuje haptika i čtečka.
 - Tvary stavů a wellbeing ring kreslí `react-native-svg`; slider intenzity je
-  `@react-native-community/slider`.
+  `@react-native-community/slider`; segmented control je na iOS nativní
+  (`@react-native-segmented-control`), na Androidu Material segmented buttons.
 - `tel:` odkazy otevírá `Linking.openURL`; tlačítka s `href` mají roli `link`.
 - Ikona aplikace a splash se generují z `assets/lumi-mark.svg`
   (`assets/icon.png`, `adaptive-icon.png`, `splash-icon.png`, `favicon.png`).
@@ -185,34 +207,42 @@ bezpečné uložení se stará uživatel (appka to říká rovnou v kartě zálo
 - **iOS State of Mind** (zápis nálad do Apple Zdraví) — knihovna ho zatím
   nepodporuje, takže je za feature flagem a zdokumentovaný v
   `docs/state-of-mind.md`.
-- **Rozcestník „Co dělat, když…“** a chat Linky bezpečí jsou navržené
-  rozcestníky bez cílových obrazovek.
+- **Rozcestník „Co dělat, když…“** a chat Linky bezpečí čekají na obsah
+  (`src/features/help/guides.ts`); do té doby se v Pomoci nezobrazují.
 - **Znění dotazníků** WHO-5 / PHQ-9 / GAD-7 ověřit proti validovaným českým
-  verzím (v kódu označeno `TODO(Anna)`); ověřit telefonní linky a provozní
-  doby (116 111, 116 123, 606 021 021) a doplnit skutečné logo.
+  verzím (v kódu označeno `TODO(Anna)`); podepsat ověření linek
+  (`docs/cz-crisis-data-checklist.md` — 116 111, 116 123, 116 006,
+  606 021 021) a doplnit skutečné logo.
 - **Nativní ověření na dev buildu:** šifrování DB na disku, haptika,
-  notifikace, keep-awake u Dechu naslepo, tisk PDF kartičky.
+  notifikace, keep-awake u Dechu naslepo, tisk PDF kartičky a celý průchod
+  podle `docs/device-verification.md` (TalkBack/VoiceOver, 200 % písmo,
+  tmavý režim, gesta, Liquid Glass na iOS 26).
 
 ## Struktura
 
 ```
 app.json           Expo konfigurace (ikony, splash, plugins, web manifest)
-app/               expo-router: routes (_layout, (tabs), onboarding, checkin,
-                   measure/[type], calm/[id], plan/[section], handover, …)
+app/               expo-router: routes (_layout, (tabs)/(home|calm|stats|help),
+                   onboarding, checkin, measure/[type], calm/[id], handover,
+                   settings, crisis, +not-found)
+design/            tokeny DS (Style Dictionary) → src/theme/tokens.generated.ts
 drizzle/           vygenerované SQL migrace + journal
 assets/            logo, generované ikony, audio/ (manifest cvičení)
-docs/              poznámky (state-of-mind.md)
+docs/              STATUS, ADR, pilot build, device-verification, state-of-mind
 src/
-  theme.ts         tokeny DS 1:1 (barvy, typografie, spacing, stíny, motion)
+  theme/           generované tokeny, světlé/tmavé schéma, kontrastní manifest
   model.ts         doménové typy, slovník, agregace, doporučení, WHO-5 texty
   store.tsx        profil/preference (paměť + settings tabulka)
-  ds/              DS komponenty (Button, Card, Chip, Input, Switch, Icon, …)
-  components/      sdílené prvky (MoodShape, Header, CTA, Breath, TabBar, …)
+  ds/              DS komponenty (Text, Button, Card, Chip, Input, Switch,
+                   Icon, SegmentedControl, RadioRow, ListItem, …)
+  components/      sdílené prvky (Screen, Header, HeaderItems, MoodShape,
+                   Breath, navigation)
   db/              SQLite + SQLCipher + Drizzle: schema, connect, repo, hooks,
                    provider, migrateLegacy (z AsyncStorage), backup
-  features/        feature-first obrazovky a logika:
-                   checkin, calm, measure, stats, help, onboarding, home
-  lib/             haptics, featureFlags
-test/              jest-expo + @testing-library/react-native (vč. expo-router
-                   testing-library); helpers/testDb = better-sqlite3 v paměti
+  features/        feature-first obrazovky a logika: checkin, calm, measure,
+                   stats, help, onboarding, home, settings
+  lib/             a11y, dialogs, haptics, motion, useDiscardGuard, featureFlags
+test/              jest-expo (Android preset) + @testing-library/react-native
+                   (vč. expo-router testing-library); helpers/testDb =
+                   better-sqlite3 v paměti; mocks/ = JS náhrada nativních tabů
 ```

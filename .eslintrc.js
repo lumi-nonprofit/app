@@ -57,5 +57,7 @@ module.exports = {
   ],
   // spikes/ holds superseded reference kits (stale RN/expo-file-system APIs); excluded from lint
   // for the same reason they're excluded from tsc (tsconfig.json). Retiring them properly is backlog.
-  ignorePatterns: ["node_modules/", ".expo/", "dist/", "web-build/", "spikes/"],
+  // design/ is a separate package (Style Dictionary, own node_modules installed only by the
+  // `tokens` CI job) — the root lint cannot resolve its imports.
+  ignorePatterns: ["node_modules/", ".expo/", "dist/", "web-build/", "spikes/", "design/"],
 };

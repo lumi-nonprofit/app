@@ -10,7 +10,6 @@ import { Pressable, View, type GestureResponderEvent } from "react-native";
 import { Redirect, Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { Button, Icon, ProgressRing, Text } from "../../ds";
 import { pressFeedback, pressedStyle } from "../../ds/press";
-import LumiCTA from "../../components/CTA";
 import { backItem, closeItem, headerItems } from "../../components/HeaderItems";
 import Screen from "../../components/Screen";
 import { useDb } from "../../db/provider";
@@ -25,6 +24,7 @@ import {
 } from "../../db/repo";
 import { HELP_LINES, toISODate, czPlural } from "../../model";
 import { useAppStore } from "../../store";
+import { haptics } from "../../lib/haptics";
 import { INSTRUMENTS, PHQ9_RISK_QUESTION_INDEX, isMeasurementType } from "./definitions";
 import { bandFor, scoreFor, trendText } from "./scoring";
 import { createThemedStyles, useTheme } from "../../theme";
@@ -111,6 +111,7 @@ function Measure({ type }: { type: MeasurementType }) {
     if (ts - lastAdvanceAt.current < 250) return; // odraz dopadl na další otázku
     lastAdvanceAt.current = ts;
     lastAnsweredIndex.current = phase.index;
+    haptics.select();
 
     const answers = [...phase.answers, value];
     if (answers.length < inst.questions.length) {
@@ -172,7 +173,9 @@ function Measure({ type }: { type: MeasurementType }) {
           </Text>
         </View>
         <View style={styles.actions}>
-          <LumiCTA
+          <Button
+            size="lg"
+            fullWidth
             onPress={() => {
               /* flag se ukládá při odsouhlasení (ne až po dokončení) — záměr:
                  obsah byl přečtený a potvrzený, druhé čtení nevnucujeme */
@@ -181,7 +184,7 @@ function Measure({ type }: { type: MeasurementType }) {
             }}
           >
             Rozumím, pokračovat
-          </LumiCTA>
+          </Button>
           <Button variant="ghost" fullWidth onPress={() => router.back()}>
             Teď ne
           </Button>
@@ -355,7 +358,9 @@ function Measure({ type }: { type: MeasurementType }) {
         ) : null}
       </View>
       <View style={styles.actions}>
-        <LumiCTA onPress={() => router.back()}>Hotovo</LumiCTA>
+        <Button size="lg" fullWidth onPress={() => router.back()}>
+          Hotovo
+        </Button>
       </View>
     </Screen>
   );

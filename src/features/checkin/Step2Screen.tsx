@@ -6,7 +6,6 @@ import { useRouter } from "expo-router";
 import { Button, Chip, Input, Text } from "../../ds";
 import { textStyle } from "../../ds/Text";
 import { LumiHeader } from "../../components/Header";
-import LumiCTA from "../../components/CTA";
 import MoodShape from "../../components/MoodShape";
 import Screen from "../../components/Screen";
 import {
@@ -198,13 +197,15 @@ export default function Step2Screen() {
         onChangeText={(v) => setDraft({ note: v })}
       />
 
-      <LumiCTA
+      <Button
+        size="lg"
+        fullWidth
         disabled={draft.words.length === 0}
         onPress={save}
         hint="Vyber aspoň jedno slovo — pomáhá v Přehledech."
       >
         Uložit zápis
-      </LumiCTA>
+      </Button>
     </Screen>
   );
 }

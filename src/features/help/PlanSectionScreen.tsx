@@ -5,8 +5,7 @@
 import React from "react";
 import { View } from "react-native";
 import { Redirect, useLocalSearchParams, useRouter } from "expo-router";
-import { Input, Text } from "../../ds";
-import LumiCTA from "../../components/CTA";
+import { Button, Input, Text } from "../../ds";
 import Screen from "../../components/Screen";
 import { LumiHeader } from "../../components/Header";
 import { useDb } from "../../db/provider";
@@ -63,7 +62,9 @@ function PlanSection({ section }: { section: PlanSectionId }) {
       />
 
       <View style={styles.actions}>
-        <LumiCTA onPress={save}>Uložit</LumiCTA>
+        <Button size="lg" fullWidth onPress={save}>
+          Uložit
+        </Button>
       </View>
     </Screen>
   );

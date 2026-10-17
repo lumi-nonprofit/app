@@ -71,6 +71,19 @@ jest.mock("react-native/Libraries/Components/Pressable/useAndroidRippleForView",
   default: () => null,
 }));
 
+/* expo-symbols: SF Symbols / font Material Symbols v jestu nejsou; ikony jsou
+   dekorativní, stačí prázdný View se stejnými rozměry. */
+jest.mock("expo-symbols", () => {
+  const React = jest.requireActual("react");
+  const { View } = jest.requireActual("react-native");
+  return {
+    SymbolView: (props: { size?: number; style?: unknown }) =>
+      React.createElement(View, {
+        style: [{ width: props.size, height: props.size }, props.style],
+      }),
+  };
+});
+
 /* expo-print: tisk kartičky vrací v testu fiktivní soubor. */
 jest.mock("expo-print", () => ({
   printToFileAsync: jest.fn(async () => ({ uri: "file:///tmp/lumi-karticka.pdf" })),

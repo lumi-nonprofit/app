@@ -3,9 +3,19 @@
    Varianty jsou datové: prázdný týden = 0–1 záznam, empatická varianta
    při WHO-5 pod 50 % — žádné alarmy, žádná vina. */
 import React from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import { useRouter } from "expo-router";
-import { Badge, Button, Card, Icon, ListItem, ProgressRing, Switch, Text } from "../../ds";
+import {
+  Badge,
+  Button,
+  Card,
+  Icon,
+  ListItem,
+  ProgressRing,
+  SegmentedControl,
+  Switch,
+  Text,
+} from "../../ds";
 import Screen from "../../components/Screen";
 import { LumiHeader, SectionLabel } from "../../components/Header";
 import MoodShape from "../../components/MoodShape";
@@ -34,6 +44,10 @@ import InsightsCard from "./InsightsCard";
 import { isReflectionWindowOpen } from "./reflection";
 
 type Period = "týden" | "měsíc";
+const PERIODS: { value: Period; label: string }[] = [
+  { value: "týden", label: "týden" },
+  { value: "měsíc", label: "měsíc" },
+];
 
 interface DayDotProps {
   day: WeekDay;
@@ -141,33 +155,13 @@ export default function StatsScreen() {
       <LumiHeader
         title="Tvůj týden"
         trailing={
-          <View
-            style={styles.seg}
-            accessibilityRole="tablist"
+          <SegmentedControl
+            options={PERIODS}
+            value={period}
+            onChange={setPeriod}
             accessibilityLabel="Období"
             accessibilityHint="Přepíná zobrazení mezi týdnem a měsícem."
-          >
-            {(["týden", "měsíc"] satisfies Period[]).map((p) => (
-              <Pressable
-                key={p}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: period === p }}
-                /* vizuálně 32 pt, hitSlop dorovnává dotykový cíl na ≥ 44 pt */
-                hitSlop={{ top: 6, bottom: 6 }}
-                style={[styles.segBtn, period === p ? styles.segBtnOn : null]}
-                onPress={() => setPeriod(p)}
-              >
-                <Text
-                  variant="subheadline"
-                  weight="semibold"
-                  color={period === p ? "textStrong" : "textOnSunken"}
-                  maxFontSizeMultiplier={1.6}
-                >
-                  {p}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
+          />
         }
       />
 
@@ -367,24 +361,6 @@ const useStyles = createThemedStyles((t) => ({
   selfStart: { alignSelf: "flex-start" },
   dayDot: { flex: 1, alignItems: "center", gap: 7 },
   dayDotShape: { height: 32, alignItems: "center", justifyContent: "center" },
-
-  /* segmentový přepínač období (.lumi-seg z app.css) */
-  seg: {
-    flexDirection: "row",
-    backgroundColor: t.colors.surfaceSunken,
-    borderRadius: t.radius.pill,
-    padding: 3,
-    gap: 2,
-  },
-  segBtn: {
-    paddingVertical: 6,
-    paddingHorizontal: 13,
-    minHeight: 32,
-    borderRadius: t.radius.pill,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  segBtnOn: { backgroundColor: t.colors.surfaceCard, ...t.elevation.card, ...t.cardBorder },
 
   cardHead: {
     flexDirection: "row",

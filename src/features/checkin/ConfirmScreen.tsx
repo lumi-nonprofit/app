@@ -35,7 +35,7 @@ export default function ConfirmScreen() {
     <Screen contentStyle={styles.center}>
       <View style={styles.confirmHero}>
         <View style={styles.confirmCircle}>
-          <Icon name="check" size={36} strokeWidth={2.2} color={theme.colors.textAccent} />
+          <Icon name="check" size={36} weight="semibold" color={theme.colors.textAccent} />
         </View>
         <View>
           <Text accessibilityRole="header" variant="title1" align="center" style={styles.title}>

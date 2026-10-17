@@ -15,9 +15,7 @@ import { Pressable, View, type GestureResponderEvent } from "react-native";
 import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useKeepAwake } from "expo-keep-awake";
-import { Text } from "../../ds";
-import { pressFeedback, pressedStyle } from "../../ds/press";
-import LumiCTA from "../../components/CTA";
+import { Button, RadioRow, Text } from "../../ds";
 import Screen from "../../components/Screen";
 import { haptics } from "../../lib/haptics";
 import type { CalmActivity } from "./content";
@@ -27,7 +25,7 @@ import {
   blindEventAt,
   type BlindRhythmId,
 } from "./blindRhythm";
-import { createThemedStyles, darkTheme, useTheme } from "../../theme";
+import { createThemedStyles, darkTheme } from "../../theme";
 
 type Stage = "setup" | "countdown" | "running" | "done";
 
@@ -151,48 +149,11 @@ function Setup({ activity, rhythm, minutes, onRhythm, onMinutes, onStart }: Setu
       </View>
 
       <View style={styles.setupActions}>
-        <LumiCTA onPress={onStart}>Začít</LumiCTA>
+        <Button size="lg" fullWidth onPress={onStart}>
+          Začít
+        </Button>
       </View>
     </Screen>
-  );
-}
-
-/** Jedna volba radioskupiny — vybraný stav = obrys (≥ 3:1) + vyplněný terčík, ne jen barva. */
-function RadioRow({
-  label,
-  selected,
-  onPress,
-}: {
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-}) {
-  const theme = useTheme();
-  const styles = useStyles();
-  return (
-    <Pressable
-      accessibilityRole="radio"
-      accessibilityState={{ checked: selected }}
-      /* jméno čte čtečka z textu volby níž — žádný duplicitní label */
-      onPress={() => {
-        haptics.select();
-        onPress();
-      }}
-      {...pressFeedback(theme)}
-      style={({ pressed }) => [
-        styles.radio,
-        selected && styles.radioSelected,
-        pressedStyle(theme, pressed),
-      ]}
-    >
-      {/* vybranou volbu nese i tvar (vyplněný terčík), ne jen barva/obrys */}
-      <View style={[styles.dot, selected && styles.dotSelected]}>
-        {selected ? <View style={styles.dotInner} /> : null}
-      </View>
-      <Text variant="body" weight="semibold" color="textStrong" style={styles.radioLabel}>
-        {label}
-      </Text>
-    </Pressable>
   );
 }
 
@@ -319,10 +280,12 @@ function Done({ onAgain, onBack }: { onAgain: () => void; onBack: () => void }) 
         </Text>
       </View>
       <View style={styles.setupActions}>
-        <LumiCTA onPress={onAgain}>Ještě jednou</LumiCTA>
-        <LumiCTA variant="secondary" onPress={onBack}>
+        <Button size="lg" fullWidth onPress={onAgain}>
+          Ještě jednou
+        </Button>
+        <Button variant="secondary" size="lg" fullWidth onPress={onBack}>
           Zpět
-        </LumiCTA>
+        </Button>
       </View>
     </Screen>
   );
@@ -334,34 +297,6 @@ const useStyles = createThemedStyles((t) => ({
   /* setup */
   groupLabel: { marginTop: 8 },
   group: { gap: 10 },
-  radio: {
-    minHeight: t.platform.listRowMinHeight,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    backgroundColor: t.colors.surfaceCard,
-    borderRadius: t.radius.md,
-    borderWidth: 1.5,
-    borderColor: t.scheme === "dark" ? t.colors.borderSubtle : "transparent",
-    overflow: "hidden",
-    ...t.elevation.card,
-  },
-  /* vybraná volba: zlatý obrys ≥ 3:1 (ne jen barva textu) */
-  radioSelected: { borderColor: t.colors.selectionBorder },
-  dot: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: t.colors.borderStrong,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  dotSelected: { borderColor: t.colors.accentFill },
-  dotInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: t.colors.accentFill },
-  radioLabel: { flex: 1 },
   setupActions: { marginTop: 24, gap: 10 },
 
   /* countdown */

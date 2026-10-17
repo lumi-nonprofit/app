@@ -61,7 +61,7 @@ export default function Chip({
       ]}
     >
       {selected ? (
-        <Icon name="check" size={14} strokeWidth={2.4} color={theme.colors[textColor]} />
+        <Icon name="check" size={14} weight="semibold" color={theme.colors[textColor]} />
       ) : null}
       {React.Children.map(children, (child) =>
         typeof child === "string" || typeof child === "number" ? (

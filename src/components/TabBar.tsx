@@ -70,7 +70,7 @@ export default function LumiTabBar({ active, onSelect }: Props) {
                     <Icon
                       name="plus"
                       size={26}
-                      strokeWidth={2.2}
+                      weight="semibold"
                       color={theme.colors.textOnPrimary}
                     />
                   </View>
@@ -91,7 +91,7 @@ export default function LumiTabBar({ active, onSelect }: Props) {
             <Icon
               name={t.icon}
               size={23}
-              strokeWidth={is ? 2.2 : 1.75}
+              weight={is ? "semibold" : "regular"}
               color={is ? theme.colors.textAccent : theme.colors.textMuted}
             />
             {label}

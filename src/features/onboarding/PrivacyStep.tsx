@@ -2,9 +2,8 @@
 import React from "react";
 import { View } from "react-native";
 import { useRouter } from "expo-router";
-import { Icon, Text } from "../../ds";
+import { Button, Icon, Text } from "../../ds";
 import type { IconName } from "../../ds/Icon";
-import LumiCTA from "../../components/CTA";
 import { useAppStore } from "../../store";
 import { createThemedStyles, useTheme } from "../../theme";
 import { ObShell, ObTitle } from "./Shell";
@@ -42,7 +41,9 @@ export default function PrivacyStep() {
       </View>
       <View style={styles.flex1} />
       {/* Stačí přepnout onboarded — Protected stack v app/_layout sám přesměruje na taby. */}
-      <LumiCTA onPress={() => patch({ onboarded: true })}>Rozumím, jdeme na to</LumiCTA>
+      <Button size="lg" fullWidth onPress={() => patch({ onboarded: true })}>
+        Rozumím, jdeme na to
+      </Button>
     </ObShell>
   );
 }

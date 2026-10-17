@@ -5,10 +5,9 @@ import React from "react";
 import { View, Pressable } from "react-native";
 import Slider from "@react-native-community/slider";
 import { useRouter } from "expo-router";
-import { Card, Icon, Text } from "../../ds";
+import { Button, Card, Icon, Text } from "../../ds";
 import { pressFeedback, pressedStyle } from "../../ds/press";
 import { LumiHeader } from "../../components/Header";
-import LumiCTA from "../../components/CTA";
 import MoodShape from "../../components/MoodShape";
 import Screen from "../../components/Screen";
 import { INTENSITY_LABELS, MOODS } from "../../model";
@@ -55,7 +54,7 @@ export default function Step1Screen() {
               <View style={styles.quadTop}>
                 <MoodShape mood={m} size={22} />
                 {is ? (
-                  <Icon name="check" size={18} strokeWidth={2.4} color={theme.colors.textAccent} />
+                  <Icon name="check" size={18} weight="semibold" color={theme.colors.textAccent} />
                 ) : null}
               </View>
               <View>
@@ -105,13 +104,15 @@ export default function Step1Screen() {
         </View>
       </Card>
 
-      <LumiCTA
+      <Button
+        size="lg"
+        fullWidth
         disabled={!draft.mood}
         onPress={() => router.push("/checkin/words")}
         hint="Nejdřív klepni na stav, který je teď nejblíž."
       >
         Pokračovat
-      </LumiCTA>
+      </Button>
     </Screen>
   );
 }

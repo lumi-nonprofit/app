@@ -3,8 +3,9 @@
    nikdy neocitne mimo obrazovku. */
 import React from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
+import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { IconButton, Text } from "../../ds";
+import { Button, IconButton, Text } from "../../ds";
 import { createThemedStyles } from "../../theme";
 
 interface ObShellProps {
@@ -15,6 +16,7 @@ interface ObShellProps {
 
 export function ObShell({ step, onBack, children }: ObShellProps) {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const styles = useStyles();
   return (
     <View style={styles.screen}>
@@ -41,11 +43,17 @@ export function ObShell({ step, onBack, children }: ObShellProps) {
         </View>
         <ScrollView
           style={styles.flex1}
-          contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + 40 }]}
+          contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + 24 }]}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
         >
           {children}
+          {/* krizová pomoc je dostupná i před dokončením úvodu (HIG Agency: snadný únik) */}
+          <View style={styles.crisis}>
+            <Button variant="ghost" size="sm" onPress={() => router.push("/crisis")}>
+              Potřebuješ pomoc hned?
+            </Button>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -87,6 +95,8 @@ const useStyles = createThemedStyles((t) => ({
   dotActive: { width: 22, backgroundColor: t.colors.accentFill },
   /* paddingBottom doplňuje insets.bottom + 40 inline */
   body: { flexGrow: 1, paddingTop: 18, paddingHorizontal: 24 },
+
+  crisis: { alignItems: "center", marginTop: 12 },
 
   titleWrap: { marginBottom: 24 },
   title: { marginBottom: 10 },

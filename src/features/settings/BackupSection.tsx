@@ -1,7 +1,7 @@
-/* Záloha v Přehledech: export záznamů do JSON souboru (expo-file-system +
+/* Záloha (Nastavení): export záznamů do JSON souboru (expo-file-system +
    expo-sharing) a import s náhledem počtů a sloučením bez duplicit.
    Srozumitelně a bez právničiny; exportovaný soubor už není šifrovaný —
-   říkáme to rovnou v kartě. */
+   říkáme to rovnou. Výsledek zůstává inline (HIG: žádné samo-mizející prvky). */
 import React from "react";
 import { View } from "react-native";
 import { File, Paths } from "expo-file-system";
@@ -27,7 +27,7 @@ type Flow =
   | { kind: "done"; message: string }
   | { kind: "error"; message: string };
 
-export default function BackupCard() {
+export default function BackupSection() {
   const db = useDb();
   const write = useDbWriter();
   const styles = useStyles();

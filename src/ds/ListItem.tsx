@@ -27,6 +27,8 @@ interface Props {
   chevron?: boolean;
   onPress?: () => void;
   href?: string;
+  /** Položka zatím není k dispozici („připravujeme“): bez chevronu a akce, stav pro čtečku. */
+  disabled?: boolean;
   accessibilityLabel?: string;
   accessibilityHint?: string;
   style?: StyleProp<ViewStyle>;
@@ -43,6 +45,7 @@ export default function ListItem({
   chevron,
   onPress,
   href,
+  disabled = false,
   accessibilityLabel,
   accessibilityHint,
   style,
@@ -50,8 +53,9 @@ export default function ListItem({
   const theme = useTheme();
   const styles = useStyles();
   const toneColor = toneColors(theme, tone);
-  const showChevron = chevron ?? (theme.platform.isIOS && !href);
+  const showChevron = chevron ?? (theme.platform.isIOS && !href && !disabled);
   const handlePress = () => {
+    if (disabled) return;
     if (onPress) onPress();
     if (href) Linking.openURL(href).catch(() => {});
   };
@@ -60,9 +64,10 @@ export default function ListItem({
       accessibilityRole={href ? "link" : "button"}
       accessibilityLabel={accessibilityLabel}
       accessibilityHint={accessibilityHint}
+      accessibilityState={{ disabled }}
       onPress={handlePress}
-      {...pressFeedback(theme)}
-      style={({ pressed }) => [styles.row, pressedStyle(theme, pressed), style]}
+      {...(disabled ? {} : pressFeedback(theme))}
+      style={({ pressed }) => [styles.row, !disabled && pressedStyle(theme, pressed), style]}
     >
       {icon ? (
         <View style={[styles.leading, { backgroundColor: iconTint ?? toneColor.soft }]}>
@@ -70,7 +75,7 @@ export default function ListItem({
         </View>
       ) : null}
       <View style={styles.body}>
-        <Text variant="body" weight="semibold" color="textStrong">
+        <Text variant="body" weight="semibold" color={disabled ? "textMuted" : "textStrong"}>
           {title}
         </Text>
         {subtitle ? (

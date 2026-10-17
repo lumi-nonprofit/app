@@ -70,14 +70,14 @@ export default function CalmScreen() {
             />
           );
         })}
-        {/* procházka nemá přehrávač — zůstává bez navigace */}
+        {/* procházka zatím nemá obsah — stejný vzor „připravujeme“ jako audio bez souboru */}
         <ListItem
           icon="footprints"
           tone="positive"
           title="Všímavá procházka"
-          subtitle="Meditace v pohybu"
-          trailing={<Badge tone="positive">venku</Badge>}
-          onPress={() => {}}
+          subtitle="Meditace v pohybu · venku"
+          trailing={<Badge tone="neutral">připravujeme</Badge>}
+          disabled
         />
       </Card>
     </Screen>

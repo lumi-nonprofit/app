@@ -1,4 +1,5 @@
-/* Onboarding 1 — přivítání + jméno */
+/* Onboarding 1 — přivítání + jméno (nepovinné; bez něj Lumi oslovuje neutrálně).
+   HIG Onboarding: rychlý, přeskočitelný; multi-step tlačítka Začít → Pokračovat → Hotovo. */
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { useRouter } from "expo-router";
@@ -20,7 +21,7 @@ export default function NameStep() {
       <Input
         label="Jak ti máme říkat?"
         placeholder="Třeba Alex"
-        hint="Jen pro oslovení — nikam se neposílá."
+        hint="Nepovinné — jen pro oslovení, nikam se neposílá."
         value={state.name}
         onChangeText={(v) => patch({ name: v })}
         autoCapitalize="words"
@@ -29,14 +30,8 @@ export default function NameStep() {
         returnKeyType="done"
       />
       <View style={styles.flex1} />
-      <Button
-        size="lg"
-        fullWidth
-        disabled={!state.name.trim()}
-        onPress={() => router.push("/onboarding/age")}
-        hint="Stačí napsat, jak ti máme říkat."
-      >
-        Pokračovat
+      <Button size="lg" fullWidth onPress={() => router.push("/onboarding/age")}>
+        Začít
       </Button>
     </ObShell>
   );

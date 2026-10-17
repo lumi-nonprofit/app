@@ -14,10 +14,10 @@ async function finishOnboarding(user: User): Promise<void> {
   // hydratace je asynchronní — první obrazovka se objeví až po načtení
   expect(await screen.findByText("Ahoj, tady Lumi.")).toBeOnTheScreen();
   await user.type(screen.getByLabelText(/Jak ti máme říkat/), "Janko");
-  await user.press(screen.getByRole("button", { name: "Pokračovat" }));
+  await user.press(screen.getByRole("button", { name: "Začít" }));
   await user.press(screen.getByRole("radio", { name: /do 26 let/ }));
   await user.press(screen.getByRole("button", { name: "Pokračovat" }));
-  await user.press(screen.getByRole("button", { name: "Rozumím, jdeme na to" }));
+  await user.press(screen.getByRole("button", { name: "Hotovo" }));
   expect(await screen.findByText("Jak se dnes cítíš?")).toBeOnTheScreen();
 }
 

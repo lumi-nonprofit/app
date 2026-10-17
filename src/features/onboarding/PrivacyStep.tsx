@@ -42,7 +42,7 @@ export default function PrivacyStep() {
       <View style={styles.flex1} />
       {/* Stačí přepnout onboarded — Protected stack v app/_layout sám přesměruje na taby. */}
       <Button size="lg" fullWidth onPress={() => patch({ onboarded: true })}>
-        Rozumím, jdeme na to
+        Hotovo
       </Button>
     </ObShell>
   );

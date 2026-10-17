@@ -1,26 +1,19 @@
 /* Přehledy — týden jako tečky (barva + tvar = stav, velikost = intenzita,
-   prázdný den = obrysový kruh), wellbeing index, data pro výzkum.
+   prázdný den = obrysový kruh), vzorce, wellbeing index, hlubší screeningy.
+   Nastavení (sdílení, připomínky, záloha) má vlastní obrazovku.
    Varianty jsou datové: prázdný týden = 0–1 záznam, empatická varianta
    při WHO-5 pod 50 % — žádné alarmy, žádná vina. */
 import React from "react";
 import { View } from "react-native";
-import { useRouter } from "expo-router";
-import {
-  Badge,
-  Button,
-  Card,
-  Icon,
-  ListItem,
-  ProgressRing,
-  SegmentedControl,
-  Switch,
-  Text,
-} from "../../ds";
+import { Stack, useRouter } from "expo-router";
+import { Badge, Button, Card, ListItem, ProgressRing, SegmentedControl, Text } from "../../ds";
 import Screen from "../../components/Screen";
 import { LumiHeader, SectionLabel } from "../../components/Header";
+import { headerItems } from "../../components/HeaderItems";
 import MoodShape from "../../components/MoodShape";
 import { createThemedStyles, useTheme } from "../../theme";
 import {
+  DAY_NAMES,
   INTENSITY_LABELS,
   MOODS,
   MOOD_BY_ID,
@@ -34,12 +27,9 @@ import {
   who5StatsText,
 } from "../../model";
 import type { WeekDay } from "../../model";
-import { useAppStore } from "../../store";
 import { useEntries, useMeasurements } from "../../db/hooks";
 import type { Measurement } from "../../db/repo";
 import { gad7Band, phq9Band, trendText, type Band } from "../measure/scoring";
-import BackupCard from "./BackupCard";
-import RemindersCard from "./RemindersCard";
 import InsightsCard from "./InsightsCard";
 import { isReflectionWindowOpen } from "./reflection";
 
@@ -126,8 +116,20 @@ function deepSubtitle(
   return `Naposledy: ${band(last.score).label}${suffix}`;
 }
 
+/** Popisek buňky měsíční mřížky: „pondělí 6. 10. — Napětí, silně“ / „bez záznamu“. */
+function monthCellLabel(
+  dayIndex: number,
+  iso: string,
+  entry: { mood: keyof typeof MOOD_BY_ID; intensity: number } | null,
+): string {
+  const [, m, d] = iso.split("-");
+  const date = `${DAY_NAMES[dayIndex]} ${Number(d)}. ${Number(m)}.`;
+  return entry
+    ? `${date} — ${MOOD_BY_ID[entry.mood].name}, ${INTENSITY_LABELS[entry.intensity - 1]}`
+    : `${date} — bez záznamu`;
+}
+
 export default function StatsScreen() {
-  const { state, patch } = useAppStore();
   const router = useRouter();
   const theme = useTheme();
   const styles = useStyles();
@@ -136,7 +138,6 @@ export default function StatsScreen() {
   monthStart.setDate(monthStart.getDate() - 35);
   const entries = useEntries({ from: toISODate(monthStart) });
   const who5 = useMeasurements("who5");
-  const share = state.share;
 
   const phq9 = useMeasurements("phq9");
   const gad7 = useMeasurements("gad7");
@@ -152,6 +153,18 @@ export default function StatsScreen() {
 
   return (
     <Screen>
+      <Stack.Screen
+        options={headerItems(theme, {
+          right: [
+            {
+              label: "Nastavení",
+              icon: "gear",
+              sf: "gearshape",
+              onPress: () => router.push("/settings"),
+            },
+          ],
+        })}
+      />
       <LumiHeader
         title="Tvůj týden"
         trailing={
@@ -201,10 +214,16 @@ export default function StatsScreen() {
           <View style={styles.monthGrid}>
             {buildMonth(entries).map((row, w) => (
               <View key={w} style={styles.weekRow}>
-                {row.map((d) => {
+                {row.map((d, i) => {
                   const m = d.entry ? MOOD_BY_ID[d.entry.mood] : null;
                   return (
-                    <View key={d.iso} style={[styles.monthCell, { opacity: d.future ? 0.45 : 1 }]}>
+                    <View
+                      key={d.iso}
+                      accessible
+                      accessibilityRole="image"
+                      accessibilityLabel={monthCellLabel(i, d.iso, d.entry)}
+                      style={[styles.monthCell, { opacity: d.future ? 0.45 : 1 }]}
+                    >
                       {/* `m` existuje právě tehdy, když `d.entry` — podmínka rozšířena jen kvůli zúžení typů */}
                       {d.entry && m ? (
                         <MoodShape mood={m} size={8 + d.entry.intensity * 1.6} />
@@ -326,33 +345,6 @@ export default function StatsScreen() {
           Dobrovolné — jen když chceš. Lumi ti je nikdy nebude připomínat.
         </Text>
       </View>
-
-      {/* data pro výzkum — toggle, výchozí stav vypnuto, žádné dark patterns */}
-      <Card variant="sunken">
-        <View style={styles.shareRow}>
-          <Icon name="shield" size={20} color={theme.colors.textInfo} style={styles.shareIcon} />
-          <View style={styles.shareBody}>
-            <Text variant="headline" style={styles.shareTitle}>
-              Data pro výzkum
-            </Text>
-            <Text variant="subheadline" color="textOnSunken" style={styles.shareText}>
-              Tvoje záznamy zůstávají v telefonu. Pro výzkum je sdílíme jen anonymně a jen pokud to
-              dovolíš.
-            </Text>
-            <Switch
-              checked={share}
-              onChange={(v) => patch({ share: v })}
-              label={share ? "Sdílení zapnuto" : "Sdílení vypnuto"}
-            />
-          </View>
-        </View>
-      </Card>
-
-      {/* připomínky — denní pozvání k zápisu, vše opt-in */}
-      <RemindersCard />
-
-      {/* záloha — export/import záznamů */}
-      <BackupCard />
     </Screen>
   );
 }
@@ -387,10 +379,4 @@ const useStyles = createThemedStyles((t) => ({
   lowActions: { flexDirection: "row", flexWrap: "wrap", gap: 8, alignSelf: "flex-start" },
   deepCard: { paddingVertical: 8, paddingHorizontal: 12, marginTop: 6 },
   deepNote: { marginTop: 8, paddingHorizontal: 4 },
-
-  shareRow: { flexDirection: "row", gap: 12, alignItems: "flex-start" },
-  shareIcon: { marginTop: 2 },
-  shareBody: { flex: 1 },
-  shareTitle: { marginBottom: 2 },
-  shareText: { marginBottom: 12 },
 }));

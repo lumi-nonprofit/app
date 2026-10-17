@@ -14,7 +14,8 @@ import {
 } from "@expo-google-fonts/bricolage-grotesque";
 import * as SystemUI from "expo-system-ui";
 import { AppStateProvider, useAppStore } from "../src/store";
-import { DbProvider } from "../src/db/provider";
+import { DbProvider, useDb } from "../src/db/provider";
+import { applyHapticsPreference } from "../src/features/settings/preferences";
 import { M1_VAULT_SKELETON_ENABLED } from "../src/lib/featureFlags";
 import { Button } from "../src/ds";
 import CrisisFallback from "../src/features/help/CrisisFallback";
@@ -50,10 +51,15 @@ function RootNavigator() {
   const theme = useTheme();
   const closeModal = useCloseModal();
   const closeToCalm = useCloseModal("/calm");
+  const db = useDb();
   React.useEffect(() => {
     // stav i fonty jsou načtené (jinak by se RootNavigator nevykreslil)
     SplashScreen.hideAsync().catch(() => {});
   }, []);
+  /* uložená volba haptiky platí od startu (Nastavení ji jen mění) */
+  React.useEffect(() => {
+    applyHapticsPreference(db);
+  }, [db]);
   /* pozadí okna sleduje schéma — bez bílého/černého probliknutí při přechodech (HIG Dark Mode) */
   React.useEffect(() => {
     SystemUI.setBackgroundColorAsync(theme.colors.surfacePage).catch(() => {});
@@ -77,6 +83,15 @@ function RootNavigator() {
             title: "Klid",
             gestureEnabled: false,
             ...headerItems(theme, { left: [closeItem(closeToCalm)] }),
+          }}
+        />
+        <Stack.Screen
+          name="settings"
+          options={{
+            presentation: "modal",
+            headerShown: true,
+            title: "Nastavení",
+            ...headerItems(theme, { left: [closeItem(closeModal)] }),
           }}
         />
         <Stack.Screen

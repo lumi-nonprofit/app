@@ -14,20 +14,19 @@ type User = ReturnType<typeof userEvent.setup>;
 async function finishOnboarding(user: User, name = "Janko"): Promise<void> {
   // hydratace databáze je asynchronní — první obrazovka se objeví až po načtení
   expect(await screen.findByText("Ahoj, tady Lumi.")).toBeOnTheScreen();
-  // CTA je neaktivní, dokud není jméno
-  const next = screen.getByRole("button", { name: "Pokračovat" });
-  expect(next).toBeDisabled();
+  // jméno je nepovinné — Začít je aktivní hned
+  expect(screen.getByRole("button", { name: "Začít" })).not.toBeDisabled();
   await user.type(screen.getByLabelText(/Jak ti máme říkat/), name);
-  await user.press(screen.getByRole("button", { name: "Pokračovat" }));
+  await user.press(screen.getByRole("button", { name: "Začít" }));
 
   // věk — určuje primární krizovou linku
   expect(await screen.findByText("Kolik ti je?")).toBeOnTheScreen();
   await user.press(screen.getByRole("radio", { name: /do 26 let/ }));
   await user.press(screen.getByRole("button", { name: "Pokračovat" }));
 
-  // soukromí
+  // soukromí — poslední krok končí „Hotovo“ (HIG: Začít → Pokračovat → Hotovo)
   expect(await screen.findByText("Tvoje data zůstávají u tebe")).toBeOnTheScreen();
-  await user.press(screen.getByRole("button", { name: "Rozumím, jdeme na to" }));
+  await user.press(screen.getByRole("button", { name: "Hotovo" }));
   // Protected stack přesměruje na taby sám
   expect(await screen.findByText("Jak se dnes cítíš?")).toBeOnTheScreen();
 }
@@ -110,7 +109,7 @@ describe("Lumi app", () => {
     expect(screen.getByRole("radio", { name: /Klid/ })).toBeChecked();
   });
 
-  it("Přehledy: prázdný týden bez viny, sdílení default vypnuto", async () => {
+  it("Přehledy: prázdný týden bez viny; sdílení je v Nastavení, default vypnuto", async () => {
     const user = userEvent.setup();
     await renderRouter("app");
     await finishOnboarding(user);
@@ -118,11 +117,14 @@ describe("Lumi app", () => {
     await user.press(screen.getByRole("tab", { name: "Přehledy" }));
     expect(await screen.findByText("Tvůj týden")).toBeOnTheScreen();
     expect(screen.getByText(/Zatím tu toho moc není — každý zápis se počítá/)).toBeOnTheScreen();
+    expect(screen.queryByRole("switch")).toBeNull();
 
-    const share = screen.getByRole("switch", { name: "Sdílení vypnuto" });
+    // ozubené kolo v hlavičce → Nastavení (modal); label přepínače popisuje stav „zapnuto“
+    await user.press(screen.getByRole("button", { name: "Nastavení" }));
+    const share = await screen.findByRole("switch", { name: "Sdílet data pro výzkum" });
     expect(share).not.toBeChecked();
     await fireEvent(share, "valueChange", true);
-    expect(screen.getByRole("switch", { name: "Sdílení zapnuto" })).toBeChecked();
+    expect(screen.getByRole("switch", { name: "Sdílet data pro výzkum" })).toBeChecked();
     expect(readProfile(getTestDb()).share).toBe(true);
   });
 
@@ -143,7 +145,11 @@ describe("Lumi app", () => {
     expect(openURL).toHaveBeenCalledWith("tel:116111");
     await user.press(screen.getByRole("link", { name: /Zavolat 116 123/ }));
     expect(openURL).toHaveBeenCalledWith("tel:116123");
-    expect(screen.getByText(/volej 155 nebo 112/)).toBeOnTheScreen();
+    // tísňová čísla jsou volatelné řádky, ne jen text
+    await user.press(screen.getByRole("link", { name: /Zavolat 155/ }));
+    expect(openURL).toHaveBeenCalledWith("tel:155");
+    await user.press(screen.getByRole("link", { name: /Zavolat 112/ }));
+    expect(openURL).toHaveBeenCalledWith("tel:112");
   });
 
   it("Klid: dechový kruh se spouští klepnutím („Začneme?“)", async () => {

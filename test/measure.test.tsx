@@ -10,10 +10,10 @@ type User = ReturnType<typeof userEvent.setup>;
 async function finishOnboarding(user: User, age: "u26" | "plus27" = "u26"): Promise<void> {
   expect(await screen.findByText("Ahoj, tady Lumi.")).toBeOnTheScreen();
   await user.type(screen.getByLabelText(/Jak ti máme říkat/), "Janko");
-  await user.press(screen.getByRole("button", { name: "Pokračovat" }));
+  await user.press(screen.getByRole("button", { name: "Začít" }));
   await user.press(screen.getByRole("radio", { name: age === "u26" ? /do 26 let/ : /27 a více/ }));
   await user.press(screen.getByRole("button", { name: "Pokračovat" }));
-  await user.press(screen.getByRole("button", { name: "Rozumím, jdeme na to" }));
+  await user.press(screen.getByRole("button", { name: "Hotovo" }));
   expect(await screen.findByText("Jak se dnes cítíš?")).toBeOnTheScreen();
 }
 

@@ -34,6 +34,7 @@ export default function HomeScreen() {
   const who5 = useMeasurements("who5");
 
   const startCheckin = () => router.push("/checkin");
+  const openSettings = () => router.push("/settings");
   const openHelp = () => router.push("/help");
   const openStats = () => router.push("/stats");
 
@@ -43,10 +44,13 @@ export default function HomeScreen() {
   const measurement = latestWho5(who5);
   return (
     <Screen>
-      {/* „+“ v hlavičce: check-in je akce, ne tab (HIG Tab bars) */}
+      {/* „+“ v hlavičce: check-in je akce, ne tab (HIG Tab bars); nastavení mimo hlavní navigaci */}
       <Stack.Screen
         options={headerItems(theme, {
-          right: [{ label: "Nový check-in", icon: "plus", sf: "plus", onPress: startCheckin }],
+          right: [
+            { label: "Nový check-in", icon: "plus", sf: "plus", onPress: startCheckin },
+            { label: "Nastavení", icon: "gear", sf: "gearshape", onPress: openSettings },
+          ],
         })}
       />
       <LumiHeader kicker={czToday()} title={czGreeting(name)} />

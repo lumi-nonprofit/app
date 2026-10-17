@@ -256,6 +256,16 @@ function Running({ rhythm, totalSeconds, onFinish, onCancel }: RunningProps) {
         accessibilityRole="button"
         accessibilityLabel="Probíhá dech naslepo"
         accessibilityHint="Poklepáním cvičení ukončíš."
+        /* VoiceOver/TalkBack: escape (dvouprstové Z) a magic tap místo dvojitého poklepání */
+        accessibilityActions={[
+          { name: "escape", label: "Ukončit cvičení" },
+          { name: "magicTap", label: "Ukončit cvičení" },
+        ]}
+        onAccessibilityAction={(e) => {
+          if (e.nativeEvent.actionName === "escape" || e.nativeEvent.actionName === "magicTap") {
+            onCancel();
+          }
+        }}
         onPress={onPress}
         style={styles.surfacePress}
       >
@@ -264,6 +274,12 @@ function Running({ rhythm, totalSeconds, onFinish, onCancel }: RunningProps) {
           Klepni dvakrát pro konec
         </Text>
       </Pressable>
+      {/* viditelná negestová alternativa (HIG Gestures: ke každému gestu tlačítko) */}
+      <View style={styles.surfaceActions}>
+        <Button variant="secondary" size="lg" fullWidth onPress={onCancel}>
+          Ukončit
+        </Button>
+      </View>
     </View>
   );
 }
@@ -311,8 +327,9 @@ const useStyles = createThemedStyles((t) => ({
     bottom: 0,
     backgroundColor: darkTheme.colors.surfaceSunken,
   },
-  surfacePress: { flex: 1, alignItems: "center", justifyContent: "flex-end", paddingBottom: 56 },
+  surfacePress: { flex: 1, alignItems: "center", justifyContent: "flex-end", paddingBottom: 24 },
   surfaceHint: { color: darkTheme.colors.textOnSunken },
+  surfaceActions: { paddingHorizontal: 24, paddingBottom: 48 },
 
   /* done */
   doneBlock: { alignItems: "center", gap: 12 },

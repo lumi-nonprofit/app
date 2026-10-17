@@ -17,8 +17,8 @@ import { useAppStore } from "../../store";
 import { useDb, useDbVersion } from "../../db/provider";
 import { PLAN_SECTIONS, planIsEmpty, readPlan, type PlanSectionId } from "./plan";
 import { crisisCardHtml } from "./crisisCard";
-
-const telHref = (phone: string): string => `tel:${phone.replace(/\s/g, "")}`;
+import { CHAT_LINES, GUIDES } from "./guides";
+import { CONTACT_LINES, EMERGENCY_LINES, telHref } from "./lines";
 
 /* ikona a tón pro sekce krizového plánu (id z plan.ts → vizuál) */
 const PLAN_VISUALS: Record<PlanSectionId, { icon: IconName; tone?: Tone }> = {
@@ -111,9 +111,20 @@ export default function HelpScreen() {
         </View>
         <LineRow line={primary} primary />
         <LineRow line={secondary} />
-        <Text variant="footnote" weight="semibold" color="textDanger" style={styles.crisisNote}>
-          Při bezprostředním ohrožení života volej 155 nebo 112.
-        </Text>
+        {/* tísňová čísla jako volatelné řádky (ne jen text) */}
+        <View style={styles.emergencyRows}>
+          {EMERGENCY_LINES.map((line) => (
+            <ListItem
+              key={line.id}
+              icon={line.icon}
+              tone={line.tone}
+              title={line.name}
+              subtitle={line.meta}
+              href={telHref(line.phone)}
+              accessibilityLabel={`Zavolat ${line.phone} · ${line.name}`}
+            />
+          ))}
+        </View>
       </View>
 
       {/* krizový plán — tři sekce + tisk kartičky do peněženky */}
@@ -170,66 +181,49 @@ export default function HelpScreen() {
         />
       </Card>
 
-      {/* rozcestník */}
-      <View>
-        <SectionLabel>Co dělat, když…</SectionLabel>
-        <Card style={styles.sectionCard}>
-          <ListItem
-            icon="cloud"
-            tone="info"
-            title="…přijde úzkost"
-            subtitle="Krátké kroky pro tady a teď"
-            onPress={() => {}}
-          />
-          <ListItem
-            icon="waves"
-            tone="info"
-            title="…přijde panika"
-            subtitle="Co dělat během vlny"
-            onPress={() => {}}
-          />
-          <ListItem
-            icon="cloud-rain"
-            tone="info"
-            title="…jsou myšlenky těžké"
-            subtitle="Nejsi v tom — kde hledat oporu"
-            onPress={() => {}}
-          />
-        </Card>
-      </View>
+      {/* rozcestník — jen když má obsah (žádné mrtvé řádky) */}
+      {GUIDES.length ? (
+        <View>
+          <SectionLabel>Co dělat, když…</SectionLabel>
+          <Card style={styles.sectionCard}>
+            {GUIDES.map((g) => (
+              <ListItem
+                key={g.id}
+                icon={g.icon}
+                tone="info"
+                title={g.title}
+                subtitle={g.subtitle}
+                onPress={() => {}}
+              />
+            ))}
+          </Card>
+        </View>
+      ) : null}
 
-      {/* kontakty */}
+      {/* kontakty — jeden zdroj v lines.ts */}
       <View>
         <SectionLabel>Kontakty</SectionLabel>
         <Card style={styles.sectionCard}>
-          <ListItem
-            icon="phone"
-            tone="danger"
-            title="Linka bezpečí · 116 111"
-            subtitle="nonstop, zdarma · děti a studenti do 26 let"
-            href={telHref("116 111")}
-          />
-          <ListItem
-            icon="phone"
-            tone="danger"
-            title="Linka první psychické pomoci · 116 123"
-            subtitle="nonstop, zdarma · dospělí"
-            href={telHref("116 123")}
-          />
-          <ListItem
-            icon="phone"
-            tone="danger"
-            title="Rodičovská linka · 606 021 021"
-            subtitle="Po–Pá 9–21 · rodiče a blízcí dětí"
-            href={telHref("606 021 021")}
-          />
-          <ListItem
-            icon="message-circle"
-            tone="positive"
-            title="Chat Linky bezpečí"
-            subtitle="denně 9–13 a 15–19 · když se nechce mluvit"
-            onPress={() => {}}
-          />
+          {CONTACT_LINES.map((line) => (
+            <ListItem
+              key={line.id}
+              icon={line.icon}
+              tone={line.tone}
+              title={`${line.name} · ${line.phone}`}
+              subtitle={line.meta}
+              href={telHref(line.phone)}
+            />
+          ))}
+          {CHAT_LINES.map((chat) => (
+            <ListItem
+              key={chat.url}
+              icon="message-circle"
+              tone="positive"
+              title={chat.name}
+              subtitle={chat.meta}
+              href={chat.url}
+            />
+          ))}
         </Card>
       </View>
     </Screen>
@@ -263,7 +257,7 @@ const useStyles = createThemedStyles((t) => ({
     paddingTop: 2,
     paddingHorizontal: 4,
   },
-  crisisNote: { paddingTop: 2, paddingHorizontal: 4, paddingBottom: 4 },
+  emergencyRows: { paddingTop: 2 },
 
   planCard: { paddingTop: 16, paddingHorizontal: 12, paddingBottom: 8 },
   planHead: { paddingHorizontal: 8, paddingBottom: 6 },

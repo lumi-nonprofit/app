@@ -3,26 +3,30 @@
    přehrávačem — stejná informace dvakrát (jednou klepnutelná, jednou ne)
    by jen mátla. */
 import React from "react";
-import { Pressable, StyleSheet } from "react-native";
+import { Pressable } from "react-native";
 import { useRouter } from "expo-router";
-import { Badge, Card, ListItem } from "../../ds/index";
+import { Badge, Card, ListItem } from "../../ds";
 import type { IconName } from "../../ds/Icon";
+import type { Tone } from "../../ds";
+import { pressedStyle } from "../../ds/press";
 import { LumiHeader } from "../../components/Header";
 import LumiBreath from "../../components/Breath";
 import Screen from "../../components/Screen";
-import { colors, palette } from "../../theme";
+import { createThemedStyles, useTheme } from "../../theme";
 import { CALM_ACTIVITIES } from "./content";
 
 /* mapování id aktivity → ikona řádku; lilac je v DS vyhrazený pro spánek/večer */
-const ACTIVITY_ICONS: Record<string, { icon: IconName; iconTint?: string; iconColor?: string }> = {
+const ACTIVITY_ICONS: Record<string, { icon: IconName; tone?: Tone }> = {
   "dech-478": { icon: "wind" },
   "ticha-louka": { icon: "audio-lines" },
-  vecerka: { icon: "moon", iconTint: palette.lilac100, iconColor: palette.lilac700 },
+  vecerka: { icon: "moon", tone: "lilac" },
   "dech-naslepo": { icon: "waves" },
 };
 
 export default function CalmScreen() {
   const router = useRouter();
+  const theme = useTheme();
+  const styles = useStyles();
   const [breathing, setBreathing] = React.useState(false);
   return (
     <Screen>
@@ -40,7 +44,7 @@ export default function CalmScreen() {
               : "Spustí společné dýchání: 4 s nádech, 4 s výdech."
           }
           onPress={() => setBreathing((b) => !b)}
-          style={({ pressed }) => [styles.breathBtn, pressed && styles.pressed]}
+          style={({ pressed }) => [styles.breathBtn, pressedStyle(theme, pressed)]}
         >
           <LumiBreath
             size={150}
@@ -58,8 +62,7 @@ export default function CalmScreen() {
             <ListItem
               key={a.id}
               icon={visual.icon}
-              iconTint={visual.iconTint}
-              iconColor={visual.iconColor}
+              tone={visual.tone}
               title={a.title}
               subtitle={a.subtitle}
               trailing={a.badge ? <Badge tone={a.badge[0]}>{a.badge[1]}</Badge> : undefined}
@@ -70,8 +73,7 @@ export default function CalmScreen() {
         {/* procházka nemá přehrávač — zůstává bez navigace */}
         <ListItem
           icon="footprints"
-          iconTint={colors.positiveSoft}
-          iconColor={palette.sage700}
+          tone="positive"
           title="Všímavá procházka"
           subtitle="Meditace v pohybu"
           trailing={<Badge tone="positive">venku</Badge>}
@@ -82,11 +84,10 @@ export default function CalmScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles(() => ({
   /* dechový launcher */
   breathCard: { alignItems: "center", paddingTop: 28, paddingHorizontal: 20, paddingBottom: 22 },
   breathBtn: { alignItems: "center" },
-  pressed: { transform: [{ scale: 0.98 }] },
 
   listCard: { paddingVertical: 8, paddingHorizontal: 12 },
-});
+}));

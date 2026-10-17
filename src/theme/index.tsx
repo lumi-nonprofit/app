@@ -3,6 +3,7 @@
    platformní konstanty a hooky pro komponenty. */
 import React from "react";
 import { StyleSheet, useColorScheme } from "react-native";
+import { useBoldText } from "../lib/a11y";
 import { darkElevation, lightElevation } from "./elevation";
 import { platform } from "./platform";
 import { darkColors, lightColors, mood, motion, palette, radius, space } from "./tokens.generated";
@@ -12,7 +13,6 @@ export { palette, mood, space, radius, motion };
 export type { Theme, ThemeColors, ThemeScheme, MoodColors, MoodId };
 export { contrastRatio } from "./contrast";
 export { contrastPairs } from "./contrastPairs";
-export * from "./legacy";
 
 /* dark musí mít přesně stejné role jako light — typová kontrola generovaného souboru */
 const DARK: ThemeColors = darkColors satisfies Record<keyof typeof lightColors, string>;
@@ -57,22 +57,37 @@ export const lightTheme: Theme = buildTheme("light");
 export const darkTheme: Theme = buildTheme("dark");
 
 const ThemeContext = React.createContext<Theme>(lightTheme);
+/* iOS „Bold Text“: systémový font ztuční sám, Bricolage (titulky) zvedá
+   ds/Text o řez výš — jeden listener v provideru místo jednoho na každý Text. */
+const BoldTextContext = React.createContext(false);
 
 interface ProviderProps {
   children: React.ReactNode;
   /** Jen pro testy a náhledy; běžně se schéma bere ze systému. */
   scheme?: ThemeScheme;
+  /** Jen pro testy; běžně podle nastavení Bold Text. */
+  boldText?: boolean;
 }
 
-export function ThemeProvider({ children, scheme }: ProviderProps) {
+export function ThemeProvider({ children, scheme, boldText }: ProviderProps) {
   const system = useColorScheme();
+  const systemBold = useBoldText();
   const resolved: ThemeScheme = scheme ?? (system === "dark" ? "dark" : "light");
   const theme = resolved === "dark" ? darkTheme : lightTheme;
-  return <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>;
+  return (
+    <ThemeContext.Provider value={theme}>
+      <BoldTextContext.Provider value={boldText ?? systemBold}>{children}</BoldTextContext.Provider>
+    </ThemeContext.Provider>
+  );
 }
 
 export function useTheme(): Theme {
   return React.useContext(ThemeContext);
+}
+
+/** Je zapnutý tučný text (iOS Bold Text)? Čte ds/Text pro titulky. */
+export function useBoldTextSetting(): boolean {
+  return React.useContext(BoldTextContext);
 }
 
 /** Styly závislé na tématu; factory se vyhodnotí jednou na schéma. */

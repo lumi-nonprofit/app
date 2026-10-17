@@ -1,9 +1,10 @@
 /* Check-in · krok 2 — upřesňující slova (1–2), kontextové štítky, nepovinná
    poznámka; uložení zapíše Entry do stavu aplikace a vede na potvrzení. */
 import React from "react";
-import { View, Text, TextInput, StyleSheet, Alert } from "react-native";
+import { View, TextInput, Alert } from "react-native";
 import { useRouter } from "expo-router";
-import { Button, Chip, IconButton, Input } from "../../ds/index";
+import { Button, Chip, IconButton, Input, Text } from "../../ds";
+import { textStyle } from "../../ds/Text";
 import { LumiHeader } from "../../components/Header";
 import LumiCTA from "../../components/CTA";
 import MoodShape from "../../components/MoodShape";
@@ -23,16 +24,19 @@ import { useDbWriter } from "../../db/hooks";
 import { addCustomTag, deleteCustomTag, insertEntry, listCustomTags } from "../../db/repo";
 import type { Tag } from "../../db/repo";
 import { haptics } from "../../lib/haptics";
-import { palette, colors, radius, font, leading, tracking, type } from "../../theme";
+import { createThemedStyles, useTheme } from "../../theme";
 import { useCheckinDraft } from "./draft";
 
 export default function Step2Screen() {
   const router = useRouter();
+  const theme = useTheme();
+  const styles = useStyles();
   const { draft, setDraft } = useCheckinDraft();
   const writeDb = useDbWriter();
 
   /* draft.mood může být null — fallback za `||` to jistí, přetypování jen pro index */
   const mood = MOOD_BY_ID[draft.mood as MoodId] || MOOD_BY_ID.napeti;
+  const moodColors = theme.mood[mood.id];
   const words = MOOD_WORDS[mood.id];
   const toggleWord = (w: string) => {
     const has = draft.words.includes(w);
@@ -108,19 +112,25 @@ export default function Step2Screen() {
     <Screen>
       <View style={styles.backRow}>
         <IconButton icon="arrow-left" label="Zpět na krok 1" onPress={() => router.back()} />
-        <Text style={styles.kicker}>Check-in · krok 2 ze 2</Text>
+        <Text variant="kicker">Check-in · krok 2 ze 2</Text>
       </View>
       <LumiHeader title="Které slovo to vystihuje nejlíp?" />
 
-      {/* shrnutí zvoleného stavu */}
-      <View style={[styles.moodSummary, { backgroundColor: mood.soft }]}>
+      {/* shrnutí zvoleného stavu — na měkké výplni jen textStrong/textBody */}
+      <View style={[styles.moodSummary, { backgroundColor: moodColors.soft }]}>
         <MoodShape mood={mood} size={18} />
-        <Text style={styles.moodSummaryName}>{mood.name}</Text>
-        <Text style={styles.moodSummaryIntensity}>· {INTENSITY_LABELS[draft.intensity - 1]}</Text>
+        <Text variant="body" weight="semibold" color="textStrong">
+          {mood.name}
+        </Text>
+        <Text variant="subheadline" color="textBody">
+          · {INTENSITY_LABELS[draft.intensity - 1]}
+        </Text>
       </View>
 
       <View>
-        <Text style={styles.wordsHint}>Vyber jedno nebo dvě.</Text>
+        <Text variant="subheadline" color="textMuted" style={styles.wordsHint}>
+          Vyber jedno nebo dvě.
+        </Text>
         <View style={styles.chipWrap}>
           {words.map((w) => (
             <Chip key={w} selected={draft.words.includes(w)} onPress={() => toggleWord(w)}>
@@ -131,7 +141,9 @@ export default function Step2Screen() {
       </View>
 
       <View>
-        <Text style={styles.tagsLabel}>Co s tím souvisí?</Text>
+        <Text variant="body" weight="semibold" color="textBody" style={styles.tagsLabel}>
+          Co s tím souvisí?
+        </Text>
         <View style={styles.chipWrap}>
           {CONTEXT_TAGS.map((t) => (
             <Chip key={t} selected={draft.tags.includes(t)} onPress={() => toggleTag(t)}>
@@ -165,7 +177,8 @@ export default function Step2Screen() {
               value={newTagLabel}
               onChangeText={setNewTagLabel}
               placeholder="nový štítek"
-              placeholderTextColor={colors.textFaint}
+              placeholderTextColor={theme.colors.textOnSunken}
+              selectionColor={theme.colors.accentFill}
               autoFocus
               returnKeyType="done"
               maxLength={24}
@@ -199,64 +212,32 @@ export default function Step2Screen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((t) => ({
   backRow: { flexDirection: "row", alignItems: "center", gap: 8, marginHorizontal: -6 },
-  kicker: {
-    ...font.body(600),
-    fontSize: type.xxs,
-    letterSpacing: tracking.label(type.xxs),
-    textTransform: "uppercase",
-    color: palette.ink700,
-  },
   moodSummary: {
     flexDirection: "row",
+    flexWrap: "wrap",
     alignItems: "center",
     gap: 10,
-    borderRadius: radius.md,
+    borderRadius: t.radius.md,
     paddingVertical: 10,
     paddingHorizontal: 14,
   },
-  moodSummaryName: {
-    ...font.body(600),
-    fontSize: type.base,
-    lineHeight: leading.body(type.base),
-    color: colors.textStrong,
-  },
-  moodSummaryIntensity: {
-    ...font.body(400),
-    fontSize: type.sm,
-    lineHeight: leading.body(type.sm),
-    color: palette.ink700,
-  },
-  wordsHint: {
-    ...font.body(400),
-    fontSize: type.sm,
-    lineHeight: leading.body(type.sm),
-    color: palette.ink700,
-    marginBottom: 8,
-  },
-  tagsLabel: {
-    ...font.body(600),
-    fontSize: type.base,
-    lineHeight: leading.body(type.base),
-    color: colors.textBody,
-    marginTop: 4,
-    marginBottom: 8,
-  },
+  wordsHint: { marginBottom: 8 },
+  tagsLabel: { marginTop: 4, marginBottom: 8 },
   chipWrap: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   addTagRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 10 },
-  /* inline vstup stylem odpovídá chipu (pill, sm text), výška drží dotykový cíl 44 pt */
+  /* inline vstup stylem odpovídá chipu (pill, subheadline), výška drží dotykový cíl */
   addTagInput: {
     flex: 1,
-    ...font.body(500),
-    fontSize: type.sm,
-    color: colors.textBody,
-    backgroundColor: colors.surfaceSunken,
+    ...textStyle("subheadline", "medium"),
+    color: t.colors.textBody,
+    backgroundColor: t.colors.surfaceSunken,
     borderWidth: 1.5,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.pill,
+    borderColor: t.colors.borderStrong,
+    borderRadius: t.radius.pill,
     paddingVertical: 7,
     paddingHorizontal: 14,
-    minHeight: 44,
+    minHeight: t.platform.minTouch,
   },
-});
+}));

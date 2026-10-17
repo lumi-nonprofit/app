@@ -1,17 +1,23 @@
 /* ListItem — klepnutelný řádek: tónovaná dlaždice s ikonou + titulek/podtitulek.
    iOS: disclosure chevron pro drill-down (HIG Lists); Android: bez indikátoru
    (Android guides: listy bez chevronů a dividerů), ripple. `href` otevírá odkaz
-   přes Linking (tel: na krizové linky) — řádek je link s ikonou telefonu. */
+   přes Linking (tel: na krizové linky) — řádek je link s ikonou telefonu.
+   Barvu dlaždice dává `tone` (měkká výplň + silný odstín, funguje v obou režimech). */
 import type { ComponentProps, ReactNode } from "react";
-import { Linking, Pressable, Text, View } from "react-native";
+import { Linking, Pressable, View } from "react-native";
 import type { StyleProp, ViewStyle } from "react-native";
 import Icon from "./Icon";
-import { createThemedStyles, font, type, useTheme } from "../theme";
+import { createThemedStyles, useTheme } from "../theme";
 import { pressFeedback, pressedStyle } from "./press";
+import Text from "./Text";
+import { toneColors, type Tone } from "./tone";
 
 interface Props {
   /* název ikony odvozený z Icon — drží se v synchronu s jeho sadou */
   icon?: ComponentProps<typeof Icon>["name"];
+  /** Tón dlaždice ikony; výchozí accent. */
+  tone?: Tone;
+  /** Ruční přepis barev dlaždice (výjimečně; běžně stačí `tone`). */
   iconTint?: string;
   iconColor?: string;
   title: string;
@@ -28,6 +34,7 @@ interface Props {
 
 export default function ListItem({
   icon,
+  tone = "accent",
   iconTint,
   iconColor,
   title,
@@ -42,6 +49,7 @@ export default function ListItem({
 }: Props) {
   const theme = useTheme();
   const styles = useStyles();
+  const toneColor = toneColors(theme, tone);
   const showChevron = chevron ?? (theme.platform.isIOS && !href);
   const handlePress = () => {
     if (onPress) onPress();
@@ -57,13 +65,19 @@ export default function ListItem({
       style={({ pressed }) => [styles.row, pressedStyle(theme, pressed), style]}
     >
       {icon ? (
-        <View style={[styles.leading, { backgroundColor: iconTint ?? theme.colors.accentSoft }]}>
-          <Icon name={icon} size={20} color={iconColor ?? theme.colors.textAccent} />
+        <View style={[styles.leading, { backgroundColor: iconTint ?? toneColor.soft }]}>
+          <Icon name={icon} size={20} color={iconColor ?? toneColor.text} />
         </View>
       ) : null}
       <View style={styles.body}>
-        <Text style={styles.title}>{title}</Text>
-        {subtitle ? <Text style={styles.sub}>{subtitle}</Text> : null}
+        <Text variant="body" weight="semibold" color="textStrong">
+          {title}
+        </Text>
+        {subtitle ? (
+          <Text variant="subheadline" color="textMuted" style={styles.sub}>
+            {subtitle}
+          </Text>
+        ) : null}
       </View>
       <View style={styles.trailing}>
         {trailing}
@@ -97,7 +111,6 @@ const useStyles = createThemedStyles((t) => ({
     justifyContent: "center",
   },
   body: { flex: 1, minWidth: 0 },
-  title: { ...font.body(600), fontSize: type.base, color: t.colors.textStrong },
-  sub: { ...font.body(400), fontSize: type.sm, color: t.colors.textMuted, marginTop: 1 },
+  sub: { marginTop: 1 },
   trailing: { flexDirection: "row", alignItems: "center", gap: 8, flexShrink: 0 },
 }));

@@ -1,11 +1,11 @@
 /* LumiTabBar — spodní navigace: Dnes · Klid · Check-in (+) · Přehledy · Pomoc.
-   Check-in je zvýrazněná prostřední akce. Blur z webu vynecháváme — pozadí
-   kompenzujeme vyšší neprůhledností (0.96). */
-import { Pressable, StyleSheet, Text, View } from "react-native";
+   Check-in je zvýrazněná prostřední akce. Přechodná komponenta: fáze 5 ji
+   nahradí nativním tab barem (4 taby, check-in z Dnes). */
+import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Icon } from "../ds/index";
+import { Icon, Text } from "../ds";
 import type { IconName } from "../ds/Icon";
-import { palette, colors, font, shadow, type } from "../theme";
+import { createThemedStyles, useTheme } from "../theme";
 
 export type TabId = "home" | "calm" | "checkin" | "stats" | "help";
 
@@ -31,6 +31,8 @@ interface Props {
 
 export default function LumiTabBar({ active, onSelect }: Props) {
   const insets = useSafeAreaInsets();
+  const theme = useTheme();
+  const styles = useStyles();
   return (
     <View
       style={[styles.bar, { paddingBottom: Math.max(24, insets.bottom) }]}
@@ -39,6 +41,16 @@ export default function LumiTabBar({ active, onSelect }: Props) {
     >
       {LUMI_TABS.map((t) => {
         const is = active === t.id;
+        const label = (
+          <Text
+            variant="caption2"
+            weight={is ? "bold" : "medium"}
+            color={is ? "textAccent" : "textMuted"}
+            maxFontSizeMultiplier={1.6}
+          >
+            {t.label}
+          </Text>
+        );
         if (t.center) {
           return (
             <Pressable
@@ -52,15 +64,17 @@ export default function LumiTabBar({ active, onSelect }: Props) {
             >
               {({ pressed }) => (
                 <>
-                  {/* glow nelze sčítat s raised na jednom View — glow nese wrapper */}
-                  <View style={is ? [styles.plusGlow, shadow.glow] : null}>
-                    <View style={[styles.plus, pressed && styles.plusPressed]}>
-                      <Icon name="plus" size={26} strokeWidth={2.2} color={colors.textOnInk} />
-                    </View>
+                  <View
+                    style={[styles.plus, is && styles.plusActive, pressed && styles.plusPressed]}
+                  >
+                    <Icon
+                      name="plus"
+                      size={26}
+                      strokeWidth={2.2}
+                      color={theme.colors.textOnPrimary}
+                    />
                   </View>
-                  <Text style={[styles.label, is ? styles.labelActive : styles.labelIdle]}>
-                    {t.label}
-                  </Text>
+                  {label}
                 </>
               )}
             </Pressable>
@@ -78,11 +92,9 @@ export default function LumiTabBar({ active, onSelect }: Props) {
               name={t.icon}
               size={23}
               strokeWidth={is ? 2.2 : 1.75}
-              color={is ? palette.sun700 : palette.ink700}
+              color={is ? theme.colors.textAccent : theme.colors.textMuted}
             />
-            <Text style={[styles.label, is ? styles.labelActive : styles.labelIdle]}>
-              {t.label}
-            </Text>
+            {label}
           </Pressable>
         );
       })}
@@ -90,7 +102,7 @@ export default function LumiTabBar({ active, onSelect }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((t) => ({
   bar: {
     position: "absolute",
     left: 0,
@@ -102,9 +114,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     paddingTop: 10,
     paddingHorizontal: 8,
-    backgroundColor: "rgba(251, 247, 239, 0.96)",
+    backgroundColor: t.colors.surfacePage,
     borderTopWidth: 1,
-    borderTopColor: colors.borderSubtle,
+    borderTopColor: t.colors.borderSubtle,
   },
   item: {
     alignItems: "center",
@@ -115,7 +127,7 @@ const styles = StyleSheet.create({
     padding: 4,
     borderRadius: 12,
   },
-  itemPressed: { transform: [{ scale: 0.96 }] },
+  itemPressed: { opacity: t.pressedOpacity },
   center: {
     alignItems: "center",
     gap: 4,
@@ -123,19 +135,18 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
     borderRadius: 16,
   },
-  plusGlow: { borderRadius: 27 },
   plus: {
     width: 54,
     height: 54,
     borderRadius: 27,
     marginTop: -30,
-    backgroundColor: colors.surfaceInk,
+    backgroundColor: t.colors.surfacePrimary,
+    borderWidth: 2,
+    borderColor: "transparent",
     alignItems: "center",
     justifyContent: "center",
-    ...shadow.raised,
+    ...t.elevation.raised,
   },
-  plusPressed: { transform: [{ scale: 0.95 }] },
-  label: { fontSize: type.xxs },
-  labelActive: { ...font.body(700), color: palette.sun700 },
-  labelIdle: { ...font.body(500), color: palette.ink700 },
-});
+  plusActive: { borderColor: t.colors.selectionBorder },
+  plusPressed: { opacity: t.pressedOpacity },
+}));

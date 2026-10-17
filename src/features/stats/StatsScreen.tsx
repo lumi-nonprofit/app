@@ -3,13 +3,13 @@
    Varianty jsou datové: prázdný týden = 0–1 záznam, empatická varianta
    při WHO-5 pod 50 % — žádné alarmy, žádná vina. */
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { useRouter } from "expo-router";
-import { Badge, Button, Card, Icon, ListItem, ProgressRing, Switch } from "../../ds/index";
+import { Badge, Button, Card, Icon, ListItem, ProgressRing, Switch, Text } from "../../ds";
 import Screen from "../../components/Screen";
 import { LumiHeader, SectionLabel } from "../../components/Header";
 import MoodShape from "../../components/MoodShape";
-import { palette, colors, radius, font, leading, shadow, type } from "../../theme";
+import { createThemedStyles, useTheme } from "../../theme";
 import {
   INTENSITY_LABELS,
   MOODS,
@@ -41,6 +41,7 @@ interface DayDotProps {
 
 /* den jako tečka: barva + tvar = stav, velikost = intenzita, prázdný = obrysový kruh */
 function DayDot({ day }: DayDotProps) {
+  const styles = useStyles();
   const mood = day.entry ? MOOD_BY_ID[day.entry.mood] : null;
   const size = day.entry ? 13 + day.entry.intensity * 3.4 : 14;
   /* `mood` existuje právě tehdy, když `day.entry` — podmínka rozšířena jen kvůli zúžení typů */
@@ -63,7 +64,12 @@ function DayDot({ day }: DayDotProps) {
           <MoodShape size={14} outline dashed={day.future} />
         )}
       </View>
-      <Text style={[styles.dayDotLabel, day.today ? styles.dayDotLabelToday : null]}>
+      <Text
+        variant="caption1"
+        weight={day.today ? "bold" : "medium"}
+        color={day.today ? "textAccent" : "textMuted"}
+        maxFontSizeMultiplier={1.6}
+      >
         {day.today ? "dnes" : day.label}
       </Text>
     </View>
@@ -71,17 +77,22 @@ function DayDot({ day }: DayDotProps) {
 }
 
 function MoodLegend() {
+  const styles = useStyles();
   return (
     <View style={styles.legend}>
       {MOODS.map((m) => (
         <View key={m.id} style={styles.legendItem}>
           <MoodShape mood={m} size={11} />
-          <Text style={styles.legendText}>{m.name.toLowerCase()}</Text>
+          <Text variant="caption1" weight="regular">
+            {m.name.toLowerCase()}
+          </Text>
         </View>
       ))}
       <View style={styles.legendItem}>
         <MoodShape size={11} outline />
-        <Text style={styles.legendText}>bez záznamu</Text>
+        <Text variant="caption1" weight="regular">
+          bez záznamu
+        </Text>
       </View>
     </View>
   );
@@ -104,6 +115,8 @@ function deepSubtitle(
 export default function StatsScreen() {
   const { state, patch } = useAppStore();
   const router = useRouter();
+  const theme = useTheme();
+  const styles = useStyles();
   /* měsíční pohled jde 4 kalendářní týdny zpět — 35 dní rozsah bohatě stačí */
   const monthStart = new Date();
   monthStart.setDate(monthStart.getDate() - 35);
@@ -145,7 +158,12 @@ export default function StatsScreen() {
                 style={[styles.segBtn, period === p ? styles.segBtnOn : null]}
                 onPress={() => setPeriod(p)}
               >
-                <Text style={[styles.segBtnText, period === p ? styles.segBtnTextOn : null]}>
+                <Text
+                  variant="subheadline"
+                  weight="semibold"
+                  color={period === p ? "textStrong" : "textOnSunken"}
+                  maxFontSizeMultiplier={1.6}
+                >
                   {p}
                 </Text>
               </Pressable>
@@ -157,7 +175,7 @@ export default function StatsScreen() {
       {/* kalendář nálad */}
       <Card>
         <View style={styles.cardHead}>
-          <Text style={styles.cardTitle}>Nálada podle dní</Text>
+          <Text variant="headline">Nálada podle dní</Text>
           <Badge>{period === "týden" ? "tento týden" : "posledních 28 dní"}</Badge>
         </View>
 
@@ -168,7 +186,9 @@ export default function StatsScreen() {
                 <DayDot key={d.label} day={d} />
               ))}
             </View>
-            <Text style={styles.emptyText}>Zatím tu toho moc není — každý zápis se počítá.</Text>
+            <Text variant="body" style={styles.emptyText}>
+              Zatím tu toho moc není — každý zápis se počítá.
+            </Text>
             <Button
               variant="secondary"
               size="sm"
@@ -229,15 +249,15 @@ export default function StatsScreen() {
           <ProgressRing
             value={measurement ? measurement.score / 100 : 0}
             size={84}
-            color={low ? palette.lake500 : palette.sun500}
+            color={low ? theme.colors.textInfo : undefined}
             label={measurement ? `${measurement.score} %` : "—"}
             sublabel="WHO-5"
           />
           <View style={styles.wellBody}>
-            <Text style={styles.wellTitle}>Wellbeing index</Text>
+            <Text variant="headline">Wellbeing index</Text>
             {!measurement ? (
               <View>
-                <Text style={[styles.wellText, styles.wellTextSpaced]}>
+                <Text variant="subheadline" color="textMuted" style={styles.wellTextSpaced}>
                   Krátký dotazník (5 otázek) ti nastaví výchozí bod. Bez známek, bez porovnávání.
                 </Text>
                 <Button
@@ -251,7 +271,7 @@ export default function StatsScreen() {
               </View>
             ) : low ? (
               <View>
-                <Text style={styles.wellTextLow}>
+                <Text variant="subheadline" color="textMuted" style={styles.wellTextSpaced}>
                   Poslední dva týdny vypadají náročně. Je v pořádku říct si o podporu.
                 </Text>
                 <View style={styles.lowActions}>
@@ -267,7 +287,11 @@ export default function StatsScreen() {
               </View>
             ) : (
               <View>
-                <Text style={[styles.wellText, who5Due ? styles.wellTextSpaced : null]}>
+                <Text
+                  variant="subheadline"
+                  color="textMuted"
+                  style={[styles.wellText, who5Due ? styles.wellTextSpaced : null]}
+                >
                   {who5StatsText(who5)}
                 </Text>
                 {who5Due ? (
@@ -292,22 +316,20 @@ export default function StatsScreen() {
         <Card style={styles.deepCard}>
           <ListItem
             icon="cloud"
-            iconTint={colors.infoSoft}
-            iconColor={palette.lake700}
+            tone="info"
             title="Nálada do hloubky"
             subtitle={deepSubtitle(phq9, 9, phq9Band)}
             onPress={() => router.push("/measure/phq9")}
           />
           <ListItem
             icon="waves"
-            iconTint={colors.infoSoft}
-            iconColor={palette.lake700}
+            tone="info"
             title="Napětí a obavy do hloubky"
             subtitle={deepSubtitle(gad7, 7, gad7Band)}
             onPress={() => router.push("/measure/gad7")}
           />
         </Card>
-        <Text style={styles.deepNote}>
+        <Text variant="footnote" color="textMuted" style={styles.deepNote}>
           Dobrovolné — jen když chceš. Lumi ti je nikdy nebude připomínat.
         </Text>
       </View>
@@ -315,10 +337,12 @@ export default function StatsScreen() {
       {/* data pro výzkum — toggle, výchozí stav vypnuto, žádné dark patterns */}
       <Card variant="sunken">
         <View style={styles.shareRow}>
-          <Icon name="shield" size={20} color={palette.lake700} style={styles.shareIcon} />
+          <Icon name="shield" size={20} color={theme.colors.textInfo} style={styles.shareIcon} />
           <View style={styles.shareBody}>
-            <Text style={styles.shareTitle}>Data pro výzkum</Text>
-            <Text style={styles.shareText}>
+            <Text variant="headline" style={styles.shareTitle}>
+              Data pro výzkum
+            </Text>
+            <Text variant="subheadline" color="textOnSunken" style={styles.shareText}>
               Tvoje záznamy zůstávají v telefonu. Pro výzkum je sdílíme jen anonymně a jen pokud to
               dovolíš.
             </Text>
@@ -340,18 +364,16 @@ export default function StatsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((t) => ({
   selfStart: { alignSelf: "flex-start" },
   dayDot: { flex: 1, alignItems: "center", gap: 7 },
   dayDotShape: { height: 32, alignItems: "center", justifyContent: "center" },
-  dayDotLabel: { ...font.body(500), fontSize: type.xs, color: palette.ink700 },
-  dayDotLabelToday: { ...font.body(700), color: palette.sun700 },
 
   /* segmentový přepínač období (.lumi-seg z app.css) */
   seg: {
     flexDirection: "row",
-    backgroundColor: colors.surfaceSunken,
-    borderRadius: radius.pill,
+    backgroundColor: t.colors.surfaceSunken,
+    borderRadius: t.radius.pill,
     padding: 3,
     gap: 2,
   },
@@ -359,78 +381,41 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 13,
     minHeight: 32,
-    borderRadius: radius.pill,
+    borderRadius: t.radius.pill,
     alignItems: "center",
     justifyContent: "center",
   },
-  segBtnOn: { backgroundColor: colors.surfaceCard, ...shadow.card },
-  segBtnText: { ...font.body(600), fontSize: type.sm, color: palette.ink700 },
-  segBtnTextOn: { color: colors.textStrong },
+  segBtnOn: { backgroundColor: t.colors.surfaceCard, ...t.elevation.card, ...t.cardBorder },
 
   cardHead: {
     flexDirection: "row",
+    flexWrap: "wrap",
     justifyContent: "space-between",
     alignItems: "baseline",
+    gap: 8,
     marginBottom: 12,
   },
-  cardTitle: { ...font.body(600), color: colors.textStrong, fontSize: type.base },
 
   weekRow: { flexDirection: "row", gap: 4 },
   monthGrid: { gap: 10 },
   monthCell: { flex: 1, flexDirection: "row", justifyContent: "center" },
 
-  emptyText: {
-    ...font.body(400),
-    fontSize: type.base,
-    color: colors.textBody,
-    lineHeight: leading.body(type.base),
-    marginTop: 16,
-    marginBottom: 12,
-  },
+  emptyText: { marginTop: 16, marginBottom: 12 },
 
   legend: { flexDirection: "row", gap: 12, flexWrap: "wrap", marginTop: 14 },
   legendItem: { flexDirection: "row", alignItems: "center", gap: 5 },
-  legendText: { ...font.body(400), fontSize: type.xs, color: palette.ink700 },
 
   wellRow: { flexDirection: "row", alignItems: "center", gap: 16 },
   wellBody: { flex: 1 },
-  wellTitle: { ...font.body(600), color: colors.textStrong, fontSize: type.base },
-  wellText: {
-    ...font.body(400),
-    fontSize: type.sm,
-    color: palette.ink700,
-    lineHeight: leading.body(type.sm),
-    marginTop: 2,
-  },
-  wellTextSpaced: { marginBottom: 10 },
+  wellText: { marginTop: 2 },
+  wellTextSpaced: { marginTop: 2, marginBottom: 10 },
   lowActions: { flexDirection: "row", flexWrap: "wrap", gap: 8, alignSelf: "flex-start" },
   deepCard: { paddingVertical: 8, paddingHorizontal: 12, marginTop: 6 },
-  deepNote: {
-    ...font.body(400),
-    fontSize: type.xs,
-    lineHeight: leading.body(type.xs),
-    color: palette.ink500,
-    marginTop: 8,
-    paddingHorizontal: 4,
-  },
-  wellTextLow: {
-    ...font.body(400),
-    fontSize: type.sm,
-    color: palette.ink700,
-    lineHeight: leading.body(type.sm),
-    marginTop: 2,
-    marginBottom: 10,
-  },
+  deepNote: { marginTop: 8, paddingHorizontal: 4 },
 
   shareRow: { flexDirection: "row", gap: 12, alignItems: "flex-start" },
   shareIcon: { marginTop: 2 },
   shareBody: { flex: 1 },
-  shareTitle: { ...font.body(600), fontSize: type.base, color: colors.textStrong, marginBottom: 2 },
-  shareText: {
-    ...font.body(400),
-    fontSize: type.sm,
-    color: palette.ink700,
-    lineHeight: leading.body(type.sm),
-    marginBottom: 12,
-  },
-});
+  shareTitle: { marginBottom: 2 },
+  shareText: { marginBottom: 12 },
+}));

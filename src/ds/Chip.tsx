@@ -2,7 +2,7 @@
    + fajfka, nikdy jen barva. Dotykový cíl ≥ 44/48 pt; `accessibilityActions`
    dávají čtečce negestovou alternativu k dlouhému podržení (smazání štítku). */
 import React from "react";
-import { Pressable, Text } from "react-native";
+import { Pressable } from "react-native";
 import type {
   AccessibilityActionEvent,
   AccessibilityActionInfo,
@@ -10,9 +10,10 @@ import type {
   StyleProp,
   ViewStyle,
 } from "react-native";
-import { createThemedStyles, font, leading, type, useTheme } from "../theme";
+import { createThemedStyles, useTheme } from "../theme";
 import Icon from "./Icon";
 import { pressFeedback, pressedStyle } from "./press";
+import Text from "./Text";
 
 interface Props {
   children: React.ReactNode;
@@ -40,7 +41,7 @@ export default function Chip({
 }: Props) {
   const theme = useTheme();
   const styles = useStyles();
-  const textColor = selected ? theme.colors.textAccent : theme.colors.textBody;
+  const textColor = selected ? "textAccent" : "textBody";
   return (
     <Pressable
       accessibilityRole="button"
@@ -59,10 +60,18 @@ export default function Chip({
         !!onPress && pressedStyle(theme, pressed),
       ]}
     >
-      {selected ? <Icon name="check" size={14} strokeWidth={2.4} color={textColor} /> : null}
+      {selected ? (
+        <Icon name="check" size={14} strokeWidth={2.4} color={theme.colors[textColor]} />
+      ) : null}
       {React.Children.map(children, (child) =>
         typeof child === "string" || typeof child === "number" ? (
-          <Text style={[styles.text, { color: textColor }]} maxFontSizeMultiplier={1.6}>
+          <Text
+            variant="subheadline"
+            weight="medium"
+            color={textColor}
+            maxFontSizeMultiplier={1.6}
+            style={styles.text}
+          >
             {child}
           </Text>
         ) : (
@@ -91,9 +100,5 @@ const useStyles = createThemedStyles((t) => ({
     backgroundColor: t.colors.accentSoft,
     borderColor: t.colors.selectionBorder,
   },
-  text: {
-    ...font.body(500),
-    fontSize: type.sm,
-    lineHeight: leading.body(type.sm),
-  },
+  text: { flexShrink: 1 },
 }));

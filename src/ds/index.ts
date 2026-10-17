@@ -9,3 +9,7 @@ export { default as Input } from "./Input";
 export { default as ListItem } from "./ListItem";
 export { default as ProgressRing } from "./ProgressRing";
 export { default as Switch } from "./Switch";
+export { default as Text } from "./Text";
+export type { TextAlign, TextColor, TextProps, TextVariant, TextWeight } from "./Text";
+export type { Tone } from "./tone";
+export { toneColors } from "./tone";

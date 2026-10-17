@@ -3,17 +3,17 @@
    Srozumitelně a bez právničiny; exportovaný soubor už není šifrovaný —
    říkáme to rovnou v kartě. */
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { View } from "react-native";
 import { File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import * as DocumentPicker from "expo-document-picker";
-import { Button, Card } from "../../ds/index";
+import { Button, Card, Text } from "../../ds";
 import { SectionLabel } from "../../components/Header";
 import { buildBackup, importBackup, parseBackup, type ParseResult } from "../../db/backup";
 import { useDb } from "../../db/provider";
 import { useDbWriter } from "../../db/hooks";
 import { czPlural, toISODate, type ISODate } from "../../model";
-import { colors, font, leading, palette, type } from "../../theme";
+import { createThemedStyles } from "../../theme";
 
 /** "2026-06-12" → "12. 6. 2026" */
 const isoToCz = (iso: ISODate): string => {
@@ -30,6 +30,7 @@ type Flow =
 export default function BackupCard() {
   const db = useDb();
   const write = useDbWriter();
+  const styles = useStyles();
   const [flow, setFlow] = React.useState<Flow>({ kind: "idle" });
 
   const exportBackup = async () => {
@@ -92,14 +93,16 @@ export default function BackupCard() {
     <View>
       <SectionLabel>Záloha</SectionLabel>
       <Card style={styles.card}>
-        <Text style={styles.text}>
+        <Text variant="subheadline" color="textMuted">
           Záznamy si můžeš uložit do souboru a přenést do jiného telefonu. Exportovaný soubor už
           není šifrovaný — ulož si ho někam bezpečně.
         </Text>
 
         {flow.kind === "preview" ? (
           <View style={styles.flowBox}>
-            <Text style={styles.text}>{previewText(flow.parsed)}</Text>
+            <Text variant="subheadline" color="textMuted">
+              {previewText(flow.parsed)}
+            </Text>
             <View style={styles.row}>
               {flow.parsed.preview.entryCount + flow.parsed.preview.measurementCount > 0 ? (
                 <Button size="sm" onPress={() => confirmImport(flow.parsed)}>
@@ -122,33 +125,23 @@ export default function BackupCard() {
           </View>
         )}
 
-        {flow.kind === "done" ? <Text style={styles.done}>{flow.message}</Text> : null}
-        {flow.kind === "error" ? <Text style={styles.error}>{flow.message}</Text> : null}
+        {flow.kind === "done" ? (
+          <Text variant="subheadline" weight="semibold" color="textPositive">
+            {flow.message}
+          </Text>
+        ) : null}
+        {flow.kind === "error" ? (
+          <Text variant="subheadline" weight="semibold" color="textDanger">
+            {flow.message}
+          </Text>
+        ) : null}
       </Card>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles(() => ({
   card: { marginTop: 6, gap: 12 },
-  text: {
-    ...font.body(400),
-    fontSize: type.sm,
-    lineHeight: leading.body(type.sm),
-    color: palette.ink700,
-  },
   flowBox: { gap: 12 },
   row: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
-  done: {
-    ...font.body(600),
-    fontSize: type.sm,
-    lineHeight: leading.body(type.sm),
-    color: palette.sage700,
-  },
-  error: {
-    ...font.body(600),
-    fontSize: type.sm,
-    lineHeight: leading.body(type.sm),
-    color: colors.danger,
-  },
-});
+}));

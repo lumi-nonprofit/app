@@ -2,9 +2,10 @@
    kontext dává řádek; Android: label vlevo, přepínač vpravo). Celý řádek je
    klepnutelný; stav nese accessibilityState, ne text labelu. Barva „zapnuto“
    = accentFill (≥ 3:1), vypnuto = platformní výchozí. */
-import { Pressable, StyleSheet, Switch as RNSwitch, Text, View } from "react-native";
+import { Pressable, Switch as RNSwitch, View } from "react-native";
 import type { StyleProp, ViewStyle } from "react-native";
-import { createThemedStyles, font, type, useTheme } from "../theme";
+import { createThemedStyles, useTheme } from "../theme";
+import Text from "./Text";
 
 interface Props {
   checked?: boolean;
@@ -49,8 +50,14 @@ export default function Switch({
   return (
     <Pressable accessible={false} onPress={toggle} style={[styles.row, style]}>
       <View style={styles.text} importantForAccessibility="no-hide-descendants">
-        <Text style={styles.label}>{label}</Text>
-        {description ? <Text style={styles.description}>{description}</Text> : null}
+        <Text variant="body" color="textStrong">
+          {label}
+        </Text>
+        {description ? (
+          <Text variant="subheadline" color="textMuted">
+            {description}
+          </Text>
+        ) : null}
       </View>
       {control}
     </Pressable>
@@ -66,12 +73,4 @@ const useStyles = createThemedStyles((t) => ({
     minHeight: t.platform.minTouch,
   },
   text: { flex: 1, minWidth: 0, gap: 2 },
-  label: { ...font.body(400), fontSize: type.base, color: t.colors.textStrong },
-  description: {
-    ...font.body(400),
-    fontSize: type.sm,
-    lineHeight: Math.round(type.sm * 1.4),
-    color: t.colors.textMuted,
-  },
-  hairline: { height: StyleSheet.hairlineWidth },
 }));

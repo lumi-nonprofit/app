@@ -1,54 +1,41 @@
 /* Neznámá cesta (deep link na neexistující obrazovku). Česky, s jasným
    dalším krokem — HIG Writing: prázdná obrazovka vždy říká, co dál. */
-import { StyleSheet, Text, View } from "react-native";
+import { View } from "react-native";
 import { Link, Stack } from "expo-router";
-import { colors, font, leading, type } from "../src/theme";
+import { Text } from "../src/ds";
+import { createThemedStyles } from "../src/theme";
 
 export default function NotFoundScreen() {
+  const styles = useStyles();
   return (
     <>
       <Stack.Screen options={{ title: "Stránka nenalezena" }} />
       <View style={styles.wrap}>
-        <Text accessibilityRole="header" style={styles.title}>
+        <Text accessibilityRole="header" variant="title2" align="center">
           Tahle stránka v Lumi není
         </Text>
-        <Text style={styles.text}>Odkaz je asi neplatný nebo zastaralý.</Text>
+        <Text variant="body" align="center">
+          Odkaz je asi neplatný nebo zastaralý.
+        </Text>
         <Link href="/" accessibilityRole="link" style={styles.link}>
-          Zpět na Dnes
+          <Text variant="label" color="textStrong" style={styles.linkText}>
+            Zpět na Dnes
+          </Text>
         </Link>
       </View>
     </>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((t) => ({
   wrap: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     padding: 24,
     gap: 12,
-    backgroundColor: colors.surfacePage,
+    backgroundColor: t.colors.surfacePage,
   },
-  title: {
-    ...font.display(700),
-    fontSize: type.lg,
-    lineHeight: leading.tight(type.lg),
-    color: colors.textStrong,
-    textAlign: "center",
-  },
-  text: {
-    ...font.body(400),
-    fontSize: type.base,
-    lineHeight: leading.body(type.base),
-    color: colors.textBody,
-    textAlign: "center",
-  },
-  link: {
-    ...font.body(600),
-    fontSize: type.base,
-    color: colors.textStrong,
-    paddingVertical: 12,
-    textDecorationLine: "underline",
-  },
-});
+  link: { paddingVertical: 12, minHeight: t.platform.minTouch },
+  linkText: { textDecorationLine: "underline" },
+}));

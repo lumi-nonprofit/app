@@ -15,14 +15,18 @@ describe.each([
     const roles = Object.entries(theme.colors).filter(
       ([k]) => /^(text|border)/.test(k) && k !== "borderSubtle",
     );
-    for (const [role, value] of roles) expect({ role, covered: covered.has(value) }).toEqual({ role, covered: true });
+    for (const [role, value] of roles)
+      expect({ role, covered: covered.has(value) }).toEqual({ role, covered: true });
   });
 
   it.each(pairs.map((p) => [p.name, p]))("%s", (_n, pair) => {
     const ratio = contrastRatio(pair.fg, pair.bg);
-    expect({ pair: pair.name, fg: pair.fg, bg: pair.bg, ratio: Math.round(ratio * 100) / 100 }).toEqual(
-      expect.objectContaining({ ratio: expect.any(Number) }),
-    );
+    expect({
+      pair: pair.name,
+      fg: pair.fg,
+      bg: pair.bg,
+      ratio: Math.round(ratio * 100) / 100,
+    }).toEqual(expect.objectContaining({ ratio: expect.any(Number) }));
     expect(ratio).toBeGreaterThanOrEqual(pair.min);
   });
 });

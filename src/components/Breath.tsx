@@ -3,10 +3,11 @@
    Reduce Motion (HIG Motion): bez škálování, jen prolnutí labelu; pohyb nikdy
    není jediný nosič — fáze oznamuje haptika i čtečka obrazovky. */
 import React from "react";
-import { Animated, Easing, Text, View } from "react-native";
+import { Animated, Easing, View } from "react-native";
+import { Text } from "../ds";
 import { announce, useReduceMotion } from "../lib/a11y";
 import { haptics } from "../lib/haptics";
-import { createThemedStyles, font, motion, palette, type } from "../theme";
+import { createThemedStyles, motion, palette } from "../theme";
 
 type BreathPhase = "Nádech" | "Výdech";
 
@@ -94,17 +95,22 @@ export default function LumiBreath({ size = 160, active, hint }: Props) {
             animating ? { transform: [{ scale: circleScale }] } : null,
           ]}
         >
-          <Text style={styles.label} maxFontSizeMultiplier={1.6}>
+          {/* pevná barva: sun300 s inkoustem (9,3:1) je stejná v obou režimech */}
+          <Text variant="title3" maxFontSizeMultiplier={1.6} align="center" style={styles.label}>
             {active ? phase : "Začneme?"}
           </Text>
         </Animated.View>
       </View>
-      {hint ? <Text style={styles.hint}>{hint}</Text> : null}
+      {hint ? (
+        <Text variant="footnote" color="textMuted" align="center">
+          {hint}
+        </Text>
+      ) : null}
     </View>
   );
 }
 
-const useStyles = createThemedStyles((t) => ({
+const useStyles = createThemedStyles(() => ({
   wrap: { alignItems: "center", gap: 18 },
   stage: { alignItems: "center", justifyContent: "center" },
   halo: {
@@ -113,12 +119,11 @@ const useStyles = createThemedStyles((t) => ({
     backgroundColor: palette.sun200,
     opacity: 0.5,
   },
-  /* sun300 s inkoustovým textem (9,3:1) funguje v obou režimech */
   circle: {
     backgroundColor: palette.sun300,
     alignItems: "center",
     justifyContent: "center",
+    paddingHorizontal: 12,
   },
-  label: { ...font.display(600), fontSize: type.md, color: palette.ink900 },
-  hint: { ...font.body(400), fontSize: type.sm, color: t.colors.textMuted },
+  label: { color: palette.ink900 },
 }));

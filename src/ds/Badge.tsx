@@ -1,11 +1,13 @@
 /* Badge — malý stavový pill pro metadata (5 MIN, VEČER); jemné tóny, nikdy syté výplně.
    Text v tónu odstínu drží ≥ 4,5:1 na své měkké výplni (viz contrastPairs). */
 import React from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 import type { StyleProp, ViewStyle } from "react-native";
-import { createThemedStyles, font, leading, type, useTheme } from "../theme";
+import { createThemedStyles, useTheme } from "../theme";
+import Text from "./Text";
+import { toneColors, type Tone } from "./tone";
 
-export type BadgeTone = "neutral" | "accent" | "positive" | "info" | "danger" | "lilac";
+export type BadgeTone = Tone;
 
 interface Props {
   children: React.ReactNode;
@@ -16,20 +18,18 @@ interface Props {
 export default function Badge({ children, tone = "neutral", style }: Props) {
   const theme = useTheme();
   const styles = useStyles();
-  const c = theme.colors;
-  const t = {
-    neutral: { backgroundColor: c.surfaceSunken, color: c.textOnSunken },
-    accent: { backgroundColor: c.accentSoft, color: c.textAccent },
-    positive: { backgroundColor: c.positiveSoft, color: c.textPositive },
-    info: { backgroundColor: c.infoSoft, color: c.textInfo },
-    danger: { backgroundColor: c.dangerSoft, color: c.textDanger },
-    lilac: { backgroundColor: c.lilacSoft, color: c.textLilac },
-  }[tone];
+  const t = toneColors(theme, tone);
   return (
-    <View style={[styles.badge, { backgroundColor: t.backgroundColor }, style]}>
+    <View style={[styles.badge, { backgroundColor: t.soft }, style]}>
       {React.Children.map(children, (child) =>
         typeof child === "string" || typeof child === "number" ? (
-          <Text style={[styles.text, { color: t.color }]} maxFontSizeMultiplier={1.5}>
+          <Text
+            variant="caption1"
+            weight="semibold"
+            color={t.textRole}
+            maxFontSizeMultiplier={1.5}
+            style={styles.text}
+          >
             {child}
           </Text>
         ) : (
@@ -49,10 +49,5 @@ const useStyles = createThemedStyles((t) => ({
     paddingHorizontal: 10,
     borderRadius: t.radius.pill,
   },
-  text: {
-    ...font.body(600),
-    fontSize: type.xs,
-    lineHeight: leading.body(type.xs),
-    letterSpacing: 0.02 * type.xs,
-  },
+  text: { letterSpacing: 0.24 },
 }));

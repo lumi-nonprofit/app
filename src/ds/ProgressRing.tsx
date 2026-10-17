@@ -1,9 +1,11 @@
 /* ProgressRing — kruhový ukazatel se zaobleným koncem; kanonické zobrazení WHO-5
    indexu. Statický (bez animace). Pro čtečku je to progressbar s hodnotou;
-   popisek v kruhu škáluje s průměrem i se systémovou velikostí písma. */
-import { PixelRatio, Text, View } from "react-native";
+   popisek v kruhu škáluje s průměrem i se systémovou velikostí písma (max 1,3×,
+   jinak by se číslo nevešlo do kruhu — proto allowFontScaling vypnuté). */
+import { PixelRatio, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
-import { createThemedStyles, font, tracking, useTheme } from "../theme";
+import { createThemedStyles, useTheme } from "../theme";
+import Text from "./Text";
 
 interface Props {
   /** 0–1; mimo rozsah se ořízne */
@@ -58,7 +60,10 @@ export default function ProgressRing({
           cy={dim / 2}
           r={(r * dim) / size}
           fill="none"
-          stroke={track ?? (theme.scheme === "dark" ? theme.colors.surfaceElevated : theme.colors.surfaceSunken)}
+          stroke={
+            track ??
+            (theme.scheme === "dark" ? theme.colors.surfaceElevated : theme.colors.surfaceSunken)
+          }
           strokeWidth={stroke}
         />
         <Circle
@@ -76,26 +81,31 @@ export default function ProgressRing({
       <View style={styles.overlay}>
         {label ? (
           <Text
+            variant="title2"
+            tabular
+            align="center"
             allowFontScaling={false}
-            style={[
-              styles.label,
-              {
-                color: labelColor ?? theme.colors.textStrong,
-                fontSize: labelSize,
-                letterSpacing: tracking.display(labelSize),
-              },
-            ]}
+            style={{
+              fontSize: labelSize,
+              lineHeight: Math.round(labelSize * 1.2),
+              letterSpacing: -0.02 * labelSize,
+              color: labelColor ?? theme.colors.textStrong,
+            }}
           >
             {label}
           </Text>
         ) : null}
         {sublabel ? (
           <Text
+            variant="caption1"
+            weight="regular"
+            align="center"
             allowFontScaling={false}
-            style={[
-              styles.sublabel,
-              { fontSize: Math.max(10, dim / 7.5), color: sublabelColor ?? theme.colors.textMuted },
-            ]}
+            style={{
+              fontSize: Math.max(10, dim / 7.5),
+              lineHeight: Math.round(Math.max(10, dim / 7.5) * 1.3),
+              color: sublabelColor ?? theme.colors.textMuted,
+            }}
           >
             {sublabel}
           </Text>
@@ -116,6 +126,4 @@ const useStyles = createThemedStyles(() => ({
     alignItems: "center",
     justifyContent: "center",
   },
-  label: { ...font.display(700), fontVariant: ["tabular-nums"], textAlign: "center" },
-  sublabel: { ...font.body(400), textAlign: "center" },
 }));

@@ -5,7 +5,8 @@
    (README, ADR 0001 §11); volitelný `hint` pod tlačítkem říká, co chybí.
    Press state: Android ripple, iOS opacita (HIG Buttons). `loading` ukáže
    indikátor a volitelný náhradní label („Ukládám…“). `href` otevírá odkaz přes
-   Linking se stejným vzhledem (tel: linky) a rolí link. */
+   Linking se stejným vzhledem (tel: linky) a rolí link. Popisek škáluje
+   s Dynamic Type do 2× (HIG: text tlačítka neořezávat, výška roste). */
 import React from "react";
 import {
   ActivityIndicator,
@@ -13,18 +14,30 @@ import {
   Linking,
   Pressable,
   StyleProp,
-  Text,
   TextStyle,
   View,
   ViewStyle,
 } from "react-native";
-import { createThemedStyles, font, leading, type, useTheme } from "../theme";
+import { createThemedStyles, useTheme } from "../theme";
 import { pressFeedback, pressedStyle } from "./press";
+import Text, { type TextColor, type TextVariant } from "./Text";
 
 export type ButtonVariant = "primary" | "secondary" | "soft" | "ghost" | "crisis";
 export type ButtonSize = "sm" | "md" | "lg";
 
-const TEXT_SIZES: Record<ButtonSize, number> = { sm: type.sm, md: type.base, lg: type.md };
+const TEXT_COLORS: Record<ButtonVariant, TextColor> = {
+  primary: "textOnPrimary",
+  secondary: "textStrong",
+  soft: "textAccent",
+  ghost: "textBody",
+  crisis: "textOnCrisis",
+};
+/* iOS: subheadline / body / body semibold; Android: bodyMedium / labelLarge / titleMedium */
+const TEXT_VARIANTS: Record<ButtonSize, TextVariant> = {
+  sm: "subheadline",
+  md: "label",
+  lg: "headline",
+};
 
 interface Props {
   children: React.ReactNode;
@@ -73,26 +86,12 @@ export default function Button({
     if (href) Linking.openURL(href).catch(() => {});
   };
 
-  const textColor = disabled
-    ? theme.colors.textOnSunken
-    : {
-        primary: theme.colors.textOnPrimary,
-        secondary: theme.colors.textStrong,
-        soft: theme.colors.textAccent,
-        ghost: theme.colors.textBody,
-        crisis: theme.colors.textOnCrisis,
-      }[variant];
+  const textColor: TextColor = disabled ? "textOnSunken" : TEXT_COLORS[variant];
 
   /* Stringové děti obalíme do <Text>; sousední texty slučujeme do jednoho uzlu,
      aby je gap 8 neroztrhal. Krajní mezery (JSX kolem ikon) odřezáváme — web je
      kolaboval; mezeru mezi ikonou a textem dělá gap. Elementy (Icon) zůstávají
      beze změny — barvu jim předává volající explicitně. */
-  const fontSize = TEXT_SIZES[size] || TEXT_SIZES.md;
-  const textStyles: StyleProp<TextStyle> = [
-    styles.text,
-    { fontSize, lineHeight: leading.body(fontSize), color: textColor },
-    textStyle,
-  ];
   const content: React.ReactNode[] = [];
   let run = "";
   const flush = () => {
@@ -100,7 +99,14 @@ export default function Button({
     run = "";
     if (piece) {
       content.push(
-        <Text key={`text-${content.length}`} style={textStyles} maxFontSizeMultiplier={2}>
+        <Text
+          key={`text-${content.length}`}
+          variant={TEXT_VARIANTS[size] || TEXT_VARIANTS.md}
+          weight="semibold"
+          color={textColor}
+          maxFontSizeMultiplier={2}
+          style={[styles.text, textStyle]}
+        >
           {piece}
         </Text>,
       );
@@ -135,7 +141,7 @@ export default function Button({
         !inactive && pressedStyle(theme, pressed),
       ]}
     >
-      {loading ? <ActivityIndicator size="small" color={textColor} /> : null}
+      {loading ? <ActivityIndicator size="small" color={theme.colors[textColor]} /> : null}
       {content}
     </Pressable>
   );
@@ -143,7 +149,11 @@ export default function Button({
   return (
     <View style={[styles.wrap, fullWidth && styles.full]}>
       {button}
-      {disabled ? <Text style={styles.hint}>{hint}</Text> : null}
+      {disabled ? (
+        <Text variant="footnote" color="textMuted" align="center">
+          {hint}
+        </Text>
+      ) : null}
     </View>
   );
 }
@@ -177,12 +187,6 @@ const useStyles = createThemedStyles((t) => ({
   /* disabled: obrys + inkoust na zapuštěném podkladu, ne opacita */
   disabled: { backgroundColor: t.colors.surfaceSunken, borderColor: t.colors.borderStrong },
 
-  text: { ...font.body(600) },
-  hint: {
-    ...font.body(400),
-    fontSize: type.sm,
-    lineHeight: leading.body(type.sm),
-    color: t.colors.textMuted,
-    textAlign: "center",
-  },
+  /* text se smí zalomit (Dynamic Type), tlačítko roste do výšky */
+  text: { flexShrink: 1, textAlign: "center" },
 }));

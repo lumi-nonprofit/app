@@ -6,9 +6,10 @@
    místo výsledku na empatickou mezistránku — klidný tón, akce nad foldem,
    žádné blokování (k výsledku se dá pokračovat). */
 import React from "react";
-import { Pressable, StyleSheet, Text, View, type GestureResponderEvent } from "react-native";
+import { Pressable, View, type GestureResponderEvent } from "react-native";
 import { Redirect, useLocalSearchParams, useRouter } from "expo-router";
-import { Button, Icon, IconButton, ProgressRing } from "../../ds/index";
+import { Button, Icon, IconButton, ProgressRing, Text } from "../../ds";
+import { pressFeedback, pressedStyle } from "../../ds/press";
 import LumiCTA from "../../components/CTA";
 import Screen from "../../components/Screen";
 import { useDb } from "../../db/provider";
@@ -25,7 +26,7 @@ import { HELP_LINES, toISODate, czPlural } from "../../model";
 import { useAppStore } from "../../store";
 import { INSTRUMENTS, PHQ9_RISK_QUESTION_INDEX, isMeasurementType } from "./definitions";
 import { bandFor, scoreFor, trendText } from "./scoring";
-import { palette, colors, radius, font, leading, tracking, shadow, type } from "../../theme";
+import { createThemedStyles, useTheme } from "../../theme";
 
 const DISCLAIMER_SEEN_KEY = "measure-disclaimer-seen";
 
@@ -45,6 +46,8 @@ export default function MeasureScreen() {
 function Measure({ type }: { type: MeasurementType }) {
   const inst = INSTRUMENTS[type];
   const router = useRouter();
+  const theme = useTheme();
+  const styles = useStyles();
   const db = useDb();
   const write = useDbWriter();
   const { state } = useAppStore();
@@ -66,7 +69,7 @@ function Measure({ type }: { type: MeasurementType }) {
      1. index-zámek: na jednu otázku projde jen jedna odpověď,
      2. časový lockout 250 ms z timestampu dotyku (odraz přes commit),
      3. jednorázové id měření + synchronní zámek uložení (duplicitní
-        submit kolidí na id a ON CONFLICT ho zahodí). */
+        submit koliduje na id a ON CONFLICT ho zahodí). */
   const lastAnsweredIndex = React.useRef(-1);
   const lastAdvanceAt = React.useRef(0);
   const measurementId = React.useRef(newMeasurementId(type));
@@ -124,12 +127,12 @@ function Measure({ type }: { type: MeasurementType }) {
       <Screen contentStyle={styles.center}>
         <View style={styles.headBlock}>
           <View style={styles.iconCircle}>
-            <Icon name="shield" size={26} color={palette.lake700} />
+            <Icon name="shield" size={26} color={theme.colors.textInfo} />
           </View>
-          <Text accessibilityRole="header" style={styles.title}>
+          <Text accessibilityRole="header" variant="title1" align="center">
             Než začneš
           </Text>
-          <Text style={styles.body}>
+          <Text variant="body" align="center">
             Tohle je orientační screeningový nástroj. Nenahrazuje vyšetření ani rozhovor s
             odborníkem — pomáhá všímat si, jak se máš. Výsledky zůstávají jen v tvém telefonu.
           </Text>
@@ -165,13 +168,15 @@ function Measure({ type }: { type: MeasurementType }) {
             label={phase.index > 0 ? "Předchozí otázka" : "Zavřít dotazník"}
             onPress={stepBack}
           />
-          <Text style={styles.kicker}>{inst.title}</Text>
+          <Text variant="kicker">{inst.title}</Text>
         </View>
 
         {/* progres: text i pruh — informace nikdy jen barvou; pruh je pro
             čtečky dekorativní (text „Otázka X z Y“ už postup nese) */}
         <View>
-          <Text style={styles.progressText}>{`Otázka ${num} z ${total}`}</Text>
+          <Text variant="footnote" weight="semibold" color="textMuted" style={styles.progressText}>
+            {`Otázka ${num} z ${total}`}
+          </Text>
           <View
             accessibilityElementsHidden
             importantForAccessibility="no-hide-descendants"
@@ -182,8 +187,10 @@ function Measure({ type }: { type: MeasurementType }) {
         </View>
 
         <View style={styles.questionBlock}>
-          <Text style={styles.intro}>{inst.intro}</Text>
-          <Text accessibilityRole="header" style={styles.question}>
+          <Text variant="subheadline" color="textMuted" style={styles.intro}>
+            {inst.intro}
+          </Text>
+          <Text accessibilityRole="header" variant="title2">
             {inst.questions[phase.index]}
           </Text>
         </View>
@@ -195,9 +202,16 @@ function Measure({ type }: { type: MeasurementType }) {
               accessibilityRole="button"
               accessibilityHint={`Odpověď na otázku ${num} z ${total}.`}
               onPress={(e) => answer(o.value, e)}
-              style={({ pressed }) => [styles.option, pressed && styles.optionPressed]}
+              {...pressFeedback(theme)}
+              style={({ pressed }) => [
+                styles.option,
+                pressed && styles.optionPressed,
+                pressedStyle(theme, pressed),
+              ]}
             >
-              <Text style={styles.optionLabel}>{o.label}</Text>
+              <Text variant="body" weight="semibold" color="textStrong">
+                {o.label}
+              </Text>
             </Pressable>
           ))}
         </View>
@@ -213,12 +227,12 @@ function Measure({ type }: { type: MeasurementType }) {
       <Screen contentStyle={styles.center}>
         <View style={styles.headBlock}>
           <View style={styles.iconCircle}>
-            <Icon name="heart-handshake" size={26} color={palette.clay700} />
+            <Icon name="heart-handshake" size={26} color={theme.colors.textDanger} />
           </View>
-          <Text accessibilityRole="header" style={styles.title}>
+          <Text accessibilityRole="header" variant="title1" align="center">
             Děkujeme za upřímnost.
           </Text>
-          <Text style={styles.body}>
+          <Text variant="body" align="center">
             Tahle odpověď je důležitá. Nemusíš v tom zůstávat o samotě — pomoc je tu i teď a
             možností je víc, než se může zdát.
           </Text>
@@ -270,13 +284,15 @@ function Measure({ type }: { type: MeasurementType }) {
           />
         ) : (
           <View style={styles.bandBadge}>
-            <Text style={styles.bandLabel}>{band?.label}</Text>
+            <Text variant="body" weight="bold" color="textStrong">
+              {band?.label}
+            </Text>
           </View>
         )}
-        <Text accessibilityRole="header" style={styles.title}>
+        <Text accessibilityRole="header" variant="title1" align="center">
           Hotovo. Díky za chvilku.
         </Text>
-        <Text style={styles.body}>
+        <Text variant="body" align="center">
           {type === "who5"
             ? prevScore === null
               ? "Tvůj výchozí bod. Index uvidíš na Dnes i v Přehledech — vždycky jen vůči tvým vlastním datům."
@@ -284,11 +300,15 @@ function Measure({ type }: { type: MeasurementType }) {
             : band?.text}
         </Text>
         {type !== "who5" ? (
-          <Text style={styles.scoreNote}>
+          <Text variant="footnote" color="textMuted">
             {`${phase.score} ${czPlural(phase.score, ["bod", "body", "bodů"])} z ${inst.maxScore}`}
           </Text>
         ) : null}
-        {trend ? <Text style={styles.trend}>{trend}</Text> : null}
+        {trend ? (
+          <Text variant="footnote" weight="semibold" color="textMuted">
+            {trend}
+          </Text>
+        ) : null}
       </View>
       <View style={styles.actions}>
         <LumiCTA onPress={() => router.back()}>Hotovo</LumiCTA>
@@ -297,94 +317,51 @@ function Measure({ type }: { type: MeasurementType }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((t) => ({
   center: { justifyContent: "center" },
   topRow: { flexDirection: "row", alignItems: "center", gap: 8, marginHorizontal: -6 },
-  kicker: {
-    ...font.body(600),
-    fontSize: type.xxs,
-    letterSpacing: tracking.label(type.xxs),
-    textTransform: "uppercase",
-    color: palette.ink700,
-  },
 
-  progressText: {
-    ...font.body(600),
-    fontSize: type.sm,
-    color: palette.ink700,
-    marginBottom: 6,
-  },
+  progressText: { marginBottom: 6 },
   progressTrack: {
     height: 6,
-    borderRadius: radius.pill,
-    backgroundColor: palette.cream200,
+    borderRadius: t.radius.pill,
+    backgroundColor: t.colors.borderSubtle,
     overflow: "hidden",
   },
-  progressFill: { height: 6, borderRadius: radius.pill, backgroundColor: palette.sun500 },
+  progressFill: { height: 6, borderRadius: t.radius.pill, backgroundColor: t.colors.accentFill },
 
   questionBlock: { marginTop: 10, marginBottom: 4 },
-  intro: {
-    ...font.body(400),
-    fontSize: type.sm,
-    lineHeight: leading.body(type.sm),
-    color: palette.ink700,
-    marginBottom: 8,
-  },
-  question: {
-    ...font.display(700),
-    fontSize: type.lg,
-    lineHeight: leading.snug(type.lg),
-    letterSpacing: tracking.display(type.lg),
-    color: colors.textStrong,
-  },
+  intro: { marginBottom: 8 },
 
   options: { gap: 10 },
   option: {
-    minHeight: 56,
+    minHeight: t.platform.listRowMinHeight,
     justifyContent: "center",
     paddingVertical: 14,
     paddingHorizontal: 18,
-    backgroundColor: colors.surfaceCard,
-    borderRadius: radius.md,
+    backgroundColor: t.colors.surfaceCard,
+    borderRadius: t.radius.md,
     borderWidth: 1.5,
-    borderColor: "transparent",
-    ...shadow.card,
+    borderColor: t.scheme === "dark" ? t.colors.borderSubtle : "transparent",
+    overflow: "hidden",
+    ...t.elevation.card,
   },
-  optionPressed: { borderColor: palette.sun400, transform: [{ scale: 0.99 }] },
-  optionLabel: { ...font.body(600), fontSize: type.base, color: colors.textStrong },
+  optionPressed: { borderColor: t.colors.selectionBorder },
 
   headBlock: { alignItems: "center", gap: 14 },
   iconCircle: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: colors.surfaceSunken,
+    backgroundColor: t.colors.surfaceSunken,
     alignItems: "center",
     justifyContent: "center",
   },
-  title: {
-    ...font.display(700),
-    fontSize: type.xl,
-    lineHeight: leading.tight(type.xl),
-    letterSpacing: tracking.display(type.xl),
-    color: colors.textStrong,
-    textAlign: "center",
-  },
-  body: {
-    ...font.body(400),
-    fontSize: type.base,
-    lineHeight: leading.body(type.base),
-    color: colors.textBody,
-    textAlign: "center",
-  },
-  scoreNote: { ...font.body(400), fontSize: type.sm, color: palette.ink700 },
-  trend: { ...font.body(600), fontSize: type.sm, color: palette.ink700 },
   bandBadge: {
     paddingVertical: 8,
     paddingHorizontal: 18,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceSunken,
+    borderRadius: t.radius.pill,
+    backgroundColor: t.colors.surfaceSunken,
   },
-  bandLabel: { ...font.body(700), fontSize: type.base, color: colors.textStrong },
   actions: { marginTop: 28, gap: 10 },
-});
+}));

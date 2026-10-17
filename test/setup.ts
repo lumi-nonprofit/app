@@ -38,7 +38,10 @@ jest.mock("@react-native-community/datetimepicker", () => {
   const React = jest.requireActual("react");
   const { View } = jest.requireActual("react-native");
   const DateTimePicker = (props: { accessibilityLabel?: string }) =>
-    React.createElement(View, { testID: "datetimepicker", accessibilityLabel: props.accessibilityLabel });
+    React.createElement(View, {
+      testID: "datetimepicker",
+      accessibilityLabel: props.accessibilityLabel,
+    });
   return {
     __esModule: true,
     default: DateTimePicker,

@@ -34,7 +34,11 @@ export function contrastPairs(t: Theme): ContrastPair[] {
   }
   text("textStrong/surfaceSunken", c.textStrong, c.surfaceSunken);
   text("textBody/surfaceSunken", c.textBody, c.surfaceSunken);
-  text("textOnSunken/surfaceSunken (placeholder, badge, disabled CTA)", c.textOnSunken, c.surfaceSunken);
+  text(
+    "textOnSunken/surfaceSunken (placeholder, badge, disabled CTA)",
+    c.textOnSunken,
+    c.surfaceSunken,
+  );
   text("textOnSunken/surfaceCard", c.textOnSunken, c.surfaceCard);
   text("textOnPrimary/surfacePrimary (primary button)", c.textOnPrimary, c.surfacePrimary);
   text("textOnCrisis/surfaceCrisis (crisis button)", c.textOnCrisis, c.surfaceCrisis);

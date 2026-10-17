@@ -2,15 +2,16 @@
    druhá vždy viditelná hned pod ní; tlačítka volají přes tel: odkazy.
    Krizový register: konkrétně, čísla a akce napřed, žádný alarm. */
 import React from "react";
-import { Alert, StyleSheet, Text, View } from "react-native";
+import { Alert, View } from "react-native";
 import { useRouter } from "expo-router";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
-import { Badge, Button, Card, Icon, ListItem } from "../../ds/index";
+import { Badge, Button, Card, Icon, ListItem, Text } from "../../ds";
 import type { IconName } from "../../ds/Icon";
+import type { Tone } from "../../ds";
 import Screen from "../../components/Screen";
 import { LumiHeader, SectionLabel } from "../../components/Header";
-import { palette, colors, radius, font, type, leading } from "../../theme";
+import { createThemedStyles, useTheme } from "../../theme";
 import { HELP_LINES, type HelpLine } from "../../model";
 import { useAppStore } from "../../store";
 import { useDb, useDbVersion } from "../../db/provider";
@@ -19,14 +20,11 @@ import { crisisCardHtml } from "./crisisCard";
 
 const telHref = (phone: string): string => `tel:${phone.replace(/\s/g, "")}`;
 
-/* ikona a tint pro sekce krizového plánu (id z plan.ts → vizuál) */
-const PLAN_VISUALS: Record<
-  PlanSectionId,
-  { icon: IconName; iconTint?: string; iconColor?: string }
-> = {
+/* ikona a tón pro sekce krizového plánu (id z plan.ts → vizuál) */
+const PLAN_VISUALS: Record<PlanSectionId, { icon: IconName; tone?: Tone }> = {
   signals: { icon: "eye" },
-  helps: { icon: "heart", iconTint: colors.positiveSoft, iconColor: palette.sage700 },
-  contacts: { icon: "users", iconTint: colors.infoSoft, iconColor: palette.lake700 },
+  helps: { icon: "heart", tone: "positive" },
+  contacts: { icon: "users", tone: "info" },
 };
 
 interface LineRowProps {
@@ -35,23 +33,29 @@ interface LineRowProps {
 }
 
 function LineRow({ line, primary }: LineRowProps) {
+  const theme = useTheme();
+  const styles = useStyles();
   return (
     <View style={styles.lineRow}>
       <View>
         <View style={styles.lineHead}>
-          <Text style={[styles.lineName, { fontSize: primary ? type.md : type.base }]}>
-            {line.name}
-          </Text>
+          <Text variant={primary ? "title3" : "headline"}>{line.name}</Text>
           {primary ? <Badge tone="danger">tvoje linka</Badge> : null}
         </View>
-        <Text style={styles.lineMeta}>{line.meta}</Text>
+        <Text variant="footnote" color="textMuted" style={styles.lineMeta}>
+          {line.meta}
+        </Text>
       </View>
       <Button
         variant={primary ? "crisis" : "secondary"}
         size={primary ? "md" : "sm"}
         href={telHref(line.phone)}
       >
-        <Icon name="phone" size={17} color={primary ? colors.textOnAccent : colors.textStrong} />
+        <Icon
+          name="phone"
+          size={17}
+          color={primary ? theme.colors.textOnCrisis : theme.colors.textStrong}
+        />
         {`Zavolat ${line.phone}`}
       </Button>
     </View>
@@ -61,6 +65,8 @@ function LineRow({ line, primary }: LineRowProps) {
 export default function HelpScreen() {
   const { state } = useAppStore();
   const router = useRouter();
+  const theme = useTheme();
+  const styles = useStyles();
   const db = useDb();
   const { version } = useDbVersion();
   const age = state.age;
@@ -98,12 +104,14 @@ export default function HelpScreen() {
       {/* krizová karta — primární linka podle věku z onboardingu */}
       <View style={styles.crisisCard}>
         <View style={styles.crisisHead}>
-          <Icon name="heart-handshake" size={20} color={palette.clay700} />
-          <Text style={styles.crisisTitle}>Potřebuješ si promluvit hned?</Text>
+          <Icon name="heart-handshake" size={20} color={theme.colors.textDanger} />
+          <Text variant="headline" color="textDanger" style={styles.flex1}>
+            Potřebuješ si promluvit hned?
+          </Text>
         </View>
         <LineRow line={primary} primary />
         <LineRow line={secondary} />
-        <Text style={styles.crisisNote}>
+        <Text variant="footnote" weight="semibold" color="textDanger" style={styles.crisisNote}>
           Při bezprostředním ohrožení života volej 155 nebo 112.
         </Text>
       </View>
@@ -111,8 +119,10 @@ export default function HelpScreen() {
       {/* krizový plán — tři sekce + tisk kartičky do peněženky */}
       <Card style={styles.planCard}>
         <View style={styles.planHead}>
-          <Text style={styles.planTitle}>Můj krizový plán</Text>
-          <Text style={styles.planSub}>Připrav si kroky, dokud je klid.</Text>
+          <Text variant="headline">Můj krizový plán</Text>
+          <Text variant="footnote" color="textMuted" style={styles.planSub}>
+            Připrav si kroky, dokud je klid.
+          </Text>
         </View>
         {PLAN_SECTIONS.map((s) => {
           const visual = PLAN_VISUALS[s.id];
@@ -121,8 +131,7 @@ export default function HelpScreen() {
             <ListItem
               key={s.id}
               icon={visual.icon}
-              iconTint={visual.iconTint}
-              iconColor={visual.iconColor}
+              tone={visual.tone}
               title={s.title}
               subtitle={filled ? `${s.subtitle} · vyplněno` : s.subtitle}
               onPress={() =>
@@ -133,8 +142,6 @@ export default function HelpScreen() {
         })}
         <ListItem
           icon="printer"
-          iconTint={colors.accentSoft}
-          iconColor={palette.sun700}
           title="Vytisknout kartičku do peněženky"
           subtitle="PDF na přeložení a zalaminování"
           onPress={printCard}
@@ -156,8 +163,7 @@ export default function HelpScreen() {
       <Card style={styles.slimCard}>
         <ListItem
           icon="heart-handshake"
-          iconTint={colors.infoSoft}
-          iconColor={palette.lake700}
+          tone="info"
           title="Pomáháš někomu blízkému?"
           subtitle="Otevři režim pro chvíli, kdy držíš telefon za druhého"
           onPress={() => router.push("/handover")}
@@ -170,24 +176,21 @@ export default function HelpScreen() {
         <Card style={styles.sectionCard}>
           <ListItem
             icon="cloud"
-            iconTint={colors.infoSoft}
-            iconColor={palette.lake700}
+            tone="info"
             title="…přijde úzkost"
             subtitle="Krátké kroky pro tady a teď"
             onPress={() => {}}
           />
           <ListItem
             icon="waves"
-            iconTint={colors.infoSoft}
-            iconColor={palette.lake700}
+            tone="info"
             title="…přijde panika"
             subtitle="Co dělat během vlny"
             onPress={() => {}}
           />
           <ListItem
             icon="cloud-rain"
-            iconTint={colors.infoSoft}
-            iconColor={palette.lake700}
+            tone="info"
             title="…jsou myšlenky těžké"
             subtitle="Nejsi v tom — kde hledat oporu"
             onPress={() => {}}
@@ -201,32 +204,28 @@ export default function HelpScreen() {
         <Card style={styles.sectionCard}>
           <ListItem
             icon="phone"
-            iconTint={colors.dangerSoft}
-            iconColor={palette.clay700}
+            tone="danger"
             title="Linka bezpečí · 116 111"
             subtitle="nonstop, zdarma · děti a studenti do 26 let"
             href={telHref("116 111")}
           />
           <ListItem
             icon="phone"
-            iconTint={colors.dangerSoft}
-            iconColor={palette.clay700}
+            tone="danger"
             title="Linka první psychické pomoci · 116 123"
             subtitle="nonstop, zdarma · dospělí"
             href={telHref("116 123")}
           />
           <ListItem
             icon="phone"
-            iconTint={colors.dangerSoft}
-            iconColor={palette.clay700}
+            tone="danger"
             title="Rodičovská linka · 606 021 021"
             subtitle="Po–Pá 9–21 · rodiče a blízcí dětí"
             href={telHref("606 021 021")}
           />
           <ListItem
             icon="message-circle"
-            iconTint={colors.positiveSoft}
-            iconColor={palette.sage700}
+            tone="positive"
             title="Chat Linky bezpečí"
             subtitle="denně 9–13 a 15–19 · když se nechce mluvit"
             onPress={() => {}}
@@ -237,20 +236,26 @@ export default function HelpScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((t) => ({
+  flex1: { flex: 1 },
   /* karta jedné linky uvnitř krizové sekce */
   lineRow: {
-    backgroundColor: colors.surfaceCard,
-    borderRadius: radius.md,
+    backgroundColor: t.colors.surfaceCard,
+    borderRadius: t.radius.md,
     paddingVertical: 14,
     paddingHorizontal: 16,
     gap: 10,
+    ...t.cardBorder,
   },
   lineHead: { flexDirection: "row", alignItems: "baseline", gap: 8, flexWrap: "wrap" },
-  lineName: { ...font.display(700), color: colors.textStrong },
-  lineMeta: { ...font.body(400), fontSize: type.sm, color: palette.ink700, marginTop: 2 },
+  lineMeta: { marginTop: 2 },
 
-  crisisCard: { backgroundColor: colors.dangerSoft, borderRadius: radius.lg, padding: 16, gap: 10 },
+  crisisCard: {
+    backgroundColor: t.colors.dangerSoft,
+    borderRadius: t.radius.lg,
+    padding: 16,
+    gap: 10,
+  },
   crisisHead: {
     flexDirection: "row",
     alignItems: "center",
@@ -258,22 +263,12 @@ const styles = StyleSheet.create({
     paddingTop: 2,
     paddingHorizontal: 4,
   },
-  crisisTitle: { ...font.display(700), fontSize: type.md, color: palette.clay700 },
-  crisisNote: {
-    paddingTop: 2,
-    paddingHorizontal: 4,
-    paddingBottom: 4,
-    ...font.body(600),
-    fontSize: type.sm,
-    color: palette.clay700,
-    lineHeight: leading.body(type.sm),
-  },
+  crisisNote: { paddingTop: 2, paddingHorizontal: 4, paddingBottom: 4 },
 
   planCard: { paddingTop: 16, paddingHorizontal: 12, paddingBottom: 8 },
   planHead: { paddingHorizontal: 8, paddingBottom: 6 },
-  planTitle: { ...font.display(700), fontSize: type.md, color: colors.textStrong },
-  planSub: { ...font.body(400), fontSize: type.sm, color: palette.ink700, marginTop: 2 },
+  planSub: { marginTop: 2 },
 
   slimCard: { paddingVertical: 8, paddingHorizontal: 12 },
   sectionCard: { paddingVertical: 8, paddingHorizontal: 12, marginTop: 6 },
-});
+}));

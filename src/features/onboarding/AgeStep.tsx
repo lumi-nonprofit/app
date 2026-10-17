@@ -1,16 +1,20 @@
 /* Onboarding 2 — věk (určuje primární krizovou linku) */
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { useRouter } from "expo-router";
+import { Text } from "../../ds";
+import { pressFeedback, pressedStyle } from "../../ds/press";
 import LumiCTA from "../../components/CTA";
 import type { AgeBand } from "../../model";
 import { useAppStore } from "../../store";
-import { palette, colors, radius, font, shadow, type } from "../../theme";
+import { createThemedStyles, useTheme } from "../../theme";
 import { ObShell, ObTitle } from "./Shell";
 
 export default function AgeStep() {
   const { state, patch } = useAppStore();
   const router = useRouter();
+  const theme = useTheme();
+  const styles = useStyles();
   const age = state.age;
   const options: { id: AgeBand; label: string; meta: string }[] = [
     { id: "u26", label: "do 26 let", meta: "Primární linka: Linka bezpečí 116 111" },
@@ -37,18 +41,24 @@ export default function AgeStep() {
               accessibilityRole="radio"
               accessibilityState={{ checked: is }}
               onPress={() => patch({ age: o.id })}
+              {...pressFeedback(theme)}
               style={({ pressed }) => [
                 styles.opt,
                 is && styles.optSelected,
-                pressed && { transform: [{ scale: 0.99 }] },
+                pressedStyle(theme, pressed),
               ]}
             >
+              {/* vybranou volbu nese i tvar (vyplněný terčík) a obrys ≥ 3:1, ne jen barva */}
               <View style={[styles.optRadio, is && styles.optRadioSelected]} accessible={false}>
                 {is ? <View style={styles.optDot} /> : null}
               </View>
               <View style={styles.flex1}>
-                <Text style={styles.optLabel}>{o.label}</Text>
-                <Text style={styles.optMeta}>{o.meta}</Text>
+                <Text variant="body" weight="semibold" color="textStrong">
+                  {o.label}
+                </Text>
+                <Text variant="footnote" color="textMuted" style={styles.optMeta}>
+                  {o.meta}
+                </Text>
               </View>
             </Pressable>
           );
@@ -66,34 +76,33 @@ export default function AgeStep() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((t) => ({
   flex1: { flex: 1 },
-  /* .lumi-opt */
-  optGroup: { flexDirection: "column", gap: 12 },
+  optGroup: { flexDirection: "column", gap: 12, marginBottom: 24 },
   opt: {
     flexDirection: "row",
     alignItems: "center",
     gap: 14,
     padding: 18,
     minHeight: 64,
-    backgroundColor: colors.surfaceCard,
+    backgroundColor: t.colors.surfaceCard,
     borderWidth: 1.5,
-    borderColor: "transparent",
-    borderRadius: radius.lg,
-    ...shadow.card,
+    borderColor: t.scheme === "dark" ? t.colors.borderSubtle : "transparent",
+    borderRadius: t.radius.lg,
+    overflow: "hidden",
+    ...t.elevation.card,
   },
-  optSelected: { borderColor: palette.sun400, ...shadow.glow },
+  optSelected: { borderColor: t.colors.selectionBorder },
   optRadio: {
     width: 24,
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: colors.borderStrong,
+    borderColor: t.colors.borderStrong,
     alignItems: "center",
     justifyContent: "center",
   },
-  optRadioSelected: { borderColor: palette.sun500 },
-  optDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: palette.sun500 },
-  optLabel: { ...font.body(600), fontSize: type.md, color: colors.textStrong },
-  optMeta: { ...font.body(400), fontSize: type.sm, color: palette.ink700, marginTop: 2 },
-});
+  optRadioSelected: { borderColor: t.colors.accentFill },
+  optDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: t.colors.accentFill },
+  optMeta: { marginTop: 2 },
+}));

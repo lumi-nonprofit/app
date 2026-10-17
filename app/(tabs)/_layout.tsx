@@ -5,7 +5,7 @@ import React from "react";
 import { useRouter } from "expo-router";
 import { Tabs, type BottomTabBarProps } from "expo-router/tabs";
 import LumiTabBar, { type TabId } from "../../src/components/TabBar";
-import { colors } from "../../src/theme";
+import { useTheme } from "../../src/theme";
 
 const TAB_FOR_ROUTE: Record<string, TabId> = {
   index: "home",
@@ -28,12 +28,13 @@ function TabBarAdapter({ state, navigation }: BottomTabBarProps) {
 }
 
 export default function TabsLayout() {
+  const theme = useTheme();
   return (
     <Tabs
       tabBar={(props) => <TabBarAdapter {...props} />}
       screenOptions={{
         headerShown: false,
-        sceneStyle: { backgroundColor: colors.surfacePage },
+        sceneStyle: { backgroundColor: theme.colors.surfacePage },
       }}
     >
       <Tabs.Screen name="index" />

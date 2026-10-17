@@ -39,7 +39,11 @@ export function confirm({
     }
     if (Platform.OS === "web") {
       const g = globalThis as { confirm?: (text: string) => boolean };
-      resolve(typeof g.confirm === "function" ? g.confirm([title, message].filter(Boolean).join("\n")) : false);
+      resolve(
+        typeof g.confirm === "function"
+          ? g.confirm([title, message].filter(Boolean).join("\n"))
+          : false,
+      );
       return;
     }
     Alert.alert(

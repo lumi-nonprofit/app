@@ -1,7 +1,11 @@
-/* LumiHeader — hlavička obrazovky (kicker + display titulek), SectionLabel — mikropopisek sekce. */
+/* LumiHeader — obsahový nadpis (kicker + titulek, title2 — o stupeň pod
+   velkým titulkem nativní hlavičky, kterou nese navigátor), SectionLabel —
+   mikropopisek sekce. Oba jsou pro čtečku nadpisy (VoiceOver rotor / TalkBack
+   navigace po nadpisech). */
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { palette, colors, font, leading, tracking, type } from "../theme";
+import { View } from "react-native";
+import { Text } from "../ds";
+import { createThemedStyles } from "../theme";
 
 interface LumiHeaderProps {
   kicker?: string;
@@ -10,11 +14,16 @@ interface LumiHeaderProps {
 }
 
 export function LumiHeader({ kicker, title, trailing }: LumiHeaderProps) {
+  const styles = useStyles();
   return (
     <View style={styles.row}>
-      <View>
-        {kicker ? <Text style={styles.kicker}>{kicker}</Text> : null}
-        <Text accessibilityRole="header" style={styles.title}>
+      <View style={styles.titleColumn}>
+        {kicker ? (
+          <Text variant="kicker" style={styles.kicker}>
+            {kicker}
+          </Text>
+        ) : null}
+        <Text accessibilityRole="header" variant="title2">
           {title}
         </Text>
       </View>
@@ -28,34 +37,26 @@ interface SectionLabelProps {
 }
 
 export function SectionLabel({ children }: SectionLabelProps) {
-  return <Text style={[styles.kicker, styles.sectionLabel]}>{children}</Text>;
+  const styles = useStyles();
+  return (
+    <Text accessibilityRole="header" variant="kicker" style={styles.sectionLabel}>
+      {children}
+    </Text>
+  );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles(() => ({
   row: {
     flexDirection: "row",
     alignItems: "flex-end",
     justifyContent: "space-between",
+    flexWrap: "wrap",
+    gap: 12,
     paddingTop: 6,
     paddingHorizontal: 4,
     paddingBottom: 2,
   },
-  /* .lumi-kicker z app.css */
-  kicker: {
-    ...font.body(600),
-    fontSize: type.xxs,
-    letterSpacing: tracking.label(type.xxs),
-    textTransform: "uppercase",
-    color: palette.ink700,
-    marginBottom: 4,
-  },
-  /* titulek obrazovky: xl — hero na onboardingu zůstává xxl, hlavičky tabů o stupeň níž */
-  title: {
-    ...font.display(700),
-    fontSize: type.xl,
-    letterSpacing: tracking.display(type.xl),
-    color: colors.textStrong,
-    lineHeight: leading.tight(type.xl),
-  },
+  titleColumn: { flexShrink: 1, flexGrow: 1 },
+  kicker: { marginBottom: 4 },
   sectionLabel: { paddingTop: 4, paddingHorizontal: 4, paddingBottom: 0 },
-});
+}));

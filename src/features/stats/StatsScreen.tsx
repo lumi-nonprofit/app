@@ -1,16 +1,19 @@
 /* Přehledy — týden jako tečky (barva + tvar = stav, velikost = intenzita,
-   prázdný den = obrysový kruh), wellbeing index, data pro výzkum.
+   prázdný den = obrysový kruh), vzorce, wellbeing index, hlubší screeningy.
+   Nastavení (sdílení, připomínky, záloha) má vlastní obrazovku.
    Varianty jsou datové: prázdný týden = 0–1 záznam, empatická varianta
    při WHO-5 pod 50 % — žádné alarmy, žádná vina. */
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useRouter } from "expo-router";
-import { Badge, Button, Card, Icon, ListItem, ProgressRing, Switch } from "../../ds/index";
+import { View } from "react-native";
+import { Stack, useRouter } from "expo-router";
+import { Badge, Button, Card, ListItem, ProgressRing, SegmentedControl, Text } from "../../ds";
 import Screen from "../../components/Screen";
 import { LumiHeader, SectionLabel } from "../../components/Header";
+import { headerItems } from "../../components/HeaderItems";
 import MoodShape from "../../components/MoodShape";
-import { palette, colors, radius, font, leading, shadow, type } from "../../theme";
+import { createThemedStyles, useTheme } from "../../theme";
 import {
+  DAY_NAMES,
   INTENSITY_LABELS,
   MOODS,
   MOOD_BY_ID,
@@ -24,16 +27,17 @@ import {
   who5StatsText,
 } from "../../model";
 import type { WeekDay } from "../../model";
-import { useAppStore } from "../../store";
 import { useEntries, useMeasurements } from "../../db/hooks";
 import type { Measurement } from "../../db/repo";
 import { gad7Band, phq9Band, trendText, type Band } from "../measure/scoring";
-import BackupCard from "./BackupCard";
-import RemindersCard from "./RemindersCard";
 import InsightsCard from "./InsightsCard";
 import { isReflectionWindowOpen } from "./reflection";
 
 type Period = "týden" | "měsíc";
+const PERIODS: { value: Period; label: string }[] = [
+  { value: "týden", label: "týden" },
+  { value: "měsíc", label: "měsíc" },
+];
 
 interface DayDotProps {
   day: WeekDay;
@@ -41,6 +45,7 @@ interface DayDotProps {
 
 /* den jako tečka: barva + tvar = stav, velikost = intenzita, prázdný = obrysový kruh */
 function DayDot({ day }: DayDotProps) {
+  const styles = useStyles();
   const mood = day.entry ? MOOD_BY_ID[day.entry.mood] : null;
   const size = day.entry ? 13 + day.entry.intensity * 3.4 : 14;
   /* `mood` existuje právě tehdy, když `day.entry` — podmínka rozšířena jen kvůli zúžení typů */
@@ -63,7 +68,12 @@ function DayDot({ day }: DayDotProps) {
           <MoodShape size={14} outline dashed={day.future} />
         )}
       </View>
-      <Text style={[styles.dayDotLabel, day.today ? styles.dayDotLabelToday : null]}>
+      <Text
+        variant="caption1"
+        weight={day.today ? "bold" : "medium"}
+        color={day.today ? "textAccent" : "textMuted"}
+        maxFontSizeMultiplier={1.6}
+      >
         {day.today ? "dnes" : day.label}
       </Text>
     </View>
@@ -71,17 +81,22 @@ function DayDot({ day }: DayDotProps) {
 }
 
 function MoodLegend() {
+  const styles = useStyles();
   return (
     <View style={styles.legend}>
       {MOODS.map((m) => (
         <View key={m.id} style={styles.legendItem}>
           <MoodShape mood={m} size={11} />
-          <Text style={styles.legendText}>{m.name.toLowerCase()}</Text>
+          <Text variant="caption1" weight="regular">
+            {m.name.toLowerCase()}
+          </Text>
         </View>
       ))}
       <View style={styles.legendItem}>
         <MoodShape size={11} outline />
-        <Text style={styles.legendText}>bez záznamu</Text>
+        <Text variant="caption1" weight="regular">
+          bez záznamu
+        </Text>
       </View>
     </View>
   );
@@ -101,15 +116,28 @@ function deepSubtitle(
   return `Naposledy: ${band(last.score).label}${suffix}`;
 }
 
+/** Popisek buňky měsíční mřížky: „pondělí 6. 10. — Napětí, silně“ / „bez záznamu“. */
+function monthCellLabel(
+  dayIndex: number,
+  iso: string,
+  entry: { mood: keyof typeof MOOD_BY_ID; intensity: number } | null,
+): string {
+  const [, m, d] = iso.split("-");
+  const date = `${DAY_NAMES[dayIndex]} ${Number(d)}. ${Number(m)}.`;
+  return entry
+    ? `${date} — ${MOOD_BY_ID[entry.mood].name}, ${INTENSITY_LABELS[entry.intensity - 1]}`
+    : `${date} — bez záznamu`;
+}
+
 export default function StatsScreen() {
-  const { state, patch } = useAppStore();
   const router = useRouter();
+  const theme = useTheme();
+  const styles = useStyles();
   /* měsíční pohled jde 4 kalendářní týdny zpět — 35 dní rozsah bohatě stačí */
   const monthStart = new Date();
   monthStart.setDate(monthStart.getDate() - 35);
   const entries = useEntries({ from: toISODate(monthStart) });
   const who5 = useMeasurements("who5");
-  const share = state.share;
 
   const phq9 = useMeasurements("phq9");
   const gad7 = useMeasurements("gad7");
@@ -125,39 +153,37 @@ export default function StatsScreen() {
 
   return (
     <Screen>
+      <Stack.Screen
+        options={headerItems(theme, {
+          right: [
+            {
+              label: "Nastavení",
+              icon: "gear",
+              sf: "gearshape",
+              onPress: () => router.push("/settings"),
+            },
+          ],
+        })}
+      />
       <LumiHeader
-        kicker="Přehledy"
         title="Tvůj týden"
         trailing={
-          <View
-            style={styles.seg}
-            accessibilityRole="tablist"
+          <SegmentedControl
+            options={PERIODS}
+            value={period}
+            onChange={setPeriod}
             accessibilityLabel="Období"
             accessibilityHint="Přepíná zobrazení mezi týdnem a měsícem."
-          >
-            {(["týden", "měsíc"] satisfies Period[]).map((p) => (
-              <Pressable
-                key={p}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: period === p }}
-                /* vizuálně 32 pt, hitSlop dorovnává dotykový cíl na ≥ 44 pt */
-                hitSlop={{ top: 6, bottom: 6 }}
-                style={[styles.segBtn, period === p ? styles.segBtnOn : null]}
-                onPress={() => setPeriod(p)}
-              >
-                <Text style={[styles.segBtnText, period === p ? styles.segBtnTextOn : null]}>
-                  {p}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
+          />
         }
       />
 
       {/* kalendář nálad */}
       <Card>
         <View style={styles.cardHead}>
-          <Text style={styles.cardTitle}>Nálada podle dní</Text>
+          <Text accessibilityRole="header" variant="headline">
+            Nálada podle dní
+          </Text>
           <Badge>{period === "týden" ? "tento týden" : "posledních 28 dní"}</Badge>
         </View>
 
@@ -168,7 +194,9 @@ export default function StatsScreen() {
                 <DayDot key={d.label} day={d} />
               ))}
             </View>
-            <Text style={styles.emptyText}>Zatím tu toho moc není — každý zápis se počítá.</Text>
+            <Text variant="body" style={styles.emptyText}>
+              Zatím tu toho moc není — každý zápis se počítá.
+            </Text>
             <Button
               variant="secondary"
               size="sm"
@@ -188,10 +216,16 @@ export default function StatsScreen() {
           <View style={styles.monthGrid}>
             {buildMonth(entries).map((row, w) => (
               <View key={w} style={styles.weekRow}>
-                {row.map((d) => {
+                {row.map((d, i) => {
                   const m = d.entry ? MOOD_BY_ID[d.entry.mood] : null;
                   return (
-                    <View key={d.iso} style={[styles.monthCell, { opacity: d.future ? 0.45 : 1 }]}>
+                    <View
+                      key={d.iso}
+                      accessible
+                      accessibilityRole="image"
+                      accessibilityLabel={monthCellLabel(i, d.iso, d.entry)}
+                      style={[styles.monthCell, { opacity: d.future ? 0.45 : 1 }]}
+                    >
                       {/* `m` existuje právě tehdy, když `d.entry` — podmínka rozšířena jen kvůli zúžení typů */}
                       {d.entry && m ? (
                         <MoodShape mood={m} size={8 + d.entry.intensity * 1.6} />
@@ -229,15 +263,17 @@ export default function StatsScreen() {
           <ProgressRing
             value={measurement ? measurement.score / 100 : 0}
             size={84}
-            color={low ? palette.lake500 : palette.sun500}
+            color={low ? theme.colors.textInfo : undefined}
             label={measurement ? `${measurement.score} %` : "—"}
             sublabel="WHO-5"
           />
           <View style={styles.wellBody}>
-            <Text style={styles.wellTitle}>Wellbeing index</Text>
+            <Text accessibilityRole="header" variant="headline">
+              Wellbeing index
+            </Text>
             {!measurement ? (
               <View>
-                <Text style={[styles.wellText, styles.wellTextSpaced]}>
+                <Text variant="subheadline" color="textMuted" style={styles.wellTextSpaced}>
                   Krátký dotazník (5 otázek) ti nastaví výchozí bod. Bez známek, bez porovnávání.
                 </Text>
                 <Button
@@ -251,7 +287,7 @@ export default function StatsScreen() {
               </View>
             ) : low ? (
               <View>
-                <Text style={styles.wellTextLow}>
+                <Text variant="subheadline" color="textMuted" style={styles.wellTextSpaced}>
                   Poslední dva týdny vypadají náročně. Je v pořádku říct si o podporu.
                 </Text>
                 <View style={styles.lowActions}>
@@ -267,7 +303,11 @@ export default function StatsScreen() {
               </View>
             ) : (
               <View>
-                <Text style={[styles.wellText, who5Due ? styles.wellTextSpaced : null]}>
+                <Text
+                  variant="subheadline"
+                  color="textMuted"
+                  style={[styles.wellText, who5Due ? styles.wellTextSpaced : null]}
+                >
                   {who5StatsText(who5)}
                 </Text>
                 {who5Due ? (
@@ -292,145 +332,55 @@ export default function StatsScreen() {
         <Card style={styles.deepCard}>
           <ListItem
             icon="cloud"
-            iconTint={colors.infoSoft}
-            iconColor={palette.lake700}
+            tone="info"
             title="Nálada do hloubky"
             subtitle={deepSubtitle(phq9, 9, phq9Band)}
             onPress={() => router.push("/measure/phq9")}
           />
           <ListItem
             icon="waves"
-            iconTint={colors.infoSoft}
-            iconColor={palette.lake700}
+            tone="info"
             title="Napětí a obavy do hloubky"
             subtitle={deepSubtitle(gad7, 7, gad7Band)}
             onPress={() => router.push("/measure/gad7")}
           />
         </Card>
-        <Text style={styles.deepNote}>
+        <Text variant="footnote" color="textMuted" style={styles.deepNote}>
           Dobrovolné — jen když chceš. Lumi ti je nikdy nebude připomínat.
         </Text>
       </View>
-
-      {/* data pro výzkum — toggle, výchozí stav vypnuto, žádné dark patterns */}
-      <Card variant="sunken">
-        <View style={styles.shareRow}>
-          <Icon name="shield" size={20} color={palette.lake700} style={styles.shareIcon} />
-          <View style={styles.shareBody}>
-            <Text style={styles.shareTitle}>Data pro výzkum</Text>
-            <Text style={styles.shareText}>
-              Tvoje záznamy zůstávají v telefonu. Pro výzkum je sdílíme jen anonymně a jen pokud to
-              dovolíš.
-            </Text>
-            <Switch
-              checked={share}
-              onChange={(v) => patch({ share: v })}
-              label={share ? "Sdílení zapnuto" : "Sdílení vypnuto"}
-            />
-          </View>
-        </View>
-      </Card>
-
-      {/* připomínky — denní pozvání k zápisu, vše opt-in */}
-      <RemindersCard />
-
-      {/* záloha — export/import záznamů */}
-      <BackupCard />
     </Screen>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((t) => ({
   selfStart: { alignSelf: "flex-start" },
   dayDot: { flex: 1, alignItems: "center", gap: 7 },
   dayDotShape: { height: 32, alignItems: "center", justifyContent: "center" },
-  dayDotLabel: { ...font.body(500), fontSize: type.xs, color: palette.ink700 },
-  dayDotLabelToday: { ...font.body(700), color: palette.sun700 },
-
-  /* segmentový přepínač období (.lumi-seg z app.css) */
-  seg: {
-    flexDirection: "row",
-    backgroundColor: colors.surfaceSunken,
-    borderRadius: radius.pill,
-    padding: 3,
-    gap: 2,
-  },
-  segBtn: {
-    paddingVertical: 6,
-    paddingHorizontal: 13,
-    minHeight: 32,
-    borderRadius: radius.pill,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  segBtnOn: { backgroundColor: colors.surfaceCard, ...shadow.card },
-  segBtnText: { ...font.body(600), fontSize: type.sm, color: palette.ink700 },
-  segBtnTextOn: { color: colors.textStrong },
 
   cardHead: {
     flexDirection: "row",
+    flexWrap: "wrap",
     justifyContent: "space-between",
     alignItems: "baseline",
+    gap: 8,
     marginBottom: 12,
   },
-  cardTitle: { ...font.body(600), color: colors.textStrong, fontSize: type.base },
 
   weekRow: { flexDirection: "row", gap: 4 },
   monthGrid: { gap: 10 },
   monthCell: { flex: 1, flexDirection: "row", justifyContent: "center" },
 
-  emptyText: {
-    ...font.body(400),
-    fontSize: type.base,
-    color: colors.textBody,
-    lineHeight: leading.body(type.base),
-    marginTop: 16,
-    marginBottom: 12,
-  },
+  emptyText: { marginTop: 16, marginBottom: 12 },
 
   legend: { flexDirection: "row", gap: 12, flexWrap: "wrap", marginTop: 14 },
   legendItem: { flexDirection: "row", alignItems: "center", gap: 5 },
-  legendText: { ...font.body(400), fontSize: type.xs, color: palette.ink700 },
 
   wellRow: { flexDirection: "row", alignItems: "center", gap: 16 },
   wellBody: { flex: 1 },
-  wellTitle: { ...font.body(600), color: colors.textStrong, fontSize: type.base },
-  wellText: {
-    ...font.body(400),
-    fontSize: type.sm,
-    color: palette.ink700,
-    lineHeight: leading.body(type.sm),
-    marginTop: 2,
-  },
-  wellTextSpaced: { marginBottom: 10 },
+  wellText: { marginTop: 2 },
+  wellTextSpaced: { marginTop: 2, marginBottom: 10 },
   lowActions: { flexDirection: "row", flexWrap: "wrap", gap: 8, alignSelf: "flex-start" },
   deepCard: { paddingVertical: 8, paddingHorizontal: 12, marginTop: 6 },
-  deepNote: {
-    ...font.body(400),
-    fontSize: type.xs,
-    lineHeight: leading.body(type.xs),
-    color: palette.ink500,
-    marginTop: 8,
-    paddingHorizontal: 4,
-  },
-  wellTextLow: {
-    ...font.body(400),
-    fontSize: type.sm,
-    color: palette.ink700,
-    lineHeight: leading.body(type.sm),
-    marginTop: 2,
-    marginBottom: 10,
-  },
-
-  shareRow: { flexDirection: "row", gap: 12, alignItems: "flex-start" },
-  shareIcon: { marginTop: 2 },
-  shareBody: { flex: 1 },
-  shareTitle: { ...font.body(600), fontSize: type.base, color: colors.textStrong, marginBottom: 2 },
-  shareText: {
-    ...font.body(400),
-    fontSize: type.sm,
-    color: palette.ink700,
-    lineHeight: leading.body(type.sm),
-    marginBottom: 12,
-  },
-});
+  deepNote: { marginTop: 8, paddingHorizontal: 4 },
+}));

@@ -16,7 +16,7 @@ async function openBlindSetup(): Promise<User> {
   const user = userEvent.setup();
   writeProfile(getTestDb(), { onboarded: true, name: "Janko", age: "u26", share: false });
   await renderRouter("app");
-  await user.press(await screen.findByRole("button", { name: "Klid" }));
+  await user.press(await screen.findByRole("tab", { name: "Klid" }));
   await user.press(await screen.findByText("Dech naslepo"));
   // setup je vidět, odpočet zatím ne
   expect(await screen.findByText(/Telefon můžeš nechat v kapse/)).toBeOnTheScreen();

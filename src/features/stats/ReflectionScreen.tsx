@@ -3,9 +3,8 @@
    nejčastější slova a max 2 nálezy. Žádné hodnocení, žádné srovnávání —
    jen co tu je, plus poděkování za všímavost. */
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { useRouter } from "expo-router";
-import { Card, IconButton } from "../../ds/index";
+import { View } from "react-native";
+import { Card, Text } from "../../ds";
 import Screen from "../../components/Screen";
 import { LumiHeader, SectionLabel } from "../../components/Header";
 import MoodShape from "../../components/MoodShape";
@@ -24,7 +23,7 @@ import {
   type Entry,
   type ISODate,
 } from "../../model";
-import { colors, font, leading, palette, radius, type } from "../../theme";
+import { createThemedStyles } from "../../theme";
 
 /** 7 ISO dnů reflektovaného týdne od pondělí `from`; poledne kvůli změnám času. */
 function weekDates(from: ISODate): ISODate[] {
@@ -54,6 +53,7 @@ interface ReflectionDayProps {
 /* den jako tečka — stejné kódování jako v Přehledech: barva + tvar = stav,
    velikost = intenzita, prázdný den = obrysový kruh (nikdy jen barva) */
 function ReflectionDay({ index, dayEntries }: ReflectionDayProps) {
+  const styles = useStyles();
   const agg = aggregateDay(dayEntries);
   const mood = agg ? MOOD_BY_ID[agg.mood] : null;
   /* `mood` existuje právě tehdy, když `agg` — podmínka rozšířena jen kvůli zúžení typů */
@@ -76,13 +76,15 @@ function ReflectionDay({ index, dayEntries }: ReflectionDayProps) {
           <MoodShape size={14} outline />
         )}
       </View>
-      <Text style={styles.dayLabel}>{DAY_LETTERS[index]}</Text>
+      <Text variant="caption1" maxFontSizeMultiplier={1.6}>
+        {DAY_LETTERS[index]}
+      </Text>
     </View>
   );
 }
 
 export default function ReflectionScreen() {
-  const router = useRouter();
+  const styles = useStyles();
   /* okamžik otevření drží rozsah i titulek stabilní po celý život obrazovky */
   const [now] = React.useState(() => new Date());
   const range = reflectionWeekRange(now);
@@ -95,20 +97,9 @@ export default function ReflectionScreen() {
 
   return (
     <Screen>
-      <View style={styles.topRow}>
-        <IconButton
-          icon="arrow-left"
-          label="Zpět"
-          accessibilityHint="Zavře ohlédnutí za týdnem."
-          onPress={() => router.back()}
-        />
-      </View>
-
-      {/* v neděli se ohlížíme za právě končícím týdnem — „minulý“ by mátl */}
-      <LumiHeader
-        kicker="Ohlédnutí"
-        title={now.getDay() === 0 ? "Tvůj týden" : "Tvůj minulý týden"}
-      />
+      {/* v neděli se ohlížíme za právě končícím týdnem — „minulý“ by mátl;
+          titulek „Ohlédnutí“ a Zpět nese nativní hlavička */}
+      <LumiHeader title={now.getDay() === 0 ? "Tvůj týden" : "Tvůj minulý týden"} />
 
       {/* tečky dní + počet záznamů */}
       <Card>
@@ -117,7 +108,7 @@ export default function ReflectionScreen() {
             <ReflectionDay key={iso} index={i} dayEntries={entries.filter((e) => e.date === iso)} />
           ))}
         </View>
-        <Text style={styles.countText}>
+        <Text variant="subheadline" weight="medium" color="textMuted" style={styles.countText}>
           {`Celkem ${count} ${czPlural(count, ["záznam", "záznamy", "záznamů"])}.`}
         </Text>
       </Card>
@@ -130,7 +121,9 @@ export default function ReflectionScreen() {
             <View style={styles.wordsRow}>
               {words.map((w) => (
                 <View key={w} style={styles.wordPill}>
-                  <Text style={styles.wordText}>{w}</Text>
+                  <Text variant="subheadline" weight="medium" color="textOnSunken">
+                    {w}
+                  </Text>
                 </View>
               ))}
             </View>
@@ -145,61 +138,36 @@ export default function ReflectionScreen() {
           {insights.length ? (
             insights.map((i) => <InsightRow key={i.id} insight={i} />)
           ) : (
-            <Text style={styles.emptyText}>{TOO_FEW_DATA_TEXT}</Text>
+            <Text variant="subheadline" color="textMuted">
+              {TOO_FEW_DATA_TEXT}
+            </Text>
           )}
         </Card>
       </View>
 
-      <Text style={styles.closing}>Ať byl týden jakýkoliv, díky, že si ho všímáš.</Text>
+      <Text variant="footnote" color="textMuted" align="center" style={styles.closing}>
+        Ať byl týden jakýkoliv, díky, že si ho všímáš.
+      </Text>
     </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  topRow: { flexDirection: "row", alignItems: "center" },
-
+const useStyles = createThemedStyles((t) => ({
   weekRow: { flexDirection: "row", gap: 4 },
   day: { flex: 1, alignItems: "center", gap: 7 },
   dayShape: { height: 32, alignItems: "center", justifyContent: "center" },
-  dayLabel: { ...font.body(500), fontSize: type.xs, color: palette.ink700 },
-  countText: {
-    ...font.body(500),
-    fontSize: type.sm,
-    lineHeight: leading.body(type.sm),
-    color: palette.ink700,
-    marginTop: 14,
-  },
+  countText: { marginTop: 14 },
 
   wordsCard: { marginTop: 6 },
   wordsRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   wordPill: {
     paddingVertical: 7,
     paddingHorizontal: 14,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceSunken,
-  },
-  wordText: {
-    ...font.body(500),
-    fontSize: type.sm,
-    lineHeight: leading.body(type.sm),
-    color: colors.textBody,
+    borderRadius: t.radius.pill,
+    backgroundColor: t.colors.surfaceSunken,
   },
 
   insightsCard: { marginTop: 6, gap: 12 },
-  emptyText: {
-    ...font.body(400),
-    fontSize: type.sm,
-    lineHeight: leading.body(type.sm),
-    color: palette.ink500,
-  },
 
-  closing: {
-    ...font.body(400),
-    fontSize: type.sm,
-    lineHeight: leading.body(type.sm),
-    color: palette.ink500,
-    textAlign: "center",
-    paddingHorizontal: 16,
-    marginTop: 4,
-  },
-});
+  closing: { paddingHorizontal: 16, marginTop: 4 },
+}));

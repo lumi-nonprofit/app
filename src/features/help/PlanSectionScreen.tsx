@@ -3,17 +3,17 @@
    žádné hodnocení obsahu, žádný tlak — text je čistě uživatelův a zůstává
    v telefonu. Neplatná sekce v URL → zpět do Pomoci. */
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { View } from "react-native";
 import { Redirect, useLocalSearchParams, useRouter } from "expo-router";
-import { Input, IconButton } from "../../ds/index";
-import LumiCTA from "../../components/CTA";
+import { Button, Input, Text } from "../../ds";
 import Screen from "../../components/Screen";
 import { LumiHeader } from "../../components/Header";
 import { useDb } from "../../db/provider";
 import { useDbWriter } from "../../db/hooks";
 import { getSetting, setSetting } from "../../db/repo";
+import { useDiscardGuard } from "../../lib/useDiscardGuard";
 import { PLAN_SECTIONS, PLAN_SECTION_KEYS, isPlanSectionId, type PlanSectionId } from "./plan";
-import { colors, font, leading, type } from "../../theme";
+import { createThemedStyles } from "../../theme";
 
 export default function PlanSectionScreen() {
   const { section } = useLocalSearchParams<{ section?: string }>();
@@ -26,34 +26,36 @@ function PlanSection({ section }: { section: PlanSectionId }) {
   const router = useRouter();
   const db = useDb();
   const write = useDbWriter();
+  const styles = useStyles();
 
   const meta = PLAN_SECTIONS.find((s) => s.id === section);
   const key = PLAN_SECTION_KEYS[section];
 
   /* počáteční hodnota se čte jednou při otevření (lazy initializer) */
-  const [value, setValue] = React.useState<string>(() => getSetting<string>(db, key) ?? "");
+  const [initial] = React.useState<string>(() => getSetting<string>(db, key) ?? "");
+  const [value, setValue] = React.useState<string>(initial);
+  /* Zpět s neuloženou změnou se nejdřív zeptá; Uložit odchází bez dotazu */
+  const { leave } = useDiscardGuard({
+    dirty: value.trim() !== initial.trim(),
+    title: "Zahodit změny v plánu?",
+    message: "Text v této sekci se neuloží.",
+  });
 
   /* meta je vždy nalezeno (section prošlo isPlanSectionId) — pojistka pro TS */
   if (!meta) return <Redirect href="/help" />;
 
   const save = () => {
     write((d) => setSetting(d, key, value.trim()));
-    router.back();
+    leave(() => router.back());
   };
 
   return (
-    <Screen>
-      <View style={styles.topRow}>
-        <IconButton
-          icon="arrow-left"
-          label="Zpět bez uložení"
-          accessibilityHint="Vrátí se do Pomoci a změny v této sekci neuloží."
-          onPress={() => router.back()}
-        />
-      </View>
-
-      <LumiHeader kicker="Krizový plán" title={meta.title} />
-      <Text style={styles.subtitle}>{meta.subtitle}</Text>
+    <Screen keyboard>
+      {/* titulek „Krizový plán“ a systémové Zpět nese nativní hlavička */}
+      <LumiHeader title={meta.title} />
+      <Text variant="body" color="textMuted" style={styles.subtitle}>
+        {meta.subtitle}
+      </Text>
 
       {/* viditelný titulek nese LumiHeader výš — Inputu dáme jen přístupný
           popisek (jinak by se titulek opakoval dvakrát) */}
@@ -68,20 +70,15 @@ function PlanSection({ section }: { section: PlanSectionId }) {
       />
 
       <View style={styles.actions}>
-        <LumiCTA onPress={save}>Uložit</LumiCTA>
+        <Button size="lg" fullWidth onPress={save}>
+          Uložit
+        </Button>
       </View>
     </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  topRow: { flexDirection: "row", alignItems: "center", marginHorizontal: -6 },
-  subtitle: {
-    ...font.body(400),
-    fontSize: type.base,
-    lineHeight: leading.body(type.base),
-    color: colors.textMuted,
-    paddingHorizontal: 4,
-  },
+const useStyles = createThemedStyles(() => ({
+  subtitle: { paddingHorizontal: 4 },
   actions: { marginTop: 8 },
-});
+}));

@@ -1,8 +1,11 @@
-/* ProgressRing — kruhový ukazatel se zaobleným koncem; kanonické zobrazení WHO-5 indexu.
-   Statický (bez animace). */
-import { StyleSheet, Text, View } from "react-native";
+/* ProgressRing — kruhový ukazatel se zaobleným koncem; kanonické zobrazení WHO-5
+   indexu. Statický (bez animace). Pro čtečku je to progressbar s hodnotou;
+   popisek v kruhu škáluje s průměrem i se systémovou velikostí písma (max 1,3×,
+   jinak by se číslo nevešlo do kruhu — proto allowFontScaling vypnuté). */
+import { PixelRatio, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
-import { colors, palette, font, tracking } from "../theme";
+import { createThemedStyles, useTheme } from "../theme";
+import Text from "./Text";
 
 interface Props {
   /** 0–1; mimo rozsah se ořízne */
@@ -15,59 +18,94 @@ interface Props {
   sublabel?: string;
   labelColor?: string;
   sublabelColor?: string;
+  /** Popis pro čtečku, např. „Wellbeing index“ (hodnota se doplní automaticky). */
+  accessibilityLabel?: string;
 }
 
 export default function ProgressRing({
   value = 0,
   size = 72,
   stroke = 8,
-  color = palette.sun500,
-  track = palette.cream100,
+  color,
+  track,
   label,
   sublabel,
-  labelColor = colors.textStrong,
-  sublabelColor = colors.textMuted,
+  labelColor,
+  sublabelColor,
+  accessibilityLabel,
 }: Props) {
+  const theme = useTheme();
+  const styles = useStyles();
+  const clamped = Math.max(0, Math.min(1, value));
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
-  const off = c * (1 - Math.max(0, Math.min(1, value)));
-  /* Záměrně mimo typografickou škálu: velikosti popisků se odvozují
-     z průměru kruhu, aby škálovaly spolu s ringem. */
-  const labelSize = size / 4.2;
+  const off = c * (1 - clamped);
+  /* Záměrně mimo typografickou škálu: velikosti popisků se odvozují z průměru
+     kruhu; při větším systémovém písmu roste i kruh (max 1,3×). */
+  const scale = Math.min(1.3, PixelRatio.getFontScale());
+  const dim = Math.round(size * scale);
+  const labelSize = dim / 4.2;
+  const percent = Math.round(clamped * 100);
   return (
-    <View style={{ width: size, height: size }}>
-      <Svg width={size} height={size} style={styles.svg}>
-        <Circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={track} strokeWidth={stroke} />
+    <View
+      style={{ width: dim, height: dim }}
+      accessible
+      accessibilityRole="progressbar"
+      accessibilityLabel={accessibilityLabel ?? sublabel ?? label}
+      accessibilityValue={{ min: 0, max: 100, now: percent }}
+    >
+      <Svg width={dim} height={dim} style={styles.svg}>
         <Circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
+          cx={dim / 2}
+          cy={dim / 2}
+          r={(r * dim) / size}
           fill="none"
-          stroke={color}
+          stroke={
+            track ??
+            (theme.scheme === "dark" ? theme.colors.surfaceElevated : theme.colors.surfaceSunken)
+          }
+          strokeWidth={stroke}
+        />
+        <Circle
+          cx={dim / 2}
+          cy={dim / 2}
+          r={(r * dim) / size}
+          fill="none"
+          stroke={color ?? theme.colors.accentFill}
           strokeWidth={stroke}
           strokeLinecap="round"
-          strokeDasharray={[c, c]}
-          strokeDashoffset={off}
+          strokeDasharray={[(c * dim) / size, (c * dim) / size]}
+          strokeDashoffset={(off * dim) / size}
         />
       </Svg>
       <View style={styles.overlay}>
         {label ? (
           <Text
-            style={[
-              styles.label,
-              {
-                color: labelColor,
-                fontSize: labelSize,
-                letterSpacing: tracking.display(labelSize),
-              },
-            ]}
+            variant="title2"
+            tabular
+            align="center"
+            allowFontScaling={false}
+            style={{
+              fontSize: labelSize,
+              lineHeight: Math.round(labelSize * 1.2),
+              letterSpacing: -0.02 * labelSize,
+              color: labelColor ?? theme.colors.textStrong,
+            }}
           >
             {label}
           </Text>
         ) : null}
         {sublabel ? (
           <Text
-            style={[styles.sublabel, { fontSize: Math.max(10, size / 7.5), color: sublabelColor }]}
+            variant="caption1"
+            weight="regular"
+            align="center"
+            allowFontScaling={false}
+            style={{
+              fontSize: Math.max(10, dim / 7.5),
+              lineHeight: Math.round(Math.max(10, dim / 7.5) * 1.3),
+              color: sublabelColor ?? theme.colors.textMuted,
+            }}
           >
             {sublabel}
           </Text>
@@ -77,7 +115,7 @@ export default function ProgressRing({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles(() => ({
   svg: { transform: [{ rotate: "-90deg" }] },
   overlay: {
     position: "absolute",
@@ -88,6 +126,4 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  label: { ...font.display(700), fontVariant: ["tabular-nums"], textAlign: "center" },
-  sublabel: { ...font.body(400), textAlign: "center" },
-});
+}));

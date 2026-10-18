@@ -1,15 +1,18 @@
-/* Připomínky v Přehledech: denní pozvání k zápisu jako lokální notifikace
+/* Připomínky (Nastavení): denní pozvání k zápisu jako lokální notifikace
    (plánování viz ./reminders), volitelná Večerka a nedělní ohlédnutí.
    Vše opt-in s výchozím stavem vypnuto; o povolení notifikací se žádá až
-   při zapnutí přepínače. Žádné výčitky, žádné streaky — jen jemné pozvání. */
+   při zapnutí přepínače (HIG Privacy: v kontextu funkce). Při zamítnutí
+   vede tlačítko do systémového nastavení. Žádné výčitky, žádné streaky. */
 import React from "react";
-import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, View } from "react-native";
 import DateTimePicker, { type DateTimePickerEvent } from "@react-native-community/datetimepicker";
-import { Card, Icon, Switch } from "../../ds/index";
+import { Button, Card, Icon, Switch, Text } from "../../ds";
+import { pressFeedback, pressedStyle } from "../../ds/press";
 import { SectionLabel } from "../../components/Header";
 import { useDb } from "../../db/provider";
 import { useDbWriter } from "../../db/hooks";
 import { getSetting, setSetting } from "../../db/repo";
+import { announce } from "../../lib/a11y";
 import {
   DEFAULT_REMINDER_TIME,
   EVENING_ENABLED_KEY,
@@ -19,20 +22,23 @@ import {
   cancelDailyReminder,
   cancelEveningReminder,
   cancelWeeklyReflection,
+  openSystemNotificationSettings,
   requestReminderPermission,
   scheduleDailyReminder,
   scheduleEveningReminder,
   scheduleWeeklyReflection,
   type ReminderTime,
 } from "./reminders";
-import { colors, font, leading, palette, radius, type } from "../../theme";
+import { createThemedStyles, useTheme } from "../../theme";
 
 /** { hour: 19, minute: 0 } → "19:00" */
 const formatTime = (t: ReminderTime): string => `${t.hour}:${String(t.minute).padStart(2, "0")}`;
 
-export default function RemindersCard() {
+export default function RemindersSection() {
   const db = useDb();
   const write = useDbWriter();
+  const theme = useTheme();
+  const styles = useStyles();
 
   /* stav přepínačů žije v settings tabulce — inicializace přímým čtením */
   const [enabled, setEnabled] = React.useState<boolean>(
@@ -62,8 +68,9 @@ export default function RemindersCard() {
     }
     const granted = await requestReminderPermission();
     if (!granted) {
-      /* bez povolení přepínač zůstává vypnutý; vysvětlení bez výčitek */
+      /* bez povolení přepínač zůstává vypnutý; vysvětlení bez výčitek + cesta do systému */
       setDenied(true);
+      announce("Bez povolení notifikací to nepůjde. Povol je v nastavení systému.");
       return;
     }
     setDenied(false);
@@ -105,19 +112,25 @@ export default function RemindersCard() {
 
   return (
     <View>
-      <SectionLabel>Připomínka</SectionLabel>
+      <SectionLabel>Připomínky</SectionLabel>
       <Card style={styles.card}>
         <Switch
           checked={enabled}
           onChange={(v) => void toggleMain(v)}
           label="Denní připomínka"
+          description="Jemné pozvání k zápisu, jednou denně."
           accessibilityHint="Naplánuje každodenní jemné pozvání k zápisu."
         />
 
         {denied ? (
-          <Text style={styles.denied}>
-            Bez povolení notifikací to nepůjde — povol je v nastavení systému.
-          </Text>
+          <View style={styles.denied}>
+            <Text variant="subheadline">
+              Bez povolení notifikací to nepůjde — povol je v nastavení systému.
+            </Text>
+            <Button variant="secondary" size="sm" onPress={openSystemNotificationSettings}>
+              Otevřít nastavení systému
+            </Button>
+          </View>
         ) : null}
 
         <Pressable
@@ -127,10 +140,13 @@ export default function RemindersCard() {
             picking ? "Zavře výběr času připomínky." : "Otevře výběr času denní připomínky."
           }
           onPress={() => setPicking((p) => !p)}
-          style={({ pressed }) => [styles.timeRow, pressed ? styles.timeRowPressed : null]}
+          {...pressFeedback(theme)}
+          style={({ pressed }) => [styles.timeRow, pressedStyle(theme, pressed)]}
         >
-          <Text style={styles.timeLabel}>Čas: {formatTime(time)}</Text>
-          <Icon name="chevron-right" size={18} color={palette.ink500} />
+          <Text variant="body" weight="semibold" color="textStrong">
+            Čas: {formatTime(time)}
+          </Text>
+          <Icon name="chevron-right" size={18} color={theme.colors.textOnSunken} />
         </Pressable>
 
         {picking ? (
@@ -150,48 +166,42 @@ export default function RemindersCard() {
               checked={evening}
               onChange={(v) => void toggleEvening(v)}
               label="Večerka ve 21:00"
+              description="Pozvání ke klidnému usínání."
               accessibilityHint="Každý večer pozvání ke klidnému usínání."
             />
             <Switch
               checked={weekly}
               onChange={(v) => void toggleWeekly(v)}
               label="Nedělní ohlédnutí za týdnem"
+              description="V neděli v 17:00."
               accessibilityHint="Každou neděli v 17:00 pozvání k ohlédnutí za týdnem."
             />
           </View>
         ) : null}
 
-        <Text style={styles.note}>Jen jemné pozvání — žádné výčitky, když zápis vynecháš.</Text>
+        <Text variant="footnote" color="textMuted">
+          Jen jemné pozvání — žádné výčitky, když zápis vynecháš. Na zamčené obrazovce se text
+          nezobrazuje.
+        </Text>
       </Card>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((t) => ({
   card: { marginTop: 6, gap: 12 },
-  denied: {
-    ...font.body(400),
-    fontSize: type.sm,
-    lineHeight: leading.body(type.sm),
-    color: palette.ink700,
-  },
+  denied: { gap: 10 },
   /* řádek s časem: sunken pozadí + šipka = klikatelnost není jen barvou */
   timeRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    minHeight: 44,
+    gap: 8,
+    minHeight: t.platform.minTouch,
     paddingHorizontal: 14,
-    borderRadius: radius.sm,
-    backgroundColor: colors.surfaceSunken,
+    borderRadius: t.radius.sm,
+    backgroundColor: t.colors.surfaceSunken,
+    overflow: "hidden",
   },
-  timeRowPressed: { transform: [{ scale: 0.99 }] },
-  timeLabel: { ...font.body(600), fontSize: type.base, color: colors.textStrong },
   subToggles: { gap: 12 },
-  note: {
-    ...font.body(400),
-    fontSize: type.xs,
-    lineHeight: leading.body(type.xs),
-    color: palette.ink500,
-  },
-});
+}));

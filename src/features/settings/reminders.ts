@@ -1,4 +1,4 @@
-/* Lokální připomínky (expo-notifications) — jen plánované lokální
+/* Lokální připomínky (expo-notifications; nastavení v Nastavení) — jen plánované lokální
    notifikace, žádný push token, žádná zmínka o zmeškání. Texty gentle
    a rodově neutrální, rotují podle dne v týdnu. O povolení se žádá až
    při zapnutí přepínače, nikdy při startu aplikace.
@@ -8,7 +8,7 @@
    notifikace (tohle) fungují v development buildu, který appka stejně
    potřebuje kvůli SQLCipheru. V Expo Go se objeví varování a notifikace
    se nenaplánuje — proto vždy testovat na dev buildu. */
-import { Platform } from "react-native";
+import { Linking, Platform } from "react-native";
 import * as Notifications from "expo-notifications";
 
 export const REMINDER_ENABLED_KEY = "reminder-enabled";
@@ -29,6 +29,33 @@ export const REMINDER_TEXTS = [
   "Jak je ti dnes?",
   "Lumi je tu, kdyby bylo potřeba se zastavit.",
 ];
+
+/* Android: vlastní kanál „Připomínky“ s běžnou důležitostí a soukromým
+   zobrazením na zamčené obrazovce — obsah o duševním zdraví nikdy na zámku
+   (Android guides: notifications → lock-screen visibility private). */
+export const REMINDER_CHANNEL_ID = "reminders";
+let channelReady = false;
+async function ensureChannel(): Promise<void> {
+  if (channelReady || Platform.OS !== "android") return;
+  channelReady = true;
+  try {
+    await Notifications.setNotificationChannelAsync(REMINDER_CHANNEL_ID, {
+      name: "Připomínky",
+      importance: Notifications.AndroidImportance.DEFAULT,
+      lockscreenVisibility: Notifications.AndroidNotificationVisibility.PRIVATE,
+      enableVibrate: false,
+      sound: null,
+    });
+  } catch {
+    channelReady = false;
+  }
+}
+const channelId = Platform.OS === "android" ? REMINDER_CHANNEL_ID : undefined;
+
+/** Když je povolení zamítnuté, jediná cesta vede přes systémové nastavení. */
+export function openSystemNotificationSettings(): void {
+  Linking.openSettings().catch(() => {});
+}
 
 const DAILY_ID_PREFIX = "lumi-reminder-";
 const EVENING_ID = "lumi-evening";
@@ -71,6 +98,7 @@ async function cancelByIds(ids: string[]): Promise<void> {
 /** Naplánuje denní připomínku: 7 týdenních notifikací s rotujícími texty. */
 export async function scheduleDailyReminder(time: ReminderTime): Promise<void> {
   await cancelDailyReminder();
+  await ensureChannel();
   for (let weekday = 1; weekday <= 7; weekday++) {
     await Notifications.scheduleNotificationAsync({
       identifier: `${DAILY_ID_PREFIX}${weekday}`,
@@ -80,6 +108,7 @@ export async function scheduleDailyReminder(time: ReminderTime): Promise<void> {
         weekday, // expo-notifications WEEKLY: 1 = neděle … 7 = sobota (na rozdíl od JS Date.getDay(): 0 = neděle … 6 = sobota)
         hour: time.hour,
         minute: time.minute,
+        channelId,
       },
     });
   }
@@ -92,6 +121,7 @@ export async function cancelDailyReminder(): Promise<void> {
 /** Volitelná Večerka ve 21:00 — pozvání ke klidnému usínání. */
 export async function scheduleEveningReminder(): Promise<void> {
   await cancelEveningReminder();
+  await ensureChannel();
   await Notifications.scheduleNotificationAsync({
     identifier: EVENING_ID,
     content: { title: "Lumi", body: "Večerka — klidné usínání, kdyby se hodilo." },
@@ -99,6 +129,7 @@ export async function scheduleEveningReminder(): Promise<void> {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,
       hour: 21,
       minute: 0,
+      channelId,
     },
   });
 }
@@ -110,6 +141,7 @@ export async function cancelEveningReminder(): Promise<void> {
 /** Volitelné nedělní ohlédnutí za týdnem (17:00). */
 export async function scheduleWeeklyReflection(): Promise<void> {
   await cancelWeeklyReflection();
+  await ensureChannel();
   await Notifications.scheduleNotificationAsync({
     identifier: WEEKLY_ID,
     content: { title: "Lumi", body: "Ohlédnutí za týdnem je připravené." },
@@ -118,6 +150,7 @@ export async function scheduleWeeklyReflection(): Promise<void> {
       weekday: 1, // neděle
       hour: 17,
       minute: 0,
+      channelId,
     },
   });
 }

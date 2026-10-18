@@ -1,9 +1,9 @@
-/* Onboarding 1 — přivítání + jméno */
+/* Onboarding 1 — přivítání + jméno (nepovinné; bez něj Lumi oslovuje neutrálně).
+   HIG Onboarding: rychlý, přeskočitelný; multi-step tlačítka Začít → Pokračovat → Hotovo. */
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { useRouter } from "expo-router";
-import { Input } from "../../ds/index";
-import LumiCTA from "../../components/CTA";
+import { Button, Input } from "../../ds";
 import LumiMark from "../../components/LumiMark";
 import { useAppStore } from "../../store";
 import { ObShell, ObTitle } from "./Shell";
@@ -19,20 +19,20 @@ export default function NameStep() {
         body="Pomůžu ti všímat si, jak se máš, a hledat, co ti dělá dobře. Všechno zůstává u tebe."
       />
       <Input
-        label="Jak ti máme říkat?"
+        label="Jak ti říkat?"
         placeholder="Třeba Alex"
-        hint="Jen pro oslovení — nikam se neposílá."
+        hint="Nepovinné — jen pro oslovení, nikam se neposílá."
         value={state.name}
         onChangeText={(v) => patch({ name: v })}
+        autoCapitalize="words"
+        autoComplete="name"
+        textContentType="name"
+        returnKeyType="done"
       />
       <View style={styles.flex1} />
-      <LumiCTA
-        disabled={!state.name.trim()}
-        onPress={() => router.push("/onboarding/age")}
-        hint="Stačí napsat, jak ti máme říkat."
-      >
-        Pokračovat
-      </LumiCTA>
+      <Button size="lg" fullWidth onPress={() => router.push("/onboarding/age")}>
+        Začít
+      </Button>
     </ObShell>
   );
 }

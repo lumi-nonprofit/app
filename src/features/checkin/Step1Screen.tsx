@@ -1,23 +1,33 @@
 /* Check-in · krok 1 — stav (podstatná jména, barva + tvar) a intenzita.
-   Draft žije v CheckinDraftProvideru checkin stacku, nikdy se nepersistuje. */
+   Draft žije v CheckinDraftProvideru checkin stacku, nikdy se nepersistuje.
+   Vybraná dlaždice = obrys selectionBorder (≥ 3:1) + fajfka, nikdy jen barva. */
 import React from "react";
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import { View, Pressable } from "react-native";
 import Slider from "@react-native-community/slider";
 import { useRouter } from "expo-router";
-import { Card } from "../../ds/index";
+import { Button, Card, Icon, Text } from "../../ds";
+import { pressFeedback, pressedStyle } from "../../ds/press";
 import { LumiHeader } from "../../components/Header";
-import LumiCTA from "../../components/CTA";
 import MoodShape from "../../components/MoodShape";
 import Screen from "../../components/Screen";
 import { INTENSITY_LABELS, MOODS } from "../../model";
 import type { Intensity } from "../../model";
 import { haptics } from "../../lib/haptics";
-import { palette, colors, radius, font, leading, shadow, type } from "../../theme";
-import { useCheckinDraft } from "./draft";
+import { useDiscardGuard } from "../../lib/useDiscardGuard";
+import { createThemedStyles, useTheme } from "../../theme";
+import { isDraftDirty, useCheckinDraft } from "./draft";
 
 export default function Step1Screen() {
   const router = useRouter();
-  const { draft, setDraft } = useCheckinDraft();
+  const theme = useTheme();
+  const styles = useStyles();
+  const { draft, setDraft, saved } = useCheckinDraft();
+  /* Zrušit, swipe-down i hardware Back se při rozepsaném zápisu nejdřív zeptají */
+  useDiscardGuard({
+    dirty: !saved && isDraftDirty(draft),
+    title: "Zahodit rozepsaný zápis?",
+    message: "Vybraný stav, slova ani poznámka se neuloží.",
+  });
   return (
     <Screen>
       <LumiHeader kicker="Check-in · krok 1 ze 2" title="Jak se právě teď cítíš?" />
@@ -30,26 +40,36 @@ export default function Step1Screen() {
       >
         {MOODS.map((m) => {
           const is = draft.mood === m.id;
+          const moodColors = theme.mood[m.id];
           return (
             <Pressable
               key={m.id}
               accessibilityRole="radio"
               accessibilityState={{ checked: is }}
+              {...pressFeedback(theme)}
               style={({ pressed }) => [
                 styles.quad,
-                { backgroundColor: m.soft },
+                { backgroundColor: moodColors.soft },
                 is && styles.quadSelected,
-                pressed && { transform: [{ scale: 0.98 }] },
+                pressedStyle(theme, pressed),
               ]}
               onPress={() => {
                 haptics.select();
                 setDraft({ mood: m.id, words: [] });
               }}
             >
-              <MoodShape mood={m} size={22} />
+              <View style={styles.quadTop}>
+                <MoodShape mood={m} size={22} />
+                {is ? (
+                  <Icon name="check" size={18} weight="semibold" color={theme.colors.textAccent} />
+                ) : null}
+              </View>
               <View>
-                <Text style={styles.quadName}>{m.name}</Text>
-                <Text style={styles.quadAxis}>{m.axis}</Text>
+                <Text variant="headline">{m.name}</Text>
+                {/* na měkké výplni jen silný tón odstínu nebo textStrong/textBody */}
+                <Text variant="caption1" weight="regular" style={{ color: moodColors.strong }}>
+                  {m.axis}
+                </Text>
               </View>
             </Pressable>
           );
@@ -59,8 +79,12 @@ export default function Step1Screen() {
       {/* intenzita */}
       <Card style={styles.intensityCard}>
         <View style={styles.intensityHead}>
-          <Text style={styles.intensityLabel}>Jak silné to je?</Text>
-          <Text style={styles.intensityValue}>{INTENSITY_LABELS[draft.intensity - 1]}</Text>
+          <Text variant="body" weight="semibold" color="textBody">
+            Jak silné to je?
+          </Text>
+          <Text variant="footnote" weight="semibold" color="textAccent">
+            {INTENSITY_LABELS[draft.intensity - 1]}
+          </Text>
         </View>
         <Slider
           minimumValue={1}
@@ -70,85 +94,64 @@ export default function Step1Screen() {
           accessibilityLabel="Intenzita"
           accessibilityHint="Posunem vybereš sílu pocitu, od jen lehce po hodně silně."
           accessibilityValue={{ text: INTENSITY_LABELS[draft.intensity - 1] }}
-          minimumTrackTintColor={palette.sun400}
-          maximumTrackTintColor={palette.cream200}
-          thumbTintColor={palette.sun500}
+          minimumTrackTintColor={theme.colors.accentFill}
+          maximumTrackTintColor={theme.colors.borderStrong}
+          thumbTintColor={theme.colors.accentFill}
           style={styles.slider}
           /* slider má step 1 v rozsahu 1–5, hodnota je tedy vždy Intensity */
           onValueChange={(v) => setDraft({ intensity: v as Intensity })}
         />
         <View style={styles.intensityScale}>
-          <Text style={styles.intensityScaleText}>jen lehce</Text>
-          <Text style={styles.intensityScaleText}>hodně silně</Text>
+          <Text variant="caption1" weight="regular">
+            jen lehce
+          </Text>
+          <Text variant="caption1" weight="regular">
+            hodně silně
+          </Text>
         </View>
       </Card>
 
-      <LumiCTA
+      <Button
+        size="lg"
+        fullWidth
         disabled={!draft.mood}
         onPress={() => router.push("/checkin/words")}
         hint="Nejdřív klepni na stav, který je teď nejblíž."
       >
         Pokračovat
-      </LumiCTA>
+      </Button>
     </Screen>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((t) => ({
   /* mřížka kvadrantů (web: grid 1fr 1fr, .lumi-quad) */
   quadGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   quad: {
     flexBasis: "47%",
     flexGrow: 1,
     minHeight: 96,
-    borderRadius: radius.md,
+    borderRadius: t.radius.md,
     borderWidth: 1.5,
     borderColor: "transparent",
     padding: 14,
     justifyContent: "space-between",
     gap: 10,
+    overflow: "hidden",
   },
-  quadSelected: { borderColor: palette.sun400, ...shadow.glow },
-  quadName: {
-    ...font.display(600),
-    fontSize: type.md,
-    lineHeight: leading.body(type.md),
-    color: colors.textStrong,
-  },
-  quadAxis: {
-    ...font.body(400),
-    fontSize: type.xs,
-    lineHeight: leading.body(type.xs),
-    color: palette.ink700,
-    marginTop: 1,
-  },
+  quadTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  quadSelected: { borderColor: t.colors.selectionBorder },
 
   /* intenzita */
   intensityCard: { paddingTop: 16, paddingHorizontal: 20, paddingBottom: 12 },
   intensityHead: {
     flexDirection: "row",
+    flexWrap: "wrap",
     justifyContent: "space-between",
     alignItems: "baseline",
+    gap: 8,
     marginBottom: 2,
   },
-  intensityLabel: {
-    ...font.body(600),
-    fontSize: type.base,
-    lineHeight: leading.body(type.base),
-    color: colors.textBody,
-  },
-  intensityValue: {
-    ...font.body(600),
-    fontSize: type.sm,
-    lineHeight: leading.body(type.sm),
-    color: palette.sun700,
-  },
-  slider: { height: 44 },
-  intensityScale: { flexDirection: "row", justifyContent: "space-between" },
-  intensityScaleText: {
-    ...font.body(400),
-    fontSize: type.xs,
-    lineHeight: leading.body(type.xs),
-    color: palette.ink700,
-  },
-});
+  slider: { height: t.platform.minTouch },
+  intensityScale: { flexDirection: "row", justifyContent: "space-between", gap: 8 },
+}));

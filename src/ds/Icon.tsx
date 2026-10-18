@@ -1,9 +1,13 @@
-/* Icon — Lucide outline ikona, jediný schválený způsob renderu ikon v Lumi UI.
-   RN verze: lucide-react-native (stejná sada názvů, explicitní importy).
-   `currentColor` v RN neexistuje — barvu předává volající explicitně podle
-   barvy textu okolního prvku (výchozí colors.textBody). Stroke 1.75 dle DS. */
+/* Icon — platformní symbol (v plánu „Symbol“; jméno Icon zůstává, protože
+   `Symbol` by stínilo globální JS konstruktor). iOS: SF Symbols přes expo-symbols
+   (váhy, Liquid Glass v lištách), Android: Material Symbols (font přes
+   expo-symbols), web: Lucide. Jedna mapa názvů — `IconName` zůstává klíčem
+   v modelu (doporučení, aktivity). Výchozí barva = barva textu tématu.
+   Ikona je dekorativní (skrytá před čtečkou), pokud nedostane `label`. */
 import React from "react";
-import { View, type StyleProp, type ViewStyle } from "react-native";
+import { Platform, View, type StyleProp, type ViewStyle } from "react-native";
+import { SymbolView } from "expo-symbols";
+import type { AndroidSymbol, SFSymbol, SymbolWeight } from "expo-symbols";
 import {
   ArrowLeft,
   AudioLines,
@@ -25,6 +29,7 @@ import {
   Phone,
   Plus,
   Printer,
+  Settings,
   Shield,
   Smartphone,
   Sparkles,
@@ -33,65 +38,118 @@ import {
   Users,
   Waves,
   Wind,
+  X,
 } from "lucide-react-native";
-import { colors } from "../theme";
+import { useTheme } from "../theme";
 
+interface Glyph {
+  sf: SFSymbol;
+  md: AndroidSymbol;
+  lucide: LucideIcon;
+}
+
+/* HIG SF Symbols: standardní symboly pro standardní akce (xmark, plus, gearshape,
+   chevron.backward); Material Symbols: stejné významy v Android idiomu. */
 const ICONS = {
-  "arrow-left": ArrowLeft,
-  "audio-lines": AudioLines,
-  "chart-line": ChartLine,
-  check: Check,
-  "chevron-right": ChevronRight,
-  clock: Clock,
-  cloud: Cloud,
-  "cloud-rain": CloudRain,
-  eye: Eye,
-  "flask-conical": FlaskConical,
-  footprints: Footprints,
-  heart: Heart,
-  "heart-handshake": HeartHandshake,
-  "message-circle": MessageCircle,
-  moon: Moon,
-  "notebook-pen": NotebookPen,
-  phone: Phone,
-  plus: Plus,
-  printer: Printer,
-  shield: Shield,
-  smartphone: Smartphone,
-  sparkles: Sparkles,
-  sun: Sun,
-  "toggle-left": ToggleLeft,
-  users: Users,
-  waves: Waves,
-  wind: Wind,
-} satisfies Record<string, LucideIcon>;
+  "arrow-left": { sf: "chevron.backward", md: "arrow_back", lucide: ArrowLeft },
+  "audio-lines": { sf: "waveform", md: "graphic_eq", lucide: AudioLines },
+  "chart-line": { sf: "chart.line.uptrend.xyaxis", md: "show_chart", lucide: ChartLine },
+  check: { sf: "checkmark", md: "check", lucide: Check },
+  "chevron-right": { sf: "chevron.right", md: "chevron_right", lucide: ChevronRight },
+  clock: { sf: "clock", md: "schedule", lucide: Clock },
+  close: { sf: "xmark", md: "close", lucide: X },
+  cloud: { sf: "cloud", md: "cloud", lucide: Cloud },
+  "cloud-rain": { sf: "cloud.rain", md: "rainy", lucide: CloudRain },
+  eye: { sf: "eye", md: "visibility", lucide: Eye },
+  "flask-conical": { sf: "flask", md: "science", lucide: FlaskConical },
+  footprints: { sf: "figure.walk", md: "directions_walk", lucide: Footprints },
+  gear: { sf: "gearshape", md: "settings", lucide: Settings },
+  heart: { sf: "heart", md: "favorite", lucide: Heart },
+  "heart-handshake": { sf: "heart.fill", md: "volunteer_activism", lucide: HeartHandshake },
+  "message-circle": { sf: "bubble.left", md: "chat_bubble", lucide: MessageCircle },
+  moon: { sf: "moon", md: "bedtime", lucide: Moon },
+  "notebook-pen": { sf: "square.and.pencil", md: "edit_note", lucide: NotebookPen },
+  phone: { sf: "phone.fill", md: "call", lucide: Phone },
+  plus: { sf: "plus", md: "add", lucide: Plus },
+  printer: { sf: "printer", md: "print", lucide: Printer },
+  shield: { sf: "shield", md: "shield", lucide: Shield },
+  smartphone: { sf: "iphone", md: "smartphone", lucide: Smartphone },
+  sparkles: { sf: "sparkles", md: "auto_awesome", lucide: Sparkles },
+  sun: { sf: "sun.max", md: "light_mode", lucide: Sun },
+  "toggle-left": { sf: "lightswitch.off", md: "toggle_off", lucide: ToggleLeft },
+  users: { sf: "person.2", md: "group", lucide: Users },
+  waves: { sf: "water.waves", md: "waves", lucide: Waves },
+  wind: { sf: "wind", md: "air", lucide: Wind },
+} satisfies Record<string, Glyph>;
 
 export type IconName = keyof typeof ICONS;
+export type IconWeight = "regular" | "medium" | "semibold" | "bold";
+
+const SF_WEIGHT: Record<IconWeight, SymbolWeight> = {
+  regular: "regular",
+  medium: "medium",
+  semibold: "semibold",
+  bold: "bold",
+};
+/* Lucide kreslí váhu tloušťkou tahu */
+const STROKE: Record<IconWeight, number> = { regular: 1.75, medium: 2, semibold: 2.2, bold: 2.5 };
 
 interface Props {
   name: IconName;
   size?: number;
-  strokeWidth?: number;
   color?: string;
+  /** Váha symbolu — má odpovídat váze sousedního textu (HIG SF Symbols). */
+  weight?: IconWeight;
+  /** Jen Lucide (web): tloušťka tahu; jinak se odvozuje z `weight`. */
+  strokeWidth?: number;
+  /** Významová ikona: popisek pro čtečku. Bez něj je ikona dekorativní. */
+  label?: string;
   style?: StyleProp<ViewStyle>;
 }
 
 export default function Icon({
   name,
   size = 20,
-  strokeWidth = 1.75,
-  color = colors.textBody,
+  color,
+  weight = "regular",
+  strokeWidth,
+  label,
   style,
 }: Props) {
+  const theme = useTheme();
   /* `| undefined` drží původní runtime pojistku pro neznámý název ikony */
-  const Glyph: LucideIcon | undefined = ICONS[name];
+  const glyph: Glyph | undefined = ICONS[name];
+  const tint = color ?? theme.colors.textBody;
+  const a11y = label
+    ? { accessible: true, accessibilityRole: "image" as const, accessibilityLabel: label }
+    : {
+        accessible: false,
+        accessibilityElementsHidden: true,
+        importantForAccessibility: "no-hide-descendants" as const,
+      };
+  let content: React.ReactNode = null;
+  if (glyph) {
+    const Lucide = glyph.lucide;
+    const fallback = (
+      <Lucide size={size} strokeWidth={strokeWidth ?? STROKE[weight]} color={tint} />
+    );
+    content =
+      Platform.OS === "ios" || Platform.OS === "android" ? (
+        <SymbolView
+          name={{ ios: glyph.sf, android: glyph.md }}
+          size={size}
+          tintColor={tint}
+          weight={SF_WEIGHT[weight]}
+          type="monochrome"
+          fallback={fallback}
+        />
+      ) : (
+        fallback
+      );
+  }
   return (
-    <View
-      accessible={false}
-      importantForAccessibility="no-hide-descendants"
-      style={[{ width: size, height: size }, style]}
-    >
-      {Glyph ? <Glyph size={size} strokeWidth={strokeWidth} color={color} /> : null}
+    <View {...a11y} style={[{ width: size, height: size }, style]}>
+      {content}
     </View>
   );
 }

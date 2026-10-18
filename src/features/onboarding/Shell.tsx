@@ -1,9 +1,12 @@
-/* Onboarding — sdílený obal kroků (tečky průběhu, zpět) a titulek, bez tab baru. */
+/* Onboarding — sdílený obal kroků (tečky průběhu, zpět) a titulek, bez tab baru.
+   Obsah scrolluje (Dynamic Type 200 %, malé displeje, klávesnice) — CTA se
+   nikdy neocitne mimo obrazovku. */
 import React from "react";
-import { KeyboardAvoidingView, Platform, StyleSheet, Text, View } from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
+import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { IconButton } from "../../ds/index";
-import { palette, colors, radius, font, leading, tracking, type } from "../../theme";
+import { Button, IconButton, Text } from "../../ds";
+import { createThemedStyles } from "../../theme";
 
 interface ObShellProps {
   step: number;
@@ -13,6 +16,8 @@ interface ObShellProps {
 
 export function ObShell({ step, onBack, children }: ObShellProps) {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const styles = useStyles();
   return (
     <View style={styles.screen}>
       <KeyboardAvoidingView
@@ -36,7 +41,20 @@ export function ObShell({ step, onBack, children }: ObShellProps) {
           </View>
           <View style={styles.topSpacer} />
         </View>
-        <View style={[styles.body, { paddingBottom: insets.bottom + 40 }]}>{children}</View>
+        <ScrollView
+          style={styles.flex1}
+          contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + 24 }]}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+        >
+          {children}
+          {/* krizová pomoc je dostupná i před dokončením úvodu (HIG Agency: snadný únik) */}
+          <View style={styles.crisis}>
+            <Button variant="ghost" size="sm" onPress={() => router.push("/crisis")}>
+              Potřebuješ pomoc hned?
+            </Button>
+          </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </View>
   );
@@ -48,48 +66,38 @@ interface ObTitleProps {
 }
 
 export function ObTitle({ title, body }: ObTitleProps) {
+  const styles = useStyles();
   return (
     <View style={styles.titleWrap}>
-      <Text accessibilityRole="header" style={styles.title}>
+      <Text accessibilityRole="header" variant="largeTitle" style={styles.title}>
         {title}
       </Text>
-      {body ? <Text style={styles.titleBody}>{body}</Text> : null}
+      {body ? <Text variant="body">{body}</Text> : null}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((t) => ({
   flex1: { flex: 1 },
-  /* .ob-screen */
-  screen: { flex: 1, backgroundColor: colors.surfacePage },
-  /* .ob-top — paddingTop doplňuje insets.top + 24 inline */
+  screen: { flex: 1, backgroundColor: t.colors.surfacePage },
+  /* paddingTop doplňuje insets.top + 24 inline */
   top: {
     paddingHorizontal: 24,
-    minHeight: 44,
+    minHeight: t.platform.minTouch,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
-  topSpacer: { width: 44 },
+  topSpacer: { width: t.platform.minTouch },
   dots: { flexDirection: "row", gap: 6 },
-  dot: { width: 8, height: 8, borderRadius: radius.pill, backgroundColor: palette.cream200 },
-  dotActive: { width: 22, backgroundColor: palette.sun500 },
-  /* .ob-body — paddingBottom doplňuje insets.bottom + 40 inline */
-  body: { flex: 1, paddingTop: 18, paddingHorizontal: 24 },
+  /* průběh: neaktivní tečka ≥ 3:1 (borderStrong), aktivní protáhlá + accentFill */
+  dot: { width: 8, height: 8, borderRadius: t.radius.pill, backgroundColor: t.colors.borderStrong },
+  dotActive: { width: 22, backgroundColor: t.colors.accentFill },
+  /* paddingBottom doplňuje insets.bottom + 40 inline */
+  body: { flexGrow: 1, paddingTop: 18, paddingHorizontal: 24 },
+
+  crisis: { alignItems: "center", marginTop: 12 },
 
   titleWrap: { marginBottom: 24 },
-  title: {
-    marginBottom: 10,
-    ...font.display(700),
-    fontSize: type.xxl,
-    letterSpacing: tracking.display(type.xxl),
-    color: colors.textStrong,
-    lineHeight: leading.tight(type.xxl),
-  },
-  titleBody: {
-    ...font.body(400),
-    fontSize: type.base,
-    lineHeight: leading.body(type.base),
-    color: colors.textBody,
-  },
-});
+  title: { marginBottom: 10 },
+}));

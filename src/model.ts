@@ -3,9 +3,10 @@
    (DS: tense→clay, low→lake = vizuální podpis Mood Meteru).
    Zde: Napětí→lake (studené sevření), Útlum→clay (tlumené, těžké světlo).
    Každý stav má navíc vlastní tvar — informace nikdy jen barvou. */
-import { colors, palette } from "./theme";
+import { palette } from "./theme";
 import type { IconName } from "./ds/Icon";
 import type { BadgeTone } from "./ds/Badge";
+import type { Tone } from "./ds/tone";
 
 /* ---------- doménové typy ---------- */
 
@@ -158,8 +159,8 @@ export type RecommendationRoute = "/calm" | "/checkin" | "/stats" | "/help";
 export interface Recommendation {
   id: string;
   icon: IconName;
-  iconTint?: string;
-  iconColor?: string;
+  /** Tón dlaždice ikony (měkká výplň + silný odstín; funguje v light i dark). */
+  tone?: Tone;
   title: string;
   subtitle: string;
   badge: [BadgeTone, string] | null;
@@ -171,8 +172,7 @@ export const RECOMMENDATIONS: Recommendation[] = [
   {
     id: "dech-478",
     icon: "wind",
-    iconTint: colors.accentSoft,
-    iconColor: palette.sun700,
+    tone: "accent",
     title: "Dech 4-7-8",
     subtitle: "Pomáhá při napětí",
     badge: ["accent", "3 min"],
@@ -182,8 +182,7 @@ export const RECOMMENDATIONS: Recommendation[] = [
   {
     id: "denik",
     icon: "notebook-pen",
-    iconTint: colors.positiveSoft,
-    iconColor: palette.sage700,
+    tone: "positive",
     title: "Zápis do deníku",
     subtitle: "Na co dnes nechceš zapomenout?",
     badge: null,
@@ -193,8 +192,7 @@ export const RECOMMENDATIONS: Recommendation[] = [
   {
     id: "usinani",
     icon: "moon",
-    iconTint: palette.lilac100,
-    iconColor: palette.lilac700,
+    tone: "lilac",
     title: "Klidné usínání",
     subtitle: "Zvuky a audio na dobrou noc",
     badge: ["lilac", "večer"],
@@ -204,8 +202,7 @@ export const RECOMMENDATIONS: Recommendation[] = [
   {
     id: "prochazka",
     icon: "footprints",
-    iconTint: colors.positiveSoft,
-    iconColor: palette.sage700,
+    tone: "positive",
     title: "Všímavá procházka",
     subtitle: "Meditace v pohybu · venku",
     badge: ["positive", "venku"],

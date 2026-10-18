@@ -1,45 +1,54 @@
-/* Taby: Dnes · Klid · Check-in (+) · Přehledy · Pomoc.
-   Vlastní LumiTabBar místo výchozího — prostřední „tab“ není route,
-   ale akce: otevírá modální checkin stack. */
-import React from "react";
-import { useRouter } from "expo-router";
-import { Tabs, type BottomTabBarProps } from "expo-router/tabs";
-import LumiTabBar, { type TabId } from "../../src/components/TabBar";
-import { colors } from "../../src/theme";
-
-const TAB_FOR_ROUTE: Record<string, TabId> = {
-  index: "home",
-  calm: "calm",
-  stats: "stats",
-  help: "help",
-};
-
-function TabBarAdapter({ state, navigation }: BottomTabBarProps) {
-  const router = useRouter();
-  const active = TAB_FOR_ROUTE[state.routes[state.index]?.name] ?? "home";
-  const onSelect = (id: TabId) => {
-    if (id === "checkin") {
-      router.push("/checkin");
-      return;
-    }
-    navigation.navigate(id === "home" ? "index" : id);
-  };
-  return <LumiTabBar active={active} onSelect={onSelect} />;
-}
+/* Nativní taby: Dnes · Klid · Přehledy · Pomoc (HIG Tab bars: navigace, ne
+   akce — check-in se spouští z Dnes). iOS: systémový tab bar s Liquid Glass
+   a vyplněnými symboly aktivního tabu; Android: Material navigation bar
+   s indikátorem, ripple a vždy viditelnými popisky. Každý tab má vlastní
+   stack, takže tab bar zůstává viditelný i na vnořených obrazovkách. */
+import { NativeTabs } from "expo-router/unstable-native-tabs";
+import { TabContentContext } from "../../src/components/TabContent";
+import { useTheme } from "../../src/theme";
 
 export default function TabsLayout() {
+  const theme = useTheme();
+  const c = theme.colors;
   return (
-    <Tabs
-      tabBar={(props) => <TabBarAdapter {...props} />}
-      screenOptions={{
-        headerShown: false,
-        sceneStyle: { backgroundColor: colors.surfacePage },
-      }}
-    >
-      <Tabs.Screen name="index" />
-      <Tabs.Screen name="calm" />
-      <Tabs.Screen name="stats" />
-      <Tabs.Screen name="help" />
-    </Tabs>
+    <TabContentContext.Provider value>
+      <NativeTabs
+        iconColor={{ default: c.textMuted, selected: c.textAccent }}
+        labelStyle={{ default: { color: c.textMuted }, selected: { color: c.textAccent } }}
+        tintColor={c.textAccent}
+        /* iOS: bez vlastního pozadí (Liquid Glass / blur dodá systém); Android: plocha */
+        backgroundColor={theme.platform.isAndroid ? c.surfaceCard : undefined}
+        indicatorColor={c.accentSoft}
+        rippleColor={theme.ripple}
+        labelVisibilityMode="labeled"
+        minimizeBehavior="automatic"
+      >
+        <NativeTabs.Trigger name="(home)">
+          <NativeTabs.Trigger.Label>Dnes</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Icon
+            sf={{ default: "sun.max", selected: "sun.max.fill" }}
+            md="light_mode"
+          />
+        </NativeTabs.Trigger>
+        <NativeTabs.Trigger name="(calm)">
+          <NativeTabs.Trigger.Label>Klid</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Icon sf={{ default: "leaf", selected: "leaf.fill" }} md="spa" />
+        </NativeTabs.Trigger>
+        <NativeTabs.Trigger name="(stats)">
+          <NativeTabs.Trigger.Label>Přehledy</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Icon
+            sf={{ default: "chart.bar", selected: "chart.bar.fill" }}
+            md="bar_chart"
+          />
+        </NativeTabs.Trigger>
+        <NativeTabs.Trigger name="(help)">
+          <NativeTabs.Trigger.Label>Pomoc</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Icon
+            sf={{ default: "heart", selected: "heart.fill" }}
+            md="volunteer_activism"
+          />
+        </NativeTabs.Trigger>
+      </NativeTabs>
+    </TabContentContext.Provider>
   );
 }

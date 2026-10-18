@@ -11,12 +11,13 @@
    Časování běží v intervalu se zrcadlem v refu (konec se řeší v callbacku,
    ne v efektu) — stejný vzor jako BreathPlayer v PlayerScreen. */
 import React from "react";
-import { Pressable, StyleSheet, Text, View, type GestureResponderEvent } from "react-native";
-import { useRouter } from "expo-router";
+import { Pressable, View, type GestureResponderEvent } from "react-native";
+import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useKeepAwake } from "expo-keep-awake";
-import LumiCTA from "../../components/CTA";
+import { Button, RadioRow, Text } from "../../ds";
 import Screen from "../../components/Screen";
+import { announce } from "../../lib/a11y";
 import { haptics } from "../../lib/haptics";
 import type { CalmActivity } from "./content";
 import {
@@ -25,7 +26,7 @@ import {
   blindEventAt,
   type BlindRhythmId,
 } from "./blindRhythm";
-import { colors, font, leading, palette, radius, shadow, tracking, type } from "../../theme";
+import { createThemedStyles, darkTheme } from "../../theme";
 
 type Stage = "setup" | "countdown" | "running" | "done";
 
@@ -40,30 +41,48 @@ export default function BlindBreathScreen({ activity }: { activity: CalmActivity
   const [rhythm, setRhythm] = React.useState<BlindRhythmId>("4-7-8");
   const [minutes, setMinutes] = React.useState<number>(3);
 
+  /* běžící plocha je celoobrazovková a tmavá — nativní hlavička se na ni nehodí */
+  const header = <Stack.Screen options={{ headerShown: stage !== "running" }} />;
   switch (stage) {
     case "countdown":
-      return <Countdown onDone={() => setStage("running")} />;
+      return (
+        <>
+          {header}
+          <Countdown onDone={() => setStage("running")} />
+        </>
+      );
     case "running":
       return (
-        <Running
-          rhythm={rhythm}
-          totalSeconds={minutes * 60}
-          onFinish={() => setStage("done")}
-          onCancel={() => setStage("setup")}
-        />
+        <>
+          {header}
+          <Running
+            rhythm={rhythm}
+            totalSeconds={minutes * 60}
+            onFinish={() => setStage("done")}
+            onCancel={() => setStage("setup")}
+          />
+        </>
       );
     case "done":
-      return <Done onAgain={() => setStage("setup")} onBack={() => router.back()} />;
+      return (
+        <>
+          {header}
+          <Done onAgain={() => setStage("setup")} onBack={() => router.back()} />
+        </>
+      );
     default:
       return (
-        <Setup
-          activity={activity}
-          rhythm={rhythm}
-          minutes={minutes}
-          onRhythm={setRhythm}
-          onMinutes={setMinutes}
-          onStart={() => setStage("countdown")}
-        />
+        <>
+          {header}
+          <Setup
+            activity={activity}
+            rhythm={rhythm}
+            minutes={minutes}
+            onRhythm={setRhythm}
+            onMinutes={setMinutes}
+            onStart={() => setStage("countdown")}
+          />
+        </>
       );
   }
 }
@@ -80,17 +99,20 @@ interface SetupProps {
 }
 
 function Setup({ activity, rhythm, minutes, onRhythm, onMinutes, onStart }: SetupProps) {
+  const styles = useStyles();
   return (
     <Screen>
-      <Text accessibilityRole="header" style={styles.setupTitle}>
+      <Text accessibilityRole="header" variant="title1">
         {activity.title}
       </Text>
-      <Text style={styles.intro}>
+      <Text variant="body">
         Telefon můžeš nechat v kapse — rytmus dechu vedou vibrace. Funguje i bez koukání na displej.
       </Text>
 
       {/* rytmus */}
-      <Text style={styles.groupLabel}>Rytmus</Text>
+      <Text variant="kicker" style={styles.groupLabel}>
+        Rytmus
+      </Text>
       <View
         accessibilityRole="radiogroup"
         accessibilityLabel="Rytmus dechu"
@@ -108,7 +130,9 @@ function Setup({ activity, rhythm, minutes, onRhythm, onMinutes, onStart }: Setu
       </View>
 
       {/* délka */}
-      <Text style={styles.groupLabel}>Jak dlouho</Text>
+      <Text variant="kicker" style={styles.groupLabel}>
+        Jak dlouho
+      </Text>
       <View
         accessibilityRole="radiogroup"
         accessibilityLabel="Délka cvičení"
@@ -126,50 +150,23 @@ function Setup({ activity, rhythm, minutes, onRhythm, onMinutes, onStart }: Setu
       </View>
 
       <View style={styles.setupActions}>
-        <LumiCTA onPress={onStart}>Začít</LumiCTA>
+        <Button size="lg" fullWidth onPress={onStart}>
+          Začít
+        </Button>
       </View>
     </Screen>
-  );
-}
-
-/** Jedna volba radioskupiny — vybraný stav = obrys + glow, ne jen barva. */
-function RadioRow({
-  label,
-  selected,
-  onPress,
-}: {
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      accessibilityRole="radio"
-      accessibilityState={{ checked: selected }}
-      /* jméno čte čtečka z textu volby níž — žádný duplicitní label */
-      onPress={() => {
-        haptics.select();
-        onPress();
-      }}
-      style={({ pressed }) => [
-        styles.radio,
-        selected && styles.radioSelected,
-        pressed && styles.radioPressed,
-      ]}
-    >
-      {/* vybranou volbu nese i tvar (vyplněný terčík), ne jen barva/obrys */}
-      <View style={[styles.dot, selected && styles.dotSelected]}>
-        {selected ? <View style={styles.dotInner} /> : null}
-      </View>
-      <Text style={[styles.radioLabel, selected && styles.radioLabelSelected]}>{label}</Text>
-    </Pressable>
   );
 }
 
 /* ---------- countdown: 3·2·1, čas schovat telefon ---------- */
 
 function Countdown({ onDone }: { onDone: () => void }) {
+  const styles = useStyles();
   const [count, setCount] = React.useState(3);
+  /* odpočet oznamuje čtečka — na začátku i s pokynem schovat telefon */
+  React.useEffect(() => {
+    announce(count === 3 ? "3. Schovej telefon do kapsy." : String(count));
+  }, [count]);
   /* zrcadlo pro intervalový callback — stav se mění tam, ne v efektu */
   const countRef = React.useRef(3);
 
@@ -190,10 +187,12 @@ function Countdown({ onDone }: { onDone: () => void }) {
   return (
     <Screen contentStyle={styles.center}>
       <View style={styles.countBlock}>
-        <Text accessibilityLiveRegion="polite" style={styles.countNumber}>
+        <Text variant="display" tabular align="center">
           {count}
         </Text>
-        <Text style={styles.countHint}>Schovej telefon do kapsy</Text>
+        <Text variant="body" color="textMuted" align="center">
+          Schovej telefon do kapsy
+        </Text>
       </View>
     </Screen>
   );
@@ -215,6 +214,7 @@ interface RunningProps {
 }
 
 function Running({ rhythm, totalSeconds, onFinish, onCancel }: RunningProps) {
+  const styles = useStyles();
   /* odehraný čas (zrcadlo pro intervalový callback) a čas posledního dotyku */
   const elapsedRef = React.useRef(0);
   const lastTapRef = React.useRef(0);
@@ -261,11 +261,30 @@ function Running({ rhythm, totalSeconds, onFinish, onCancel }: RunningProps) {
         accessibilityRole="button"
         accessibilityLabel="Probíhá dech naslepo"
         accessibilityHint="Poklepáním cvičení ukončíš."
+        /* VoiceOver/TalkBack: escape (dvouprstové Z) a magic tap místo dvojitého poklepání */
+        accessibilityActions={[
+          { name: "escape", label: "Ukončit cvičení" },
+          { name: "magicTap", label: "Ukončit cvičení" },
+        ]}
+        onAccessibilityAction={(e) => {
+          if (e.nativeEvent.actionName === "escape" || e.nativeEvent.actionName === "magicTap") {
+            onCancel();
+          }
+        }}
         onPress={onPress}
         style={styles.surfacePress}
       >
-        <Text style={styles.surfaceHint}>Klepni dvakrát pro konec</Text>
+        {/* plocha je vždy tmavá (telefon v kapse) — barvy z tmavého schématu */}
+        <Text variant="footnote" align="center" style={styles.surfaceHint}>
+          Klepni dvakrát pro konec
+        </Text>
       </Pressable>
+      {/* viditelná negestová alternativa (HIG Gestures: ke každému gestu tlačítko) */}
+      <View style={styles.surfaceActions}>
+        <Button variant="secondary" size="lg" fullWidth onPress={onCancel}>
+          Ukončit
+        </Button>
+      </View>
     </View>
   );
 }
@@ -273,123 +292,53 @@ function Running({ rhythm, totalSeconds, onFinish, onCancel }: RunningProps) {
 /* ---------- done: potvrzení a nabídka opakování ---------- */
 
 function Done({ onAgain, onBack }: { onAgain: () => void; onBack: () => void }) {
+  const styles = useStyles();
+  React.useEffect(() => {
+    announce("Hotovo. Díky za chvilku.");
+  }, []);
   return (
     <Screen contentStyle={styles.center}>
       <View style={styles.doneBlock}>
-        <Text accessibilityRole="header" style={styles.doneTitle}>
+        <Text accessibilityRole="header" variant="title1" align="center">
           Hotovo. Díky za chvilku.
         </Text>
       </View>
       <View style={styles.setupActions}>
-        <LumiCTA onPress={onAgain}>Ještě jednou</LumiCTA>
-        <LumiCTA variant="secondary" onPress={onBack}>
+        <Button size="lg" fullWidth onPress={onAgain}>
+          Ještě jednou
+        </Button>
+        <Button variant="secondary" size="lg" fullWidth onPress={onBack}>
           Zpět
-        </LumiCTA>
+        </Button>
       </View>
     </Screen>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((t) => ({
   center: { justifyContent: "center" },
 
   /* setup */
-  setupTitle: {
-    ...font.display(700),
-    fontSize: type.xl,
-    lineHeight: leading.tight(type.xl),
-    letterSpacing: tracking.display(type.xl),
-    color: colors.textStrong,
-  },
-  intro: {
-    ...font.body(400),
-    fontSize: type.base,
-    lineHeight: leading.body(type.base),
-    color: colors.textBody,
-  },
-  groupLabel: {
-    ...font.body(600),
-    fontSize: type.xxs,
-    letterSpacing: tracking.label(type.xxs),
-    textTransform: "uppercase",
-    color: palette.ink700,
-    marginTop: 8,
-  },
+  groupLabel: { marginTop: 8 },
   group: { gap: 10 },
-  radio: {
-    minHeight: 56,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    backgroundColor: colors.surfaceCard,
-    borderRadius: radius.md,
-    borderWidth: 1.5,
-    borderColor: "transparent",
-    ...shadow.card,
-  },
-  /* vybraná volba: zlatý obrys + glow (ne jen barva textu) */
-  radioSelected: { borderColor: palette.sun400, ...shadow.glow },
-  radioPressed: { transform: [{ scale: 0.99 }] },
-  dot: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: colors.borderStrong,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  dotSelected: { borderColor: palette.sun500 },
-  dotInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: palette.sun500 },
-  radioLabel: { ...font.body(600), fontSize: type.base, color: colors.textStrong },
-  radioLabelSelected: { color: colors.textStrong },
   setupActions: { marginTop: 24, gap: 10 },
 
   /* countdown */
   countBlock: { alignItems: "center", gap: 12 },
-  countNumber: {
-    ...font.display(700),
-    fontSize: type.xxxl,
-    lineHeight: leading.tight(type.xxxl),
-    letterSpacing: tracking.display(type.xxxl),
-    color: colors.textStrong,
-  },
-  countHint: {
-    ...font.body(400),
-    fontSize: type.base,
-    lineHeight: leading.body(type.base),
-    color: colors.textMuted,
-    textAlign: "center",
-  },
 
-  /* running: celoplošná tmavá plocha */
+  /* running: celoplošná tmavá plocha — v obou režimech z tmavého schématu */
   surface: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "#0E0C0A",
+    backgroundColor: darkTheme.colors.surfaceSunken,
   },
-  surfacePress: { flex: 1, alignItems: "center", justifyContent: "flex-end", paddingBottom: 56 },
-  surfaceHint: {
-    ...font.body(400),
-    fontSize: type.sm,
-    lineHeight: leading.body(type.sm),
-    color: "#998E7C",
-    textAlign: "center",
-  },
+  surfacePress: { flex: 1, alignItems: "center", justifyContent: "flex-end", paddingBottom: 24 },
+  surfaceHint: { color: darkTheme.colors.textOnSunken },
+  surfaceActions: { paddingHorizontal: 24, paddingBottom: 48 },
 
   /* done */
   doneBlock: { alignItems: "center", gap: 12 },
-  doneTitle: {
-    ...font.display(700),
-    fontSize: type.xl,
-    lineHeight: leading.tight(type.xl),
-    letterSpacing: tracking.display(type.xl),
-    color: colors.textStrong,
-    textAlign: "center",
-  },
-});
+}));

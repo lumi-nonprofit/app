@@ -1,0 +1,10 @@
+{
+  "radius": {
+    "xs": { "value": 8, "type": "number" },
+    "sm": { "value": 12, "type": "number" },
+    "md": { "value": 16, "type": "number" },
+    "lg": { "value": 22, "type": "number" },
+    "xl": { "value": 28, "type": "number" },
+    "pill": { "value": 999, "type": "number" }
+  }
+}

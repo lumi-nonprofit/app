@@ -3,13 +3,14 @@
    karta je jen vykresluje; informaci nese text, ikona je dekorace.
    Pod prahem dat jemné povzbuzení místo vzorců — žádná vina. */
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { Card, Icon } from "../../ds/index";
+import { View } from "react-native";
+import { useRouter } from "expo-router";
+import { Button, Card, Icon, Text } from "../../ds";
 import type { IconName } from "../../ds/Icon";
 import { SectionLabel } from "../../components/Header";
 import { computeInsights, TOO_FEW_DATA_TEXT, type Insight } from "./insights";
 import { buildWeek, type Entry } from "../../model";
-import { colors, font, leading, palette, radius, type } from "../../theme";
+import { createThemedStyles, useTheme } from "../../theme";
 
 type Period = "týden" | "měsíc";
 
@@ -22,12 +23,20 @@ const INSIGHT_ICONS: Record<string, IconName> = {
 
 /** Jeden řádek nálezu — sdílí ho i Ohlédnutí za týdnem (ReflectionScreen). */
 export function InsightRow({ insight }: { insight: Insight }) {
+  const theme = useTheme();
+  const styles = useStyles();
   return (
     <View style={styles.row}>
       <View style={styles.rowIcon}>
-        <Icon name={INSIGHT_ICONS[insight.id] ?? "sparkles"} size={16} color={palette.sun700} />
+        <Icon
+          name={INSIGHT_ICONS[insight.id] ?? "sparkles"}
+          size={16}
+          color={theme.colors.textAccent}
+        />
       </View>
-      <Text style={styles.rowText}>{insight.text}</Text>
+      <Text variant="subheadline" style={styles.rowText}>
+        {insight.text}
+      </Text>
     </View>
   );
 }
@@ -38,6 +47,8 @@ interface Props {
 }
 
 export default function InsightsCard({ entries, period }: Props) {
+  const router = useRouter();
+  const styles = useStyles();
   /* týden = 7 ISO dnů aktuálního týdne (Po–Ne); měsíc = celé předané období
      (Přehledy už čtou jen ~35 dní zpět) */
   const scoped = React.useMemo(() => {
@@ -54,38 +65,34 @@ export default function InsightsCard({ entries, period }: Props) {
         {insights.length ? (
           insights.map((i) => <InsightRow key={i.id} insight={i} />)
         ) : (
-          <Text style={styles.empty}>{TOO_FEW_DATA_TEXT}</Text>
+          <View style={styles.empty}>
+            <Text variant="subheadline" color="textMuted">
+              {TOO_FEW_DATA_TEXT}
+            </Text>
+            {/* prázdný stav s jasným dalším krokem (HIG Writing) */}
+            <Button variant="ghost" size="sm" onPress={() => router.push("/checkin")}>
+              Přidat zápis
+            </Button>
+          </View>
         )}
       </Card>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((t) => ({
   card: { marginTop: 6, gap: 12 },
   row: { flexDirection: "row", alignItems: "flex-start", gap: 10 },
   rowIcon: {
     width: 28,
     height: 28,
-    borderRadius: radius.pill,
-    backgroundColor: colors.accentSoft,
+    borderRadius: t.radius.pill,
+    backgroundColor: t.colors.accentSoft,
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
     marginTop: 1,
   },
-  rowText: {
-    flex: 1,
-    ...font.body(400),
-    fontSize: type.sm,
-    lineHeight: leading.body(type.sm),
-    color: palette.ink700,
-    alignSelf: "center",
-  },
-  empty: {
-    ...font.body(400),
-    fontSize: type.sm,
-    lineHeight: leading.body(type.sm),
-    color: palette.ink500,
-  },
-});
+  rowText: { flex: 1, alignSelf: "center" },
+  empty: { gap: 8, alignItems: "flex-start" },
+}));

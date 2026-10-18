@@ -1,24 +1,30 @@
 /* Check-in · potvrzení — rodově neutrální, s kontextovým tipem podle stavu
    (jeden zdroj: RECOMMENDATIONS v model.ts). */
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View } from "react-native";
 import { useRouter, type Href } from "expo-router";
-import { Badge, Button, Card, Icon, ListItem } from "../../ds/index";
+import { Badge, Button, Card, Icon, ListItem, Text } from "../../ds";
 import { SectionLabel } from "../../components/Header";
 import Screen from "../../components/Screen";
 import { lastEntryForDate, recommendationForMood, toISODate } from "../../model";
 import type { MoodId } from "../../model";
 import { useEntries } from "../../db/hooks";
-import { palette, colors, font, leading, tracking, shadow, type } from "../../theme";
+import { announce } from "../../lib/a11y";
+import { createThemedStyles, useTheme } from "../../theme";
 import { useCheckinDraft } from "./draft";
 
 export default function ConfirmScreen() {
   const router = useRouter();
+  const theme = useTheme();
+  const styles = useStyles();
   const { draft } = useCheckinDraft();
   const today = toISODate();
   const todayEntries = useEntries({ from: today, to: today });
   const moodId: MoodId = draft.mood ?? lastEntryForDate(todayEntries, today)?.mood ?? "napeti";
   const tip = recommendationForMood(moodId);
+  React.useEffect(() => {
+    announce("Uloženo. Záznam zůstává v telefonu.");
+  }, []);
 
   const goHome = () => {
     router.dismissAll();
@@ -33,13 +39,13 @@ export default function ConfirmScreen() {
     <Screen contentStyle={styles.center}>
       <View style={styles.confirmHero}>
         <View style={styles.confirmCircle}>
-          <Icon name="check" size={36} strokeWidth={2.2} color={palette.sun700} />
+          <Icon name="check" size={36} weight="semibold" color={theme.colors.textAccent} />
         </View>
         <View>
-          <Text accessibilityRole="header" style={styles.confirmTitle}>
+          <Text accessibilityRole="header" variant="title1" align="center" style={styles.title}>
             Uloženo.
           </Text>
-          <Text style={styles.confirmBody}>
+          <Text variant="body" align="center">
             Tohle byla chvilka pro tebe.
             {"\n"}
             Záznam zůstává v telefonu.
@@ -52,8 +58,7 @@ export default function ConfirmScreen() {
         <Card style={styles.tipCard}>
           <ListItem
             icon={tip.icon}
-            iconTint={tip.iconTint}
-            iconColor={tip.iconColor}
+            tone={tip.tone}
             title={tip.title}
             subtitle={tip.subtitle}
             trailing={tip.badge ? <Badge tone={tip.badge[0]}>{tip.badge[1]}</Badge> : null}
@@ -71,35 +76,19 @@ export default function ConfirmScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((t) => ({
   center: { justifyContent: "center" },
   confirmHero: { alignItems: "center", gap: 16 },
   confirmCircle: {
     width: 76,
     height: 76,
     borderRadius: 38,
-    backgroundColor: colors.accentSoft,
+    backgroundColor: t.colors.accentSoft,
     alignItems: "center",
     justifyContent: "center",
-    ...shadow.glow,
   },
-  confirmTitle: {
-    ...font.display(700),
-    fontSize: type.xxl,
-    lineHeight: leading.tight(type.xxl),
-    letterSpacing: tracking.display(type.xxl),
-    color: colors.textStrong,
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  confirmBody: {
-    ...font.body(400),
-    fontSize: type.base,
-    lineHeight: leading.body(type.base),
-    color: colors.textBody,
-    textAlign: "center",
-  },
+  title: { marginBottom: 8 },
   tipBlock: { marginTop: 28 },
   tipCard: { paddingVertical: 8, paddingHorizontal: 12, marginTop: 6 },
   homeBlock: { marginTop: 16 },
-});
+}));

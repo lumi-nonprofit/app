@@ -10,15 +10,16 @@
       audio session se nastavuje až těsně před přehráním — „mix“ nechá hudbu
       uživatele hrát dál, „duck“ ji po dobu přehrávání jen ztiší. */
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Redirect, useLocalSearchParams, useRouter } from "expo-router";
+import { View } from "react-native";
+import { Redirect, useLocalSearchParams } from "expo-router";
 import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
-import { Badge, Icon, IconButton } from "../../ds/index";
+import { Badge, Button, Icon, Text } from "../../ds";
 import Screen from "../../components/Screen";
+import { announce } from "../../lib/a11y";
 import { haptics } from "../../lib/haptics";
 import { byId, type CalmActivity } from "./content";
 import BlindBreathScreen from "./BlindBreathScreen";
-import { colors, font, leading, palette, radius, tracking, type } from "../../theme";
+import { createThemedStyles, useTheme } from "../../theme";
 
 export default function PlayerScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
@@ -31,77 +32,36 @@ export default function PlayerScreen() {
   return <AudioPlayer key={activity.id} activity={activity} file={activity.file} />;
 }
 
-/* ---------- společné kusy ---------- */
-
-/** Horní řádek: zpět + kicker (vzor MeasureScreen). */
-function TopBar() {
-  const router = useRouter();
-  return (
-    <View style={styles.topRow}>
-      <IconButton
-        icon="arrow-left"
-        label="Zpět na Klid"
-        accessibilityHint="Vrátí se na obrazovku Klid."
-        onPress={() => {
-          /* po deep linku nemusí být kam couvnout — pak na Klid napřímo */
-          if (router.canGoBack()) router.back();
-          else router.replace("/calm");
-        }}
-      />
-      <Text style={styles.kicker}>Klid</Text>
-    </View>
-  );
-}
+/* ---------- společné kusy (titulek „Klid“ a Zavřít nese nativní hlavička
+   celoobrazovkového modalu, viz app/_layout) ---------- */
 
 /** Hlavička aktivity: badge(y) + titulek + podtitulek. */
 function ActivityHead({ activity, extraBadge }: { activity: CalmActivity; extraBadge?: string }) {
+  const styles = useStyles();
   return (
     <View style={styles.headBlock}>
       <View style={styles.badgeRow}>
         {activity.badge ? <Badge tone={activity.badge[0]}>{activity.badge[1]}</Badge> : null}
         {extraBadge ? <Badge tone="neutral">{extraBadge}</Badge> : null}
       </View>
-      <Text accessibilityRole="header" style={styles.title}>
+      <Text accessibilityRole="header" variant="title1" align="center">
         {activity.title}
       </Text>
-      <Text style={styles.subtitle}>{activity.subtitle}</Text>
+      <Text variant="body" color="textMuted" align="center">
+        {activity.subtitle}
+      </Text>
     </View>
-  );
-}
-
-interface PlayButtonProps {
-  label: string;
-  hint?: string;
-  disabled?: boolean;
-  onPress?: () => void;
-}
-
-/** Hlavní play/pause tlačítko — vzhled LumiCTA, navíc accessibilityHint.
-    Disabled stav: obrys + inkoustový text na zapuštěném podkladu (ne opacita). */
-function PlayButton({ label, hint, disabled, onPress }: PlayButtonProps) {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityHint={hint}
-      accessibilityState={{ disabled: !!disabled }}
-      onPress={disabled ? undefined : onPress}
-      style={({ pressed }) => [
-        styles.playBtn,
-        disabled && styles.playBtnDisabled,
-        pressed && !disabled && styles.playBtnPressed,
-      ]}
-    >
-      <Text style={[styles.playLabel, disabled && styles.playLabelDisabled]}>{label}</Text>
-    </Pressable>
   );
 }
 
 /** Progres: text nese informaci (informace nikdy jen barvou), pruh je pro čtečky dekorativní. */
 function ProgressBlock({ text, fraction }: { text: string; fraction: number }) {
+  const styles = useStyles();
   return (
     <View style={styles.progressBlock}>
-      <Text style={styles.progressText}>{text}</Text>
+      <Text variant="footnote" weight="semibold" color="textMuted">
+        {text}
+      </Text>
       <View
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
@@ -142,6 +102,7 @@ const phaseAt = (elapsed: number): { label: PhaseLabel; remaining: number } => {
 };
 
 function BreathPlayer({ activity }: { activity: CalmActivity }) {
+  const styles = useStyles();
   const total = activity.minutes * 60;
   const [elapsed, setElapsed] = React.useState(0);
   const [running, setRunning] = React.useState(false);
@@ -172,7 +133,13 @@ function BreathPlayer({ activity }: { activity: CalmActivity }) {
     if (!running) return;
     if (phase.label === "Nádech") haptics.inhale();
     else if (phase.label === "Výdech") haptics.exhale();
+    announce(phase.label);
   }, [running, phase.label]);
+
+  /* konec cvičení oznámí čtečka (iOS nemá live region) */
+  React.useEffect(() => {
+    if (finished) announce("Hotovo. Díky za chvilku klidu.");
+  }, [finished]);
 
   const ctaLabel = finished
     ? "Začít znovu"
@@ -189,31 +156,36 @@ function BreathPlayer({ activity }: { activity: CalmActivity }) {
 
   return (
     <Screen>
-      <TopBar />
       <ActivityHead activity={activity} />
 
       <View style={styles.centerBlock}>
         {finished ? (
           <>
-            <Text accessibilityLiveRegion="polite" style={styles.phaseLabel}>
+            <Text variant="title1" align="center">
               Hotovo
             </Text>
-            <Text style={styles.phaseHint}>Díky za chvilku klidu.</Text>
+            <Text variant="footnote" color="textMuted" align="center" style={styles.phaseHint}>
+              Díky za chvilku klidu.
+            </Text>
           </>
         ) : (
           <>
-            <Text accessibilityLiveRegion="polite" style={styles.phaseLabel}>
+            <Text variant="title1" align="center">
               {phase.label}
             </Text>
             {/* vteřinový odpočet je pro čtečku skrytý — rytmus hlásí změna fáze výš */}
             <Text
               accessibilityElementsHidden
               importantForAccessibility="no-hide-descendants"
-              style={styles.phaseCount}
+              variant="display"
+              tabular
+              align="center"
             >
               {phase.remaining}
             </Text>
-            <Text style={styles.phaseHint}>4 s nádech · 7 s zádrž · 8 s výdech</Text>
+            <Text variant="footnote" color="textMuted" align="center" style={styles.phaseHint}>
+              4 s nádech · 7 s zádrž · 8 s výdech
+            </Text>
           </>
         )}
       </View>
@@ -222,9 +194,10 @@ function BreathPlayer({ activity }: { activity: CalmActivity }) {
         text={finished ? "Konec cvičení" : remainingText(total - elapsed)}
         fraction={elapsed / total}
       />
-      <PlayButton
-        label={ctaLabel}
-        hint={ctaHint}
+      <Button
+        size="lg"
+        fullWidth
+        accessibilityHint={ctaHint}
         onPress={() => {
           if (finished) {
             elapsedRef.current = 0;
@@ -234,7 +207,9 @@ function BreathPlayer({ activity }: { activity: CalmActivity }) {
             setRunning((r) => !r);
           }
         }}
-      />
+      >
+        {ctaLabel}
+      </Button>
     </Screen>
   );
 }
@@ -242,19 +217,24 @@ function BreathPlayer({ activity }: { activity: CalmActivity }) {
 /* ---------- audio bez souboru: „připravujeme“ ---------- */
 
 function ComingSoon({ activity }: { activity: CalmActivity }) {
+  const theme = useTheme();
+  const styles = useStyles();
   return (
     <Screen>
-      <TopBar />
       <ActivityHead activity={activity} extraBadge="připravujeme" />
 
       <View style={styles.centerBlock}>
         <View style={styles.iconCircle}>
-          <Icon name="audio-lines" size={26} color={colors.textMuted} />
+          <Icon name="audio-lines" size={26} color={theme.colors.textOnSunken} />
         </View>
-        <Text style={styles.comingText}>Audio připravujeme — brzy si ho tu pustíš.</Text>
+        <Text variant="body" align="center">
+          Audio připravujeme — brzy si ho tu pustíš.
+        </Text>
       </View>
 
-      <PlayButton label="Přehrát" disabled hint="Audio zatím není k dispozici." />
+      <Button size="lg" fullWidth disabled accessibilityHint="Audio zatím není k dispozici.">
+        Přehrát
+      </Button>
     </Screen>
   );
 }
@@ -262,6 +242,8 @@ function ComingSoon({ activity }: { activity: CalmActivity }) {
 /* ---------- audio se souborem (až bude v repu) ---------- */
 
 function AudioPlayer({ activity, file }: { activity: CalmActivity; file: number }) {
+  const theme = useTheme();
+  const styles = useStyles();
   const player = useAudioPlayer(file);
   const status = useAudioPlayerStatus(player);
 
@@ -294,12 +276,11 @@ function AudioPlayer({ activity, file }: { activity: CalmActivity; file: number 
 
   return (
     <Screen>
-      <TopBar />
       <ActivityHead activity={activity} />
 
       <View style={styles.centerBlock}>
         <View style={styles.iconCircle}>
-          <Icon name="audio-lines" size={26} color={colors.textMuted} />
+          <Icon name="audio-lines" size={26} color={theme.colors.textOnSunken} />
         </View>
       </View>
 
@@ -307,9 +288,10 @@ function AudioPlayer({ activity, file }: { activity: CalmActivity; file: number 
         text={status.isLoaded ? remainingText(duration - status.currentTime) : "Načítá se…"}
         fraction={duration > 0 ? status.currentTime / duration : 0}
       />
-      <PlayButton
-        label={playing ? "Pozastavit" : "Přehrát"}
-        hint={
+      <Button
+        size="lg"
+        fullWidth
+        accessibilityHint={
           playing
             ? "Pozastaví audio, postup zůstane."
             : activity.audioMode === "mix"
@@ -317,38 +299,16 @@ function AudioPlayer({ activity, file }: { activity: CalmActivity; file: number 
               : "Spustí audio. Hudba z jiných aplikací se po dobu přehrávání ztiší."
         }
         onPress={toggle}
-      />
+      >
+        {playing ? "Pozastavit" : "Přehrát"}
+      </Button>
     </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  topRow: { flexDirection: "row", alignItems: "center", gap: 8, marginHorizontal: -6 },
-  kicker: {
-    ...font.body(600),
-    fontSize: type.xxs,
-    letterSpacing: tracking.label(type.xxs),
-    textTransform: "uppercase",
-    color: palette.ink700,
-  },
-
+const useStyles = createThemedStyles((t) => ({
   headBlock: { alignItems: "center", gap: 10, marginTop: 10 },
-  badgeRow: { flexDirection: "row", gap: 8 },
-  title: {
-    ...font.display(700),
-    fontSize: type.xl,
-    lineHeight: leading.tight(type.xl),
-    letterSpacing: tracking.display(type.xl),
-    color: colors.textStrong,
-    textAlign: "center",
-  },
-  subtitle: {
-    ...font.body(400),
-    fontSize: type.base,
-    lineHeight: leading.body(type.base),
-    color: colors.textMuted,
-    textAlign: "center",
-  },
+  badgeRow: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 8 },
 
   /* střed obrazovky: fáze dechu / stav audia */
   centerBlock: {
@@ -358,66 +318,23 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingVertical: 24,
   },
-  phaseLabel: {
-    ...font.display(700),
-    fontSize: type.xxl,
-    lineHeight: leading.tight(type.xxl),
-    letterSpacing: tracking.display(type.xxl),
-    color: colors.textStrong,
-  },
-  phaseCount: {
-    ...font.display(600),
-    fontSize: type.xxxl,
-    lineHeight: leading.tight(type.xxxl),
-    color: colors.textStrong,
-  },
-  phaseHint: {
-    ...font.body(400),
-    fontSize: type.sm,
-    lineHeight: leading.body(type.sm),
-    color: colors.textMuted,
-    marginTop: 8,
-    textAlign: "center",
-  },
+  phaseHint: { marginTop: 8 },
   iconCircle: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: colors.surfaceSunken,
+    backgroundColor: t.colors.surfaceSunken,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 10,
   },
-  comingText: {
-    ...font.body(400),
-    fontSize: type.base,
-    lineHeight: leading.body(type.base),
-    color: colors.textBody,
-    textAlign: "center",
-  },
 
   progressBlock: { gap: 6 },
-  progressText: { ...font.body(600), fontSize: type.sm, color: palette.ink700 },
   progressTrack: {
     height: 6,
-    borderRadius: radius.pill,
-    backgroundColor: palette.cream200,
+    borderRadius: t.radius.pill,
+    backgroundColor: t.colors.borderSubtle,
     overflow: "hidden",
   },
-  progressFill: { height: 6, borderRadius: radius.pill, backgroundColor: palette.sun500 },
-
-  /* play/pause — vzhled LumiCTA; disabled bez opacity */
-  playBtn: {
-    minHeight: 52,
-    borderRadius: radius.pill,
-    borderWidth: 1.5,
-    borderColor: "transparent",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.surfaceInk,
-  },
-  playBtnDisabled: { backgroundColor: colors.surfaceSunken, borderColor: colors.borderStrong },
-  playBtnPressed: { transform: [{ scale: 0.98 }] },
-  playLabel: { ...font.body(600), fontSize: type.md, color: colors.textOnInk },
-  playLabelDisabled: { color: palette.ink700 },
-});
+  progressFill: { height: 6, borderRadius: t.radius.pill, backgroundColor: t.colors.accentFill },
+}));

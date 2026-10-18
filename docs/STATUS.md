@@ -1,7 +1,7 @@
 # Lumi — project status
 
-**Last updated:** 2026-10-10. The last commit on `main` before the review of 2026-10-09 is from
-2026-06-15.
+**Last updated:** 2026-10-17 (frontend refactor, PR #41). The last commit on `main` before the
+review of 2026-10-09 is from 2026-06-15.
 
 This file tells you where the project is and what comes next. Keep it short. Update it when a
 milestone changes state. Record decisions in ADRs (`docs/adr/`). Track work items as GitHub issues,
@@ -41,7 +41,14 @@ The MVP is not one of these milestones. The MVP is a pilot Android build of the 
 - **Sync does not exist.** `server/lumi-sync-server` keeps blobs in memory and has no
   authentication. `core/lumi-sync-client` defines the wire envelope; sealing is a stub.
 - **The crisis-line recommender** (`core/lumi-core/src/crisis/`) is complete as a core module. The
-  app does not call it. The app shows hardcoded lines.
+  app does not call it. The app shows hardcoded lines (`src/model.ts`, `src/features/help/lines.ts`).
+- **The frontend follows the Apple Human Interface Guidelines on iOS and the Android design
+  guidelines on Android** (PR #41, 2026-10-17): native stack headers and native tabs, light and
+  dark scheme from the system (no in-app switch), one `Text` component with Dynamic Type, a
+  contrast test for every colour pair (WCAG 2.2 AA in both schemes), platform symbols, a Settings
+  screen, discard guards on unsaved work, crisis lines reachable without the database and before
+  onboarding. None of this is checked on a device yet; [`docs/device-verification.md`](device-verification.md)
+  lists the checks.
 
 ## Checks on 2026-10-09
 
@@ -64,6 +71,18 @@ APK is about 55 MB. It has no native library of the Rust vault. The JS bundle st
 screen and the vault binding; the app does not load them. The install and all behaviour on a
 device are still not checked.
 
+## Checks on 2026-10-17
+
+Branch `claude/youthful-archimedes-x7q98o` (PR #41), after phase 7 of the refactor.
+
+| Command             | Result                                                                   |
+| ------------------- | ------------------------------------------------------------------------ |
+| `npm run typecheck` | OK                                                                       |
+| `npm run lint`      | OK                                                                       |
+| `npm test`          | 23 suites, 293 tests pass (jest-expo Android preset)                     |
+| `npx expo-doctor`   | Not run: the sandbox could not reach the Expo API                        |
+| Device              | Not checked; see [`docs/device-verification.md`](device-verification.md) |
+
 ## Findings on 2026-10-09
 
 File each finding as an issue. Then delete it from this list.
@@ -83,7 +102,9 @@ File each finding as an issue. Then delete it from this list.
    `/_sitemap` comes from the source (expo-router 56.2.10). It was not checked on a device.
 3. **If the database does not open, the app shows nothing.** `src/db/provider.tsx` renders `null`,
    and the splash screen stays. The Help tab is inside the provider, so the crisis contacts are not
-   available.
+   available. Changed on 2026-10-17: the provider renders a fallback screen with the crisis lines
+   when the database fails to open (`src/features/help/CrisisFallback.tsx`), the error boundary
+   shows the same lines, and `/crisis` is reachable before onboarding. Not checked on a device.
 4. **Jest does not test the real database path.** `test/setup.ts` replaces `src/db/connect` with
    better-sqlite3 in memory. `README.md` lists the native checks that are still open: encryption
    on disk, haptics, notifications, keep-awake and the PDF print.
@@ -96,10 +117,15 @@ File each finding as an issue. Then delete it from this list.
    `src/features/help/HelpScreen.tsx`, `src/features/help/HandoverScreen.tsx`,
    `src/features/help/crisisCard.ts`, `src/features/onboarding/AgeStep.tsx`) and again in
    `core/lumi-core/src/crisis/matcher.rs`. `docs/cz-crisis-data-checklist.md` has no sign-off.
+   Changed on 2026-10-17: the app reads the contact list from `src/features/help/lines.ts`
+   (116 006 added, Rodičovská linka hours corrected to Po–Čt 9–21, Pá 9–17) and the primary lines
+   from `HELP_LINES` in `src/model.ts`; `crisisCard.ts`, `HandoverScreen.tsx` and the Rust matcher
+   still carry their own copies. The checklist still has no sign-off.
 7. **The backup export is plain JSON** (`src/db/backup.ts`). ADR 0001 S2 requires an encrypted
    export by default. Added on 2026-10-10, from the source: the export writes the file to the
    cache directory of the app and does not delete it after the share
-   (`src/features/stats/BackupCard.tsx`). The backup holds the check-ins, the questionnaire results
+   (`src/features/settings/BackupSection.tsx`, moved from Přehledy to Nastavení on 2026-10-17).
+   The backup holds the check-ins, the questionnaire results
    and three profile fields. It does not hold the crisis plan, the custom tags or the reminder
    settings. The import adds check-ins and questionnaire results only.
 8. **The dependencies are from 2026-06-15.** 13 Dependabot PRs are open (the oldest is from
@@ -127,7 +153,8 @@ File each finding as an issue. Then delete it from this list.
     the build log). The APK has the classes of expo-dev-client and the URL scheme `exp+lumi`.
     `expo-dev-client` is a normal dependency in `package.json`. The prebuild step prints a
     warning: `userInterfaceStyle` needs `expo-system-ui`, which is not installed. The effect of
-    both points on a device is not checked.
+    both points on a device is not checked. Changed on 2026-10-17: `expo-system-ui` is a
+    dependency and `userInterfaceStyle` is `automatic` (light and dark from the system).
 
 ## What blocks M2
 
@@ -147,6 +174,10 @@ These points block M2. They do not block the MVP (ADR 0007, "What follows from t
    wrap, the recovery wrap, and the screens for PIN, recovery and device pairing.
 
 ## Next steps
+
+First, check the refactored frontend on a device: [`docs/device-verification.md`](device-verification.md)
+(TalkBack and VoiceOver, 200 % text, dark theme, gesture navigation, the lock-screen visibility
+of reminders, the native tab bar and headers on iOS 26). Then:
 
 **Decided on 2026-10-10 (ADR 0007):** the MVP is a pilot Android build of the existing app.
 

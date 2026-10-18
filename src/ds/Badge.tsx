@@ -1,24 +1,13 @@
-/* Badge — malý stavový pill pro metadata (5 MIN, VEČER); jemné tóny, nikdy syté výplně. */
+/* Badge — malý stavový pill pro metadata (5 MIN, VEČER); jemné tóny, nikdy syté výplně.
+   Text v tónu odstínu drží ≥ 4,5:1 na své měkké výplni (viz contrastPairs). */
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { View } from "react-native";
 import type { StyleProp, ViewStyle } from "react-native";
-import { colors, font, leading, palette, radius, type } from "../theme";
+import { createThemedStyles, useTheme } from "../theme";
+import Text from "./Text";
+import { toneColors, type Tone } from "./tone";
 
-export type BadgeTone = "neutral" | "accent" | "positive" | "info" | "danger" | "lilac";
-
-interface ToneStyle {
-  backgroundColor: string;
-  color: string;
-}
-
-const TONES: Record<BadgeTone, ToneStyle> = {
-  neutral: { backgroundColor: colors.surfaceSunken, color: colors.textMuted },
-  accent: { backgroundColor: colors.accentSoft, color: palette.sun700 },
-  positive: { backgroundColor: colors.positiveSoft, color: palette.sage700 },
-  info: { backgroundColor: colors.infoSoft, color: palette.lake700 },
-  danger: { backgroundColor: colors.dangerSoft, color: palette.clay700 },
-  lilac: { backgroundColor: palette.lilac100, color: palette.lilac700 },
-};
+export type BadgeTone = Tone;
 
 interface Props {
   children: React.ReactNode;
@@ -27,12 +16,22 @@ interface Props {
 }
 
 export default function Badge({ children, tone = "neutral", style }: Props) {
-  const t = TONES[tone] || TONES.neutral;
+  const theme = useTheme();
+  const styles = useStyles();
+  const t = toneColors(theme, tone);
   return (
-    <View style={[styles.badge, { backgroundColor: t.backgroundColor }, style]}>
+    <View style={[styles.badge, { backgroundColor: t.soft }, style]}>
       {React.Children.map(children, (child) =>
         typeof child === "string" || typeof child === "number" ? (
-          <Text style={[styles.text, { color: t.color }]}>{child}</Text>
+          <Text
+            variant="caption1"
+            weight="semibold"
+            color={t.textRole}
+            maxFontSizeMultiplier={1.5}
+            style={styles.text}
+          >
+            {child}
+          </Text>
         ) : (
           child
         ),
@@ -41,19 +40,14 @@ export default function Badge({ children, tone = "neutral", style }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((t) => ({
   badge: {
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
     paddingVertical: 3,
     paddingHorizontal: 10,
-    borderRadius: radius.pill,
+    borderRadius: t.radius.pill,
   },
-  text: {
-    ...font.body(600),
-    fontSize: type.xs,
-    lineHeight: leading.body(type.xs),
-    letterSpacing: 0.02 * type.xs,
-  },
-});
+  text: { letterSpacing: 0.24 },
+}));

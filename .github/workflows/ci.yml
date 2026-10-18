@@ -91,6 +91,8 @@ jobs:
         working-directory: design
       - run: npm run build
         working-directory: design
+      # src/theme/tokens.generated.ts is committed; it must match design/tokens (no drift)
+      - run: git diff --exit-code -- src/theme/tokens.generated.ts
 
   sbom:
     name: SBOM (CycloneDX)

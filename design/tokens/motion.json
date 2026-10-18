@@ -1,0 +1,8 @@
+{
+  "motion": {
+    "fast": { "value": 150, "type": "number", "comment": "ms" },
+    "base": { "value": 240, "type": "number" },
+    "slow": { "value": 420, "type": "number" },
+    "breath": { "value": 4000, "type": "number", "comment": "one breathing phase of the calm circle" }
+  }
+}

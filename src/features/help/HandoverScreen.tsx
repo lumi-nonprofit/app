@@ -7,11 +7,11 @@
 
    Bez osobních dat: záměrně neimportujeme useAppStore / useEntries / useMeasurements.
    Žádné jméno, žádné záznamy. Krizová čísla jsou napevno — nezávisí na profilu. */
-import { StyleSheet, Text, View } from "react-native";
+import { View } from "react-native";
 import { useRouter } from "expo-router";
-import { Button } from "../../ds/index";
+import { Button, Text } from "../../ds";
 import Screen from "../../components/Screen";
-import { colors, palette, radius, font, leading, type } from "../../theme";
+import { createThemedStyles } from "../../theme";
 
 /* Pět principů — každý jako vlastní řádek s tečkou (informace nikdy jen barvou:
    nositelem je text, tečka je jen vizuální odrážka). Maximálně pár slov. */
@@ -24,6 +24,7 @@ const PRINCIPLES = [
 ] as const;
 
 function Principle({ text }: { text: string }) {
+  const styles = useStyles();
   return (
     <View style={styles.principleRow}>
       {/* odrážka je dekorativní — význam nese text vedle ní */}
@@ -32,16 +33,20 @@ function Principle({ text }: { text: string }) {
         importantForAccessibility="no-hide-descendants"
         style={styles.dot}
       />
-      <Text style={styles.principleText}>{text}</Text>
+      {/* velké písmo — telefon drží cizí člověk, často ve stresu */}
+      <Text variant="headline" style={styles.principleText}>
+        {text}
+      </Text>
     </View>
   );
 }
 
 export default function HandoverScreen() {
   const router = useRouter();
+  const styles = useStyles();
   return (
     <Screen contentStyle={styles.content}>
-      <Text accessibilityRole="header" style={styles.heading}>
+      <Text accessibilityRole="header" variant="title1">
         Jste tu pro někoho — to je to nejdůležitější.
       </Text>
 
@@ -60,7 +65,14 @@ export default function HandoverScreen() {
           Zavolat 116 111 — děti a studenti
         </Button>
 
-        <Text style={styles.emergency}>
+        {/* vysoký kontrast — nouzová čísla musí být čitelná na první pohled */}
+        <Text
+          variant="headline"
+          weight="bold"
+          color="textDanger"
+          align="center"
+          style={styles.emergency}
+        >
           Při ohrožení života: 155 záchranná služba · 112 tísňová linka
         </Text>
 
@@ -72,36 +84,19 @@ export default function HandoverScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((t) => ({
   content: { gap: 24, justifyContent: "center" },
-
-  heading: {
-    ...font.display(700),
-    fontSize: type.xxl,
-    lineHeight: leading.tight(type.xxl),
-    color: colors.textStrong,
-  },
 
   principles: { gap: 14 },
   principleRow: { flexDirection: "row", alignItems: "center", gap: 12 },
-  dot: { width: 8, height: 8, borderRadius: radius.pill, backgroundColor: palette.clay500 },
-  /* velké písmo (≥ type.lg) — telefon drží cizí člověk, často ve stresu */
-  principleText: {
-    ...font.body(600),
-    flex: 1,
-    fontSize: type.lg,
-    lineHeight: leading.snug(type.lg),
-    color: colors.textStrong,
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: t.radius.pill,
+    backgroundColor: t.colors.surfaceCrisis,
   },
+  principleText: { flex: 1, fontSize: 20, lineHeight: 26 },
 
   actions: { gap: 12 },
-  /* vysoký kontrast — nouzová čísla musí být čitelná na první pohled */
-  emergency: {
-    ...font.body(700),
-    fontSize: type.lg,
-    lineHeight: leading.body(type.lg),
-    color: palette.clay700,
-    textAlign: "center",
-    marginVertical: 4,
-  },
-});
+  emergency: { fontSize: 20, lineHeight: 26, marginVertical: 4 },
+}));

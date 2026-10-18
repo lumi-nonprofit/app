@@ -1,11 +1,13 @@
 /* LumiBreath — dechový kruh. Vlastní verze DS BreathCircle: label „Připraven?“
-   je rodově vázaný, proto neutrální „Začneme?“. Dýchá v rytmu 4 s / 4 s;
-   redukci pohybu řeší AccessibilityInfo.isReduceMotionEnabled() — bez animace
-   se jen přepíná label. */
+   je rodově vázaný, proto neutrální „Začneme?“. Dýchá v rytmu 4 s / 4 s.
+   Reduce Motion (HIG Motion): bez škálování, jen prolnutí labelu; pohyb nikdy
+   není jediný nosič — fáze oznamuje haptika i čtečka obrazovky. */
 import React from "react";
-import { AccessibilityInfo, Animated, Easing, StyleSheet, Text, View } from "react-native";
+import { Animated, Easing, View } from "react-native";
+import { Text } from "../ds";
+import { announce, useReduceMotion } from "../lib/a11y";
 import { haptics } from "../lib/haptics";
-import { palette, font, type } from "../theme";
+import { createThemedStyles, motion, palette } from "../theme";
 
 type BreathPhase = "Nádech" | "Výdech";
 
@@ -16,39 +18,31 @@ interface Props {
 }
 
 export default function LumiBreath({ size = 160, active, hint }: Props) {
+  const styles = useStyles();
   const [phase, setPhase] = React.useState<BreathPhase>("Nádech");
-  const [reduceMotion, setReduceMotion] = React.useState(false);
+  const reduceMotion = useReduceMotion();
   /* líný useState místo useRef: stejná stabilní instance, ale žádné čtení ref během renderu */
   const [breath] = React.useState(() => new Animated.Value(0));
 
   React.useEffect(() => {
     if (!active) return;
-    const t = setInterval(() => setPhase((p) => (p === "Nádech" ? "Výdech" : "Nádech")), 4000);
+    const t = setInterval(
+      () => setPhase((p) => (p === "Nádech" ? "Výdech" : "Nádech")),
+      motion.breath,
+    );
     return () => {
       clearInterval(t);
       setPhase("Nádech"); // reset v cleanupu: příští start vždy začíná nádechem
     };
   }, [active]);
 
-  /* decentní haptika na začátku nádechu (Light) a výdechu (Medium) */
+  /* decentní haptika na začátku nádechu (Light) a výdechu (Medium) + oznámení fáze */
   React.useEffect(() => {
     if (!active) return;
     if (phase === "Nádech") haptics.inhale();
     else haptics.exhale();
+    announce(phase);
   }, [active, phase]);
-
-  /* redukce pohybu: async dotaz, default false; pozor na unmount */
-  React.useEffect(() => {
-    let mounted = true;
-    AccessibilityInfo.isReduceMotionEnabled()
-      .then((enabled) => {
-        if (mounted) setReduceMotion(!!enabled);
-      })
-      .catch(() => {});
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   const animating = active && !reduceMotion;
 
@@ -58,13 +52,13 @@ export default function LumiBreath({ size = 160, active, hint }: Props) {
       Animated.sequence([
         Animated.timing(breath, {
           toValue: 1,
-          duration: 4000,
+          duration: motion.breath,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
         Animated.timing(breath, {
           toValue: 0,
-          duration: 4000,
+          duration: motion.breath,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
@@ -101,15 +95,22 @@ export default function LumiBreath({ size = 160, active, hint }: Props) {
             animating ? { transform: [{ scale: circleScale }] } : null,
           ]}
         >
-          <Text style={styles.label}>{active ? phase : "Začneme?"}</Text>
+          {/* pevná barva: sun300 s inkoustem (9,3:1) je stejná v obou režimech */}
+          <Text variant="title3" maxFontSizeMultiplier={1.6} align="center" style={styles.label}>
+            {active ? phase : "Začneme?"}
+          </Text>
         </Animated.View>
       </View>
-      {hint ? <Text style={styles.hint}>{hint}</Text> : null}
+      {hint ? (
+        <Text variant="footnote" color="textMuted" align="center">
+          {hint}
+        </Text>
+      ) : null}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles(() => ({
   wrap: { alignItems: "center", gap: 18 },
   stage: { alignItems: "center", justifyContent: "center" },
   halo: {
@@ -122,7 +123,7 @@ const styles = StyleSheet.create({
     backgroundColor: palette.sun300,
     alignItems: "center",
     justifyContent: "center",
+    paddingHorizontal: 12,
   },
-  label: { ...font.display(600), fontSize: type.md, color: palette.ink900 },
-  hint: { ...font.body(400), fontSize: type.sm, color: palette.ink700 },
-});
+  label: { color: palette.ink900 },
+}));

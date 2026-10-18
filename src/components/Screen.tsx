@@ -1,33 +1,46 @@
-/* Screen — obrazovka se scrollem (náhrada .app-scroll z webové verze):
-   dole rezerva na tab bar + safe area, nahoře safe area + 20. */
+/* Screen — obrazovka se scrollem pod nativní hlavičkou. Horní odsazení řeší
+   navigátor (iOS velký titulek přes contentInsetAdjustmentBehavior); spodní
+   bezpečnou zónu v tabech řeší nativní tab bar, mimo taby ji přidá Screen.
+   Okraj obsahu podle platformy (HIG 20 pt / Material 16 dp). `keyboard`
+   zvedne obsah nad klávesnici (iOS; Android řeší adjustResize). */
 import React from "react";
-import { ScrollView, StyleSheet, type StyleProp, type ViewStyle } from "react-native";
+import { ScrollView, type StyleProp, type ViewStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { colors } from "../theme";
+import { createThemedStyles } from "../theme";
+import { useInsideTabs } from "./TabContent";
 
 interface Props {
   children: React.ReactNode;
   contentStyle?: StyleProp<ViewStyle>;
+  /** Obrazovka s textovým vstupem: obsah se posune nad klávesnici. */
+  keyboard?: boolean;
 }
 
-export default function Screen({ children, contentStyle }: Props) {
+export default function Screen({ children, contentStyle, keyboard = false }: Props) {
   const insets = useSafeAreaInsets();
+  const insideTabs = useInsideTabs();
+  const styles = useStyles();
+  const paddingBottom = (insideTabs ? 0 : insets.bottom) + 24;
   return (
     <ScrollView
       style={styles.fill}
-      contentContainerStyle={[
-        styles.content,
-        { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 110 },
-        contentStyle,
-      ]}
+      contentContainerStyle={[styles.content, { paddingBottom }, contentStyle]}
+      contentInsetAdjustmentBehavior="automatic"
+      automaticallyAdjustKeyboardInsets={keyboard}
       keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="interactive"
     >
       {children}
     </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
-  fill: { flex: 1, backgroundColor: colors.surfacePage },
-  content: { paddingHorizontal: 20, gap: 14, flexGrow: 1 },
-});
+const useStyles = createThemedStyles((t) => ({
+  fill: { flex: 1, backgroundColor: t.colors.surfacePage },
+  content: {
+    paddingTop: t.platform.isAndroid ? 12 : 16,
+    paddingHorizontal: t.platform.screenMargin,
+    gap: 14,
+    flexGrow: 1,
+  },
+}));

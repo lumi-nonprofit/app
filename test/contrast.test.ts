@@ -1,17 +1,17 @@
-/* WCAG 2.2 AA pro obě schémata: každý pár z manifestu musí splnit svůj práh
-   (text 4,5:1; ne-textové prvky 3:1) a každý text- a border- token musí být
-   v manifestu — nová barva bez kontroly test neprojde. */
+/* WCAG 2.2 AA for both schemes. Each pair from the manifest must meet its threshold (text
+   4.5:1, non-text elements 3:1). Each `text-` and `border-` token must be in the manifest:
+   a new color without a check fails the test. */
 import { contrastPairs, contrastRatio, darkTheme, lightTheme } from "../src/theme";
 
 describe.each([
   ["light", lightTheme],
   ["dark", darkTheme],
-] as const)("kontrast %s", (_name, theme) => {
+] as const)("contrast %s", (_name, theme) => {
   const pairs = contrastPairs(theme);
 
-  it("manifest pokrývá všechny textové a obrysové role", () => {
+  it("covers all text and border roles in the manifest", () => {
     const covered = new Set(pairs.flatMap((p) => [p.fg, p.bg]));
-    /* borderSubtle je čistě dekorativní (hairline, oddělovač) — bez požadavku na kontrast */
+    /* `borderSubtle` is only decorative (hairline, divider), without a contrast requirement. */
     const roles = Object.entries(theme.colors).filter(
       ([k]) => /^(text|border)/.test(k) && k !== "borderSubtle",
     );

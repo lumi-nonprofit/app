@@ -1,7 +1,7 @@
-/* NativeTabs v jestu: nativní tab bar (RNSTabsHost) nemá žádné JS prvky
-   a vykresluje všechny taby najednou. Testy proto dostanou JS Tabs se
-   standardní lištou — položky mají roli „tab“ a popisek z Trigger.Label,
-   přepíná se jen aktivní tab. Vzhled nativního baru ověřuje zařízení. */
+/* `NativeTabs` in Jest: the native tab bar (`RNSTabsHost`) has no JS elements and renders all
+   tabs at once. Thus the tests get the JS `Tabs` with the standard bar: the items have the
+   role "tab" and the label from `Trigger.Label`, and only the active tab changes. A device
+   verifies the look of the native bar. */
 import React from "react";
 import { Tabs } from "expo-router/tabs";
 
@@ -49,7 +49,7 @@ export function NativeTabs({ children }: { children?: React.ReactNode }) {
         name={props.name}
         options={{
           title: labelOf(props.children) ?? props.name,
-          /* jméno položky přesně = popisek (bez zástupné ikony), ikona nativní */
+          /* The item name is exactly the label (no placeholder icon); the icon is native. */
           tabBarAccessibilityLabel: labelOf(props.children) ?? props.name,
           tabBarIcon: () => null,
         }}

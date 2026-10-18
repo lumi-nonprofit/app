@@ -1,10 +1,10 @@
-/* Jest setup — před každým testem vymění in-memory SQLite za čistou, po každém
-   testu obnoví spye (např. Linking.openURL).
-   Unmount po renderu řeší auto-cleanup @testing-library/react-native.
-   SafeAreaProvider čeká na nativní metriky, které v jestu nikdy nepřijdou —
-   oficiální mock knihovny dodá nulové insety, takže děti se vykreslí.
-   Nativní šifrovaná SQLite se mockuje na better-sqlite3 (stejné schéma,
-   stejné migrace) — viz helpers/testDb. */
+/* Jest setup. Before each test it replaces the in-memory SQLite with a clean one. After each
+   test it restores the spies (for example `Linking.openURL`).
+   The auto-cleanup of `@testing-library/react-native` unmounts the tree after each render.
+   `SafeAreaProvider` waits for native metrics that never come in Jest: the official mock of
+   the library gives zero insets, so the children render.
+   A better-sqlite3 mock replaces the native encrypted SQLite (same schema, same migrations),
+   see `helpers/testDb`. */
 import { __resetTestDb as resetTestDb } from "./helpers/testDb";
 import { initI18n } from "../src/i18n";
 
@@ -24,8 +24,8 @@ jest.mock(
 
 jest.mock("../src/db/connect", () => jest.requireActual("./helpers/testDb"));
 
-/* expo-audio nemá v jestu nativní modul (spadl by na importu); přehrávač ho
-   používá jen pro audio se souborem, v testech stačí no-op. */
+/* expo-audio has no native module in Jest (the import would fail). The player uses it only
+   for audio with a file, so a no-op is enough in the tests. */
 jest.mock("expo-audio", () => ({
   setAudioModeAsync: jest.fn().mockResolvedValue(undefined),
   useAudioPlayer: () => ({
@@ -42,8 +42,9 @@ jest.mock("expo-audio", () => ({
   }),
 }));
 
-/* @react-native-community/datetimepicker: pod Android presetem vyžaduje nativní
-   modul RNCDatePicker; testy s výběrem času neinteragují, stačí tichá komponenta. */
+/* `@react-native-community/datetimepicker` requires the native module `RNCDatePicker` under
+   the Android preset. The tests never touch the time picker, so a silent component is
+   enough. */
 jest.mock("@react-native-community/datetimepicker", () => {
   const React = jest.requireActual("react");
   const { View } = jest.requireActual("react-native");
@@ -59,9 +60,9 @@ jest.mock("@react-native-community/datetimepicker", () => {
   };
 });
 
-/* expo-notifications: pod Android presetem jest simuluje Expo Go a modul při
-   importu vyhazuje chybu („push notifications removed from Expo Go“). Lokální
-   plánování mockujeme globálně; test připomínek si mock dál přepisuje vlastním. */
+/* expo-notifications: under the Android preset Jest simulates Expo Go, and the module throws
+   an error on import ("push notifications removed from Expo Go"). The local scheduling gets
+   a global mock here; the reminders test overrides this mock with its own. */
 jest.mock("expo-notifications", () => ({
   setNotificationHandler: jest.fn(),
   getPermissionsAsync: jest.fn(async () => ({ granted: true })),
@@ -74,15 +75,16 @@ jest.mock("expo-notifications", () => ({
   AndroidNotificationVisibility: { PRIVATE: 0, PUBLIC: 1, SECRET: -1 },
 }));
 
-/* Pressable.android_ripple volá nativní příkaz hotspotUpdate, který mock View
-   v jestu nemá (RN limitace); ripple je čistě vizuální, v testech ho vypneme. */
+/* `Pressable.android_ripple` calls the native command `hotspotUpdate`, which the mock `View`
+   in Jest does not have (an RN limitation). The ripple is only visual, so the tests turn it
+   off. */
 jest.mock("react-native/Libraries/Components/Pressable/useAndroidRippleForView", () => ({
   __esModule: true,
   default: () => null,
 }));
 
-/* expo-symbols: SF Symbols / font Material Symbols v jestu nejsou; ikony jsou
-   dekorativní, stačí prázdný View se stejnými rozměry. */
+/* expo-symbols: Jest has no SF Symbols and no Material Symbols font. The icons are decorative,
+   so an empty `View` with the same size is enough. */
 jest.mock("expo-symbols", () => {
   const React = jest.requireActual("react");
   const { View } = jest.requireActual("react-native");
@@ -91,15 +93,15 @@ jest.mock("expo-symbols", () => {
       React.createElement(View, {
         style: [{ width: props.size, height: props.size }, props.style],
       }),
-    /* nativní taby na Androidu kreslí Material ikony jako obrázky — v jestu bez obrázku */
+    /* The native tabs on Android draw the Material icons as images; in Jest the icon is empty. */
     unstable_getMaterialSymbolSourceAsync: jest.fn(async () => null),
   };
 });
 
-/* Nativní taby (react-native-screens) nemají v jestu JS lištu — viz mocks/nativeTabs. */
+/* The native tabs (react-native-screens) have no JS tab bar in Jest, see `mocks/nativeTabs`. */
 jest.mock("expo-router/unstable-native-tabs", () => jest.requireActual("./mocks/nativeTabs"));
 
-/* expo-print: tisk kartičky vrací v testu fiktivní soubor. */
+/* expo-print: the print of the card returns a fake file in the test. */
 jest.mock("expo-print", () => ({
   printToFileAsync: jest.fn(async () => ({ uri: "file:///tmp/lumi-karticka.pdf" })),
 }));

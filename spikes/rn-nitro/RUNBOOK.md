@@ -33,21 +33,26 @@ is the old hand-JSI port source, kept for reference only.)
 ---
 
 ## Step 0 — host sanity (no Android): does the Rust crypto work?
+
 ```bash
 cd spikes/rn-nitro/rust/lumi-ffi-cabi && cargo test
 ```
+
 Expect `test result: ok` (seal/open round-trip + throwing path + unknown handle).
 
 ## Step 1 — toolchain (assumed already present in your toolbox — just verify)
+
 Your toolbox already has: Temurin **JDK 21** (`JAVA_HOME` set), Android SDK at
 `~/Android/Sdk` (`ANDROID_HOME`/`ANDROID_NDK_HOME` set), platform-tools, android-35,
 build-tools 35.0.0, **ndk 27.1.12297006**, cmake 3.22.1, emulator, **cargo-ndk 4.1.2**,
 **cbindgen 0.29.4**, **Node v24**, rust targets aarch64/x86_64-linux-android.
+
 ```bash
 node -v; java -version; adb version; cargo ndk --version; cbindgen --version
 echo "$ANDROID_HOME / $ANDROID_NDK_HOME"
 rustup target list --installed | grep android
 ```
+
 Version notes (flagged): **JDK 21** is fine for RN 0.81.4 + AGP 8.7.2 (the scaffold's
 Gradle plugin). **cargo-ndk 4.1.2** is fine here — we run a plain `build` (no
 `--no-strip`), so ubrn's cargo-ndk break does not apply. **cbindgen 0.29.4** fine.
@@ -60,6 +65,7 @@ Gradle plugin). **cargo-ndk 4.1.2** is fine here — we run a plain `build` (no
 > stuck, and `rustup` at `~/.cargo/bin` shadows a system dnf `rust`).
 
 ## Step 2 — scaffold the throwaway Nitro module (outside the Lumi repo)
+
 ```bash
 cd "$HOME"
 npm_config_yes=true npx create-react-native-library@0.49.10 lumi-crypto-spike \
@@ -71,8 +77,10 @@ npm_config_yes=true npx create-react-native-library@0.49.10 lumi-crypto-spike \
   --type nitro-module --example vanilla
 cd lumi-crypto-spike
 ```
+
 This generates module **`LumiCrypto`**, spec `src/LumiCrypto.nitro.ts`, `nitro.json`,
 a sample Kotlin/Swift impl, and an `example/` app. **Fix the stale codegen pin:**
+
 ```bash
 npm pkg delete devDependencies.nitro-codegen
 npm pkg set devDependencies.nitrogen=^0.35.9
@@ -81,7 +89,9 @@ yarn   # installs (now resolvable)
 ```
 
 ## Step 3 — drop in the spike files (switch to pure C++)
+
 Let `SPIKE=<abs path>/Lumi/spikes/rn-nitro`.
+
 ```bash
 cp "$SPIKE/nitro/LumiCrypto.nitro.ts" src/LumiCrypto.nitro.ts   # c++ spec + DeviceKey/CheckinDraft
 cp "$SPIKE/nitro/nitro.json"          nitro.json                # autolinking -> c++ / HybridLumiCrypto
@@ -99,23 +109,29 @@ rm -f ios/LumiCrypto.swift
 ```
 
 ## Step 4 — run Nitrogen (generates the C++ spec + structs + autolinking)
+
 ```bash
 yarn nitrogen   # == npx nitrogen
 ```
+
 Generates (confirmed): `nitrogen/generated/shared/c++/HybridLumiCryptoSpec.{hpp,cpp}`,
 `DeviceKey.hpp`, `CheckinDraft.hpp`, and `nitrogen/generated/android/lumicrypto+autolinking.cmake`
-+ `lumicryptoOnLoad.{cpp,hpp,kt}` (the OnLoad auto-registers `HybridLumiCrypto`).
+
+- `lumicryptoOnLoad.{cpp,hpp,kt}` (the OnLoad auto-registers `HybridLumiCrypto`).
 
 ## Step 5 — build the Rust C-ABI libs into the lib's cpp/
+
 ```bash
 bash "$SPIKE/scripts/build-rust-android.sh" "$PWD/cpp"
 ```
+
 Writes `cpp/rust-libs/{arm64-v8a,x86_64}/liblumi_ffi_cabi.a` and `cpp/lumi_ffi.h`.
 
 > **Fix hit during the GO run — Rust std targets not actually installed.** The script
 > failed with `error[E0463]: can't find crate for core` for `aarch64-linux-android`: an
 > earlier `rustup target add` hadn't stuck, and the `rustup` toolchain at `~/.cargo/bin`
 > shadows a system dnf `rust`. **Fix:** install the targets, then re-run:
+>
 > ```bash
 > rustup target add aarch64-linux-android x86_64-linux-android
 > rustup target list --installed | grep android   # verify both appear
@@ -123,6 +139,7 @@ Writes `cpp/rust-libs/{arm64-v8a,x86_64}/liblumi_ffi_cabi.a` and `cpp/lumi_ffi.h
 > ```
 
 ## Step 6 — wire CMake
+
 Open `android/CMakeLists.txt` (the template's: `project(lumicrypto)`,
 `add_library(lumicrypto SHARED src/main/cpp/cpp-adapter.cpp)`,
 `include(.../nitrogen/generated/android/lumicrypto+autolinking.cmake)`,
@@ -132,14 +149,18 @@ append the 3 blocks from `$SPIKE/nitro/CMakeLists.additions.cmake` (add the
 the include path, so `HybridLumiCrypto.hpp` and `lumi_ffi.h` resolve.
 
 ## Step 7 — restrict ABIs to what we built
+
 `example/android/gradle.properties`:
+
 ```
 reactNativeArchitectures=arm64-v8a,x86_64
 newArchEnabled=true
 ```
 
 ## Step 8 — build + run
+
 **Dev loop (fast iteration) — this is the path that reached GO:**
+
 ```bash
 cd example
 npx react-native start          # terminal 1 (Metro)
@@ -168,13 +189,13 @@ adb logcat -c && adb logcat | grep -i LUMI_SPIKE_RESULT
 >    `System.loadLibrary("lumicrypto")` in its init block → fires Nitrogen's `OnLoad` →
 >    registers the C++ HybridObject. It must exist **and** be findable at the autolinked
 >    path — don't just delete it.)
->
 > 2. **`:app:mergeLibDexDebug` — duplicate class from an unused template dep.**
 >    `com.facebook.react.viewmanagers.RNCSafeAreaProviderManagerDelegate` defined twice,
 >    from `react-native-safe-area-context` (an example-template dep in `example/package.json`,
 >    never imported by the harness). **Fix:** `cd example && yarn remove react-native-safe-area-context`.
 
 **Offline release (NOT used for GO — release Java packaging is a deferred follow-up):**
+
 ```bash
 # example/android/app/build.gradle: buildTypes { release { signingConfig signingConfigs.debug } }
 cd example/android && ./gradlew assembleRelease
@@ -183,9 +204,10 @@ PKG=$(aapt dump badging app/build/outputs/apk/release/app-release.apk | sed -n "
 adb shell am start -n "$PKG/.MainActivity"
 adb logcat -c && adb logcat | grep -i LUMI_SPIKE_RESULT
 ```
+
 > **As run:** `assembleRelease` **compiled the native code cleanly for both arm64-v8a and
 > x86_64** but failed downstream at `:app:mergeDexRelease` (release dex collisions — see
-> *Production hygiene* below). GO was therefore reached via the **debug dev-loop on the
+> _Production hygiene_ below). GO was therefore reached via the **debug dev-loop on the
 > arm64 Pixel**, not this offline-release APK. The native binding compiles clean in both
 > debug and release; only release Java packaging is unresolved (deferred, not a blocker).
 
@@ -196,12 +218,14 @@ optional cross-arch confirmation (x86_64 compiled clean in the release CMake).
 on the Pixel 8a, in both the ReactNativeJS log and the on-screen UI.
 
 ## Step 9 — §1 verification (no secret crosses)
+
 ```bash
 grep -RniE "secret|private[_-]?key|staticsecret" \
   "$SPIKE/nitro/LumiCrypto.nitro.ts" "$SPIKE/nitro/cpp/HybridLumiCrypto."*
 ```
+
 Expect nothing in any signature — only `handle`, `publicKeyB64`, `peerPublicB64` (a peer
-*public* key, input-only), `mood`, `intensity`, `note`, `sealedB64` cross; the private key
+_public_ key, input-only), `mood`, `intensity`, `note`, `sealedB64` cross; the private key
 stays in the Rust `SECRETS` registry.
 
 ## Production hygiene — deferred, not spike blockers
@@ -225,6 +249,7 @@ build**, not to the GO/NO-GO. Recorded with cause + fix direction:
    irrelevant to the spike itself.
 
 ## Likely failure points (we iterate)
+
 - **Nitrogen "0 specs found"** → `react-native-nitro-modules` not installed / spec
   import unresolved → ensure `yarn` succeeded after the Step-2 codegen fix.
 - **`undefined reference` to `lumi_*`** → CMake additions not applied / wrong target →

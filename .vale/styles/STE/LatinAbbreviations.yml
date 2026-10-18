@@ -1,0 +1,18 @@
+extends: substitution
+message: "Use '%s' instead of '%s'. STE: no Latin abbreviations or words."
+link: https://www.asd-ste100.org/
+level: error
+ignorecase: true
+nonword: true
+swap:
+  '\be\.g\.': for example
+  '\bi\.e\.': that is
+  '\betc\.': and other items
+  '\bvs\.': compared with
+  '\bcf\.': compare
+  '\bN\.B\.': Note
+  '\bvia\b': through
+  '\bad hoc\b': as needed
+  '\bde facto\b': in practice
+  '\bper se\b': as such
+  '\bet al\.': and others

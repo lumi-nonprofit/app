@@ -18,12 +18,12 @@ npm run build      # writes build/{js,css,ios,compose}/
 Mood is **never colour alone** (ADR 0001 §2.3). Colour lives here; the paired
 **shape** lives in code (`src/components/MoodShape.tsx`):
 
-| Mood | Colour token | Shape |
-|------|--------------|-------|
-| energie | `mood.energie` | circle |
+| Mood    | Colour token   | Shape   |
+| ------- | -------------- | ------- |
+| energie | `mood.energie` | circle  |
 | napeti  | `mood.napeti`  | diamond |
-| klid    | `mood.klid`    | square |
-| utlum   | `mood.utlum`   | half |
+| klid    | `mood.klid`    | square  |
+| utlum   | `mood.utlum`   | half    |
 
 Spacing, radii, typography, shadows, and motion tokens are added here as the v1
 app migrates them off `src/theme.ts`.

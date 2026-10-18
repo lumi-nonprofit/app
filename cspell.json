@@ -1,0 +1,76 @@
+{
+  "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
+  "version": "0.2",
+  "language": "en",
+  "import": ["@cspell/dict-cs-cz/cspell-ext.json"],
+  "dictionaryDefinitions": [
+    {
+      "name": "lumi",
+      "path": ".vale/styles/config/vocabularies/Lumi/accept.txt",
+      "description": "Project vocabulary. The same list gives Vale its exceptions."
+    }
+  ],
+  "dictionaries": [
+    "lumi",
+    "softwareTerms",
+    "typescript",
+    "node",
+    "npm",
+    "rust",
+    "html",
+    "css",
+    "fullstack",
+    "en-gb"
+  ],
+  "ignorePaths": [
+    "node_modules",
+    "design/node_modules",
+    "package-lock.json",
+    "design/package-lock.json",
+    "**/Cargo.lock",
+    "drizzle/**",
+    "src/theme/tokens.generated.ts",
+    "core/lumi-ffi-cabi/include/**",
+    "core/lumi-core/tests/fixtures/**",
+    "core/target/**",
+    "server/target/**",
+    "spikes/**/target/**",
+    "**/*.png",
+    "**/*.svg",
+    "**/*.trie.gz",
+    ".vale/**",
+    ".expo/**",
+    "dist/**",
+    "web-build/**",
+    "android/**",
+    "ios/**",
+    "CODE_OF_CONDUCT.md"
+  ],
+  "ignoreRegExpList": [
+    "Urls",
+    "HexValues",
+    "Base64",
+    "CommitHash",
+    "/\\bu26\\b|\\bplus27\\b/g",
+    "/`[^`\\n]*`/g",
+    "/\\b[a-z]+(?:[A-Z][a-z0-9]*)+\\b/g",
+    "/\\b[A-Z][a-z0-9]+(?:[A-Z][a-z0-9]*)+\\b/g",
+    "/\\b[a-z0-9]+(?:_[a-z0-9]+)+\\b/g",
+    "/\\b\\d+[a-z]+\\b/g"
+  ],
+  "overrides": [
+    {
+      "filename": [
+        "src/i18n/locales/cs/**",
+        "test/**",
+        "core/lumi-core/src/crisis/**",
+        "core/lumi-core/tests/**",
+        "app.json",
+        "docs/cz-crisis-data-checklist.md",
+        "docs/device-verification.md"
+      ],
+      "language": "en,cs",
+      "dictionaries": ["cs-cz"]
+    }
+  ]
+}

@@ -1,10 +1,10 @@
 // Step 4a — the JS/TS wrapper around the Nitro Hybrid Object. Provides a typed surface and does
 // the "double-decode": listCheckinsJson returns a JSON array string whose `payload` is itself a
 // JSON string, so we JSON.parse the array AND then JSON.parse each payload.
-import { NitroModules } from 'react-native-nitro-modules';
-import type { LumiVault as LumiVaultSpec } from './LumiVault.nitro';
+import { NitroModules } from "react-native-nitro-modules";
+import type { LumiVault as LumiVaultSpec } from "./LumiVault.nitro";
 
-const native = NitroModules.createHybridObject<LumiVaultSpec>('LumiVault');
+const native = NitroModules.createHybridObject<LumiVaultSpec>("LumiVault");
 
 export interface Checkin {
   recordId: string; // 16-byte opaque id, hex
@@ -37,5 +37,6 @@ export const LumiVault = {
     }));
   },
   /** Crypto-shred a record; returns whether a live record was destroyed. */
-  shredCheckin: (handle: number, recordId: string): boolean => native.shredCheckin(handle, recordId),
+  shredCheckin: (handle: number, recordId: string): boolean =>
+    native.shredCheckin(handle, recordId),
 };

@@ -3,7 +3,7 @@
 - **Status:** Spec recorded 2026-06-13. Data model + matcher land as a **pure core
   module** during the core milestones (M1/M2); **all UI deferred to M3+**
   (`apps/` stays empty during M0).
-- **Pillar:** deepens the existing *"reach real help sooner"* safety surface. **Not
+- **Pillar:** deepens the existing _"reach real help sooner"_ safety surface. **Not
   a new pillar, no new infrastructure** — pure data + rules, entirely on-device.
 - **Related:** ADR `0001-cross-platform-architecture.md` §13 (provenance/staging),
   the PHQ-9 item-9 crisis interstitial, and the existing `Pomoc`/`HelpScreen`.
@@ -12,14 +12,15 @@
 
 ## 1. Purpose & non-goals
 
-**Purpose.** Given what little the app already knows (age band) plus *optional,
-ephemeral* situational hints, surface the **most relevant** crisis lines first —
+**Purpose.** Given what little the app already knows (age band) plus _optional,
+ephemeral_ situational hints, surface the **most relevant** crisis lines first —
 without ever hiding, gating, or emptying the guaranteed safety net.
 
 **Non-goals.**
+
 - Not a diagnosis or triage engine. It ranks contact options; it does not assess risk.
 - No network call participates in matching. No telemetry on anything here, ever.
-- Does not replace the always-on hardcoded safety net — it *enriches* it.
+- Does not replace the always-on hardcoded safety net — it _enriches_ it.
 
 ---
 
@@ -105,7 +106,7 @@ struct Hours { raw: String, parsed: Option<OpeningHours> }
                                         // parsed populated ONLY when unambiguous
 ```
 
-**Two axes stay separate:** `"Celorepublikové"` → `Scope::National` (it is *not* an
+**Two axes stay separate:** `"Celorepublikové"` → `Scope::National` (it is _not_ an
 audience). Scope and audience are demultiplexed independently from the flat
 `categories[]` tag-soup.
 
@@ -125,15 +126,16 @@ audience). Scope and audience are demultiplexed independently from the flat
    `"Volání dle běžného tarifu"` → `StandardTariff`; absent → `Cost::Unknown`.
 
 Channel construction:
+
 - **Phone** iff `phones[]` non-empty → carries `phone_hours` (raw + parsed).
 - **Chat** iff `chat` present → carries `chat.hours`.
 - **Email** iff `email_counseling[]` non-empty. **CRITICAL: email addresses come
   ONLY from `email_counseling[]`; NEVER from `contact_emails[]`** (those are admin
   inboxes). If `email_counseling` is empty there is **no email channel**, even when
-  `contact_emails` exist. *(In the seed: 22 items have counseling emails, all 31
-  have admin emails → 9 lines must yield no email channel.)*
-- **Zero-phone lines are valid** and kept. *(Seed: `"Nepanikař"` has no phone — it
-  is chat/web only.)*
+  `contact_emails` exist. _(In the seed: 22 items have counseling emails, all 31
+  have admin emails → 9 lines must yield no email channel.)_
+- **Zero-phone lines are valid** and kept. _(Seed: `"Nepanikař"` has no phone — it
+  is chat/web only.)_
 - **Phone normalisation:** produce a `tel:`-safe form but **preserve EU short codes
   (`116 111`, `116 123`, `116 006`) verbatim**.
 
@@ -168,21 +170,21 @@ enum OpenState { Open, LikelyClosed { next_open: Option<PragueInstant> }, Unknow
 
 **Parse → Open/LikelyClosed:**
 `NONSTOP` · `Denně 08:00 - 20:00` · `Denně 08:00 až 20:00` · `Denně 09:00 - 21:00` ·
-`PO - PÁ - 09:00 - 21:00` · `PO - PÁ 19:00 - 07:00` *(overnight wrap)* ·
+`PO - PÁ - 09:00 - 21:00` · `PO - PÁ 19:00 - 07:00` _(overnight wrap)_ ·
 `PO - PÁ: 08:00 - 18:00, SO, NE - 08:00 - 16:00` · `PO - PÁ: 08:00 - 22:00` ·
 `PO - PÁ: 09:00 - 18:00` · `PO - ČT - 09:00 - 21:00, PÁ - 9:00 - 17:00`
-*(single-digit hour)* · `PO, ST, PÁ - 08:00 - 20:00` *(weekday list)*.
+_(single-digit hour)_ · `PO, ST, PÁ - 08:00 - 20:00` _(weekday list)_.
 
 **→ Unknown (degrade):**
-`denně 08:00 - 20.00` *(malformed dot)* · `∅`/null ·
-`PO, ÚT, ST, ČT, PÁ - 18:00 - 6:00, víkendy a svátky nepřetržitě` *(holiday prose)* ·
-chat `PO - PÁ 16:00 - 22:00, (letní režim 16:00 - 20:00)` *(seasonal)* ·
-chat `… ČT 13:00 - 16:00 (mimo svátky)` *(holiday exception)* ·
+`denně 08:00 - 20.00` _(malformed dot)_ · `∅`/null ·
+`PO, ÚT, ST, ČT, PÁ - 18:00 - 6:00, víkendy a svátky nepřetržitě` _(holiday prose)_ ·
+chat `PO - PÁ 16:00 - 22:00, (letní režim 16:00 - 20:00)` _(seasonal)_ ·
+chat `… ČT 13:00 - 16:00 (mimo svátky)` _(holiday exception)_ ·
 chat `PO, ST, NE: 18:30 - 21:30, aktuální provozní doba … na webových stránkách`
-*(prose tail)* · chat `PO, ČT, SO: 17:00 - 20.00` *(malformed)* ·
-chat `… PÁ SO, NE a svátky: 08:00 – 13:00` *(holiday + en-dash)* ·
-chat `denně 09:00 – 13.00 a 15:00 – 19:00` *(malformed + en-dash)* ·
-chat `PO - ČT 9 - 21, …` *(bare hours, no minutes → conservative Unknown)*.
+_(prose tail)_ · chat `PO, ČT, SO: 17:00 - 20.00` _(malformed)_ ·
+chat `… PÁ SO, NE a svátky: 08:00 – 13:00` _(holiday + en-dash)_ ·
+chat `denně 09:00 – 13.00 a 15:00 – 19:00` _(malformed + en-dash)_ ·
+chat `PO - ČT 9 - 21, …` _(bare hours, no minutes → conservative Unknown)_.
 
 ---
 
@@ -191,6 +193,7 @@ chat `PO - ČT 9 - 21, …` *(bare hours, no minutes → conservative Unknown)*.
 FFI-exposed **read-only**; mirrors the `scoring`/`insights` core-module pattern.
 
 **Inputs (all optional except age):**
+
 - **age band** (already collected) — selects the universal youth/adult line.
 - **ephemeral situational chips** ("Co se právě děje?"): parent · child-teen ·
   senior · woman-girl · experiencing violence/DV · mental illness · bereavement ·
@@ -200,8 +203,9 @@ FFI-exposed **read-only**; mirrors the `scoring`/`insights` core-module pattern.
 - **"free calls only."**
 
 **Algorithm (order of operations):**
+
 1. **Seed the result with the guaranteed safety net** (age-appropriate universal
-   line + 116 006 when violence/DV is indicated + 112/155). These are *always*
+   line + 116 006 when violence/DV is indicated + 112/155). These are _always_
    present and can never be reordered below specialised lines.
 2. **Add** specialised/regional lines that match chips/region.
 3. **Rank** the non-guaranteed lines by relevance (audience match > scope match >
@@ -257,8 +261,8 @@ FFI-exposed **read-only**; mirrors the `scoring`/`insights` core-module pattern.
 
 - Every line and action reachable by **screen reader and keyboard/switch**.
 - **Open/closed status conveyed as TEXT, never colour-only.**
-- Large tap targets. Actions carry explicit accessible names, e.g. *"Zavolat na
-  Linku bezpečí 116 111, nonstop, zdarma."*
+- Large tap targets. Actions carry explicit accessible names, e.g. _"Zavolat na
+  Linku bezpečí 116 111, nonstop, zdarma."_
 - Reorder announced via a **polite live region** without trapping focus.
 - Works at **200% zoom**, with dynamic type, and **offline**.
 - UI copy is **gender-neutral Czech** via the existing i18n.
@@ -281,13 +285,13 @@ FFI-exposed **read-only**; mirrors the `scoring`/`insights` core-module pattern.
 
 ## 11. Acceptance for the NOW (no UI)
 
-- [x] (a) Spec + safety invariants recorded in `docs/` — *this file*.
+- [x] (a) Spec + safety invariants recorded in `docs/` — _this file_.
 - [x] (b) `CrisisLine` model + validating ingestion in `core/lumi-core/src/crisis/`
-  (`model.rs`, `ingest.rs`), frozen JSON fixture at
-  `core/lumi-core/tests/fixtures/capld_linky_duvery_cr.json` under boundary
-  validators, dual-hours (`Hours { raw, parsed }`).
+      (`model.rs`, `ingest.rs`), frozen JSON fixture at
+      `core/lumi-core/tests/fixtures/capld_linky_duvery_cr.json` under boundary
+      validators, dual-hours (`Hours { raw, parsed }`).
 - [x] (c) Pure matcher (`matcher.rs`) + `open_state` (`hours.rs`) as a core module
-  with unit tests (injected clock + the adversarial-hours corpus).
+      with unit tests (injected clock + the adversarial-hours corpus).
 - [x] (d) CZ-data verification checklist doc — `cz-crisis-data-checklist.md`.
 - [x] (e) `apps/` untouched; tests green (27 Rust tests + the 95 existing Jest tests).
 

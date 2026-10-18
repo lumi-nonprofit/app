@@ -1,0 +1,8 @@
+extends: existence
+message: "Remove '%s'. STE: write the instruction directly."
+link: https://www.asd-ste100.org/
+level: error
+ignorecase: true
+tokens:
+  - please
+  - kindly

@@ -1,0 +1,30 @@
+extends: script
+message: "'%s' is not English. Write English. Quote Czech data labels, or add a proper noun to docs/glossary.md and this rule."
+link: https://www.asd-ste100.org/
+level: error
+scope: raw
+script: |
+  text := import("text")
+  matches := []
+
+  // Spans that stay as they are: fenced code, inline code and quotations.
+  skip := text.re_find("(?s)```.*?```|`[^`\n]*`|\"[^\"\n]*\"|„[^“\n]*“|'[^'\n]*'", scope, -1)
+  // Czech proper nouns that this project uses in English text.
+  allowed := text.re_find("Linka bezpečí|Lince bezpečí|Linka první psychické pomoci|Linka pomoci obětem|Rodičovská linka|Záchranná služba|Česká asociace pracovišť linek důvěry|ČAPLD|Linky důvěry v ČR|Přehledy|Nastavení|Dech naslepo|Tichá louka|Večerka|Všímavá procházka|Ohlédnutí za týdnem|Krizový plán|Pomoc hned|Pomoc blízkému|Podej telefon|Zdraví|Napětí|Útlum|Klid|Energie", scope, -1)
+
+  inside := func(pos, spans) {
+    if is_undefined(spans) { return false }
+    for s in spans {
+      if pos >= s[0].begin && pos < s[0].end { return true }
+    }
+    return false
+  }
+
+  words := text.re_find("[\\p{L}]*[ěščřžýáíéúůťďňĚŠČŘŽÝÁÍÉÚŮŤĎŇ][\\p{L}]*", scope, -1)
+  if !is_undefined(words) {
+    for w in words {
+      if !inside(w[0].begin, skip) && !inside(w[0].begin, allowed) {
+        matches = append(matches, {begin: w[0].begin, end: w[0].end})
+      }
+    }
+  }

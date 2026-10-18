@@ -10,16 +10,16 @@ product property — see `docs/adr/0001-cross-platform-architecture.md` (§3 cry
 
 Lumi is pre-release (0.x). Only the latest `main` receives security fixes.
 
-| Version | Supported |
-| ------- | --------- |
-| latest `main` (0.x) | ✅ |
-| older 0.x | ❌ |
+| Version             | Supported |
+| ------------------- | --------- |
+| latest `main` (0.x) | ✅        |
+| older 0.x           | ❌        |
 
 ## Reporting a vulnerability
 
 **Please report privately — do not open a public issue for a security problem.**
 
-- **Preferred:** GitHub *private vulnerability reporting* — repository **Security**
+- **Preferred:** GitHub _private vulnerability reporting_ — repository **Security**
   tab → **Report a vulnerability**. (Maintainers: enable this under Settings →
   Code security.)
 - **Email fallback:** anna.zezulka@pm.me

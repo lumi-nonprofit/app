@@ -1,0 +1,72 @@
+extends: existence
+message: "'%s' is an -ing form. STE: use the infinitive, the imperative or a noun. Technical names are in docs/glossary.md."
+link: https://www.asd-ste100.org/
+level: error
+ignorecase: true
+tokens:
+  - '\b[a-z]{2,}ing\b'
+exceptions:
+  - anything
+  - bring
+  - building
+  - ceiling
+  - during
+  - ending
+  - evening
+  - everything
+  - feeling
+  - finding
+  - findings
+  - heading
+  - king
+  - meaning
+  - meeting
+  - morning
+  - nothing
+  - onboarding
+  - padding
+  - pending
+  - ping
+  - ring
+  - setting
+  - settings
+  - sibling
+  - sing
+  - something
+  - spring
+  - string
+  - strings
+  - swing
+  - thing
+  - things
+  - timing
+  - warning
+  - warnings
+  - wing
+  - autolinking
+  - binding
+  - bindings
+  - bundling
+  - caching
+  - decoding
+  - encoding
+  - formatting
+  - hashing
+  - linting
+  - logging
+  - mapping
+  - mappings
+  - pairing
+  - rendering
+  - routing
+  - scaling
+  - scheduling
+  - signing
+  - spelling
+  - streaming
+  - styling
+  - testing
+  - tooling
+  - tracking
+  - typing
+  - wrapping

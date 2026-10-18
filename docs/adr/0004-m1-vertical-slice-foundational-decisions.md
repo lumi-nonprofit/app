@@ -20,7 +20,7 @@ ADR 0003 + spike #1b validated the v1 binding end-to-end on a real Pixel:
 crypto") now begins as a **walking skeleton**: one real feature — a single mood check-in
 `{mood, intensity, note}` — driven end-to-end through the **production** stack (capture → encrypt
 at rest with the real vault / per-record-key scheme → persist → read back → decrypt → render),
-then the core is fleshed out *along* that proven spine. `docs/m1-vertical-slice-proposal.md` is the
+then the core is fleshed out _along_ that proven spine. `docs/m1-vertical-slice-proposal.md` is the
 analysis behind these decisions (recommendations + options + live-verified crate facts, 2026-06-14);
 this ADR records what was ratified.
 
@@ -38,7 +38,7 @@ this ADR records what was ratified.
 
 **Why.** The app-integrated shape makes the SPIKE-REPORT **release-dex duplicate-class blocker
 disappear by construction**. Root cause (traced to source): the `create-react-native-library`
-template applies `com.facebook.react` *inside the library module*, which re-runs RN codegen there
+template applies `com.facebook.react` _inside the library module_, which re-runs RN codegen there
 and regenerates `com.facebook.fbreact.specs` / `com.facebook.react.viewmanagers` into the library's
 own dex — classes the app's React Native already ships → `defined multiple times` at
 `:app:mergeDexRelease` (upstream `react-native-builder-bob` #774, still open). With **no library
@@ -88,7 +88,7 @@ Internet-Draft (draft-10, 2026-03-02)**; the `x-wing` crate is **0.1.0-rc.0, nev
 implements draft-06** — four revisions behind, across a **breaking decap-key encoding change at
 draft-08**; `ml-kem` 0.3.2 is unaudited with recent API churn. The envelope is already
 additive-by-design, so waiting costs **zero migration**. (Note: the deployed-in-the-wild hybrid is
-**X25519MLKEM768**, a *different* construction from X-Wing — relevant only if FIPS procurement ever
+**X25519MLKEM768**, a _different_ construction from X-Wing — relevant only if FIPS procurement ever
 becomes a requirement.)
 
 ### (d) `apps/` — ruling (A): no `apps/` this milestone
@@ -96,12 +96,12 @@ becomes a requirement.)
 - **Run the slice in the existing root app; do NOT create `apps/` this milestone.**
 
 **Why.** There is **no `apps/` directory** — the production RN app lives at the **repo root**, and
-`apps/` is only a node in ADR 0001 §7's *future* monorepo tree (which has never been created). So
-the ratification constraint *"`apps/` stays empty until spike #1 passes and M3"* (ADR 0001 line 89)
+`apps/` is only a node in ADR 0001 §7's _future_ monorepo tree (which has never been created). So
+the ratification constraint _"`apps/` stays empty until spike #1 passes and M3"_ (ADR 0001 line 89)
 is about a directory that doesn't exist yet, not about the existing root app. The slice **reuses
 the existing root-app shell as the integration proof** (the accessible check-in screens, the test
 seam, the repo API), touching the root app + `core/` only — never `apps/`. This is a **deliberate,
-justified deviation**: a sliver of app work in the root app = *integration proof*, **not** the M3
+justified deviation**: a sliver of app work in the root app = _integration proof_, **not** the M3
 monorepo buildout. The §7 reshape (and the CMP-vs-RN directory question) stays deferred to M3.
 
 ### (e) `created_at` leakage — accepted for the slice; hardening committed pre-ship
@@ -113,7 +113,7 @@ monorepo buildout. The §7 reshape (and the CMP-vs-RN directory question) stays 
   any real user.
 
 **Why deferred from the slice.** SQLCipher-in-Rust adds an **OpenSSL-for-Android cross-compile**
-on top of cbindgen, which would add risk to the *integration proof* that is the slice's whole
+on top of cbindgen, which would add risk to the _integration proof_ that is the slice's whole
 point. It is recorded as a **committed follow-up**, not optional.
 
 ## The §1 reading relied on (recorded)

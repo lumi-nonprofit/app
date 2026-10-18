@@ -7,7 +7,7 @@ live JS→Rust→JS round-trip on a real emulator/simulator on the New Architect
 gate ("GO only if BOTH legs round-trip; if either fails or is flaky → NO-GO"), this
 fires **NO-GO** → reopen to §2.4a (CMP/Flutter via the gate-2 binding evaluation).
 
-**Honest nuance (so the decision is fully informed):** this is *not* proof the binder
+**Honest nuance (so the decision is fully informed):** this is _not_ proof the binder
 is fundamentally incapable — its codegen, cross-compile, and §1 all work, and
 Mozilla/Filament ship it. The criterion-3 failure reflects **real pre-1.0 e2e
 fragility at the pinned versions** PLUS the limits of a blind CI with no local mobile
@@ -30,23 +30,31 @@ host, macOS for iOS), exactly as the brief permitted. The on-device round-trip
 
 ## Criteria
 
-| # | Criterion | Status | Evidence |
-|---|---|---|---|
-| 1 | Representative core (real pure-Rust crypto) + non-trivial typed fn (record in / Result out); binding exercised on realistic types | **PROVEN** | `lumi-ffi-spike`: x25519-dalek + ChaCha20-Poly1305 + HKDF. Host round-trip test green. `ubrn generate jsi bindings` produced correct TS+C++ for `CheckinDraft`/`DeviceKey` records, `bigint`/`ArrayBuffer`, throwing fns. |
-| 2 | Cross-compile to REAL targets: aarch64 Android (NDK) + iOS device + sim | **PROVEN** | `cargo ndk -t arm64-v8a build` → `liblumi_ffi_spike.so` (NDK r27c). `cargo build --target aarch64-apple-ios` + `…-ios-sim` on macOS. |
-| 3 | Round-trip on a real device/emulator, New Architecture, pinned RN version | **ATTEMPTED — FAILED** | Built a throwaway RN 0.81.4 New-Arch turbo-module (create-react-native-library 0.49.10 + ubrn) for our crate. Neither leg reached a live round-trip — see §"Criterion 3" below. |
-| 4 | §1 invariant: no raw key bytes cross the FFI into the JS heap | **PROVEN** | By design (the `StaticSecret` type is never in any `#[uniffi::export]` signature) AND firsthand in the generated TS: surface is `newDeviceKey()->{handle,publicKey}`, `publicKey(handle)->bytes`, `sealCheckin(handle,peerPublic,draft)->bytes`, `openCheckin(...)->CheckinDraft`. No `StaticSecret`/secret-key type anywhere. |
-| 5 | Binder pinnable + vendorable | **PROVEN** | `uniffi-bindgen-react-native@0.29.3-1` pinned in `package.json`, installs + runs in CI. Mozilla + Filament-backed, built on first-party Mozilla UniFFI 0.29; GitHub-vendorable. (This is the maintained RN binder — **not** the stale third-party CMP/Kotlin fork flagged in ADR §2.5.) |
+| #   | Criterion                                                                                                                         | Status                 | Evidence                                                                                                                                                                                                                                                                                                                       |
+| --- | --------------------------------------------------------------------------------------------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Representative core (real pure-Rust crypto) + non-trivial typed fn (record in / Result out); binding exercised on realistic types | **PROVEN**             | `lumi-ffi-spike`: x25519-dalek + ChaCha20-Poly1305 + HKDF. Host round-trip test green. `ubrn generate jsi bindings` produced correct TS+C++ for `CheckinDraft`/`DeviceKey` records, `bigint`/`ArrayBuffer`, throwing fns.                                                                                                      |
+| 2   | Cross-compile to REAL targets: aarch64 Android (NDK) + iOS device + sim                                                           | **PROVEN**             | `cargo ndk -t arm64-v8a build` → `liblumi_ffi_spike.so` (NDK r27c). `cargo build --target aarch64-apple-ios` + `…-ios-sim` on macOS.                                                                                                                                                                                           |
+| 3   | Round-trip on a real device/emulator, New Architecture, pinned RN version                                                         | **ATTEMPTED — FAILED** | Built a throwaway RN 0.81.4 New-Arch turbo-module (create-react-native-library 0.49.10 + ubrn) for our crate. Neither leg reached a live round-trip — see §"Criterion 3" below.                                                                                                                                                |
+| 4   | §1 invariant: no raw key bytes cross the FFI into the JS heap                                                                     | **PROVEN**             | By design (the `StaticSecret` type is never in any `#[uniffi::export]` signature) AND firsthand in the generated TS: surface is `newDeviceKey()->{handle,publicKey}`, `publicKey(handle)->bytes`, `sealCheckin(handle,peerPublic,draft)->bytes`, `openCheckin(...)->CheckinDraft`. No `StaticSecret`/secret-key type anywhere. |
+| 5   | Binder pinnable + vendorable                                                                                                      | **PROVEN**             | `uniffi-bindgen-react-native@0.29.3-1` pinned in `package.json`, installs + runs in CI. Mozilla + Filament-backed, built on first-party Mozilla UniFFI 0.29; GitHub-vendorable. (This is the maintained RN binder — **not** the stale third-party CMP/Kotlin fork flagged in ADR §2.5.)                                        |
 
 ## Generated FFI surface (the §1 proof)
 
 ```ts
-export function newDeviceKey(): DeviceKey                                  // {handle: bigint, publicKey: ArrayBuffer}
-export function publicKey(handle: bigint): ArrayBuffer
-export function sealCheckin(handle: bigint, peerPublic: ArrayBuffer, draft: CheckinDraft): ArrayBuffer
-export function openCheckin(handle: bigint, peerPublic: ArrayBuffer, sealed: ArrayBuffer): CheckinDraft
-export type CheckinDraft = { mood: string, intensity: number, note: string }
-export type DeviceKey   = { handle: bigint, publicKey: ArrayBuffer }
+export function newDeviceKey(): DeviceKey; // {handle: bigint, publicKey: ArrayBuffer}
+export function publicKey(handle: bigint): ArrayBuffer;
+export function sealCheckin(
+  handle: bigint,
+  peerPublic: ArrayBuffer,
+  draft: CheckinDraft,
+): ArrayBuffer;
+export function openCheckin(
+  handle: bigint,
+  peerPublic: ArrayBuffer,
+  sealed: ArrayBuffer,
+): CheckinDraft;
+export type CheckinDraft = { mood: string; intensity: number; note: string };
+export type DeviceKey = { handle: bigint; publicKey: ArrayBuffer };
 ```
 
 The device private key lives only in a Rust-side registry behind the opaque `handle`;
@@ -60,7 +68,7 @@ handle, public keys, the plaintext domain record, and ciphertext cross the bound
    to run codegen. Budget this in CI and any contributor's machine.
 2. `ubrn generate jsi` needs a **sub-subcommand** (`bindings` / `turbo-module`).
    `bindings` is the low-level uniffi form: `--library <compiled .so/.dylib>
-   --ts-dir --cpp-dir`. The docs lead with the high-level `ubrn build` (turbo-module)
+--ts-dir --cpp-dir`. The docs lead with the high-level `ubrn build` (turbo-module)
    path instead; the low-level path took discovery.
 3. `ubrn generate jsi bindings` runs `cargo metadata` in **CWD** — must be invoked
    from the crate directory even in library mode.
@@ -72,7 +80,7 @@ handle, public keys, the plaintext domain record, and ciphertext cross the bound
    like "secret" appear in comments; not a leak. Verify §1 against type signatures,
    not substrings).
 6. `cargo-ndk` via `taiki-e/install-action` flaked once (transient); `cargo install
-   cargo-ndk --locked` was reliable. (`--version` flag also unsupported.)
+cargo-ndk --locked` was reliable. (`--version` flag also unsupported.)
 
 ## Criterion 3 — e2e attempt (what actually happened)
 
@@ -102,7 +110,7 @@ Workflow: `.github/workflows/spike-rn-e2e.yml` (runs `27472273533`, `27472776172
 
 **Net:** neither leg reached a live round-trip. The failures are integration/
 packaging issues at the pinned versions, plus the limits of debugging mobile builds
-blind in CI (no local Xcode/Android Studio loop). They are *plausibly fixable* by a
+blind in CI (no local Xcode/Android Studio loop). They are _plausibly fixable_ by a
 mobile engineer with local tooling — but they did not pass here.
 
 ## Recommendation

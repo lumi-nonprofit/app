@@ -10,6 +10,7 @@ full e2e (that's step 4b).
 we iterate on errors.
 
 ## Layout
+
 - `nitro/LumiVault.nitro.ts` — the Nitro spec (validated with Nitrogen 0.35.9).
 - `nitro/nitro.json` — autolinking -> C++ `HybridLumiVault` (`androidCxxLibName: lumivault`).
 - `cpp/HybridLumiVault.{hpp,cpp}` — the C++ impl over the C ABI; error codes -> thrown JS exceptions.
@@ -20,12 +21,14 @@ we iterate on errors.
 - `plugins/withLumiVault.js` — Expo config plugin (best-effort prebuild wiring).
 
 ## Verified in-sandbox (device-independent)
+
 - **Cross-compile PASS:** `lumi-ffi-cabi` (incl. lumi-store's **bundled SQLite**) compiles for
   `aarch64-linux-android` via the NDK clang. The SQLite-via-NDK risk is retired.
 - **Nitro spec PASS:** Nitrogen generates `HybridLumiVaultSpec` + `lumivault+autolinking.cmake` +
   `lumivaultOnLoad.*`; CMake target `lumivault`.
 
 ## The three gates (run on the Pixel — see RUNBOOK)
+
 - **A.** logcat `Successfully registered HybridObject "LumiVault"`.
 - **B.** `LUMI_SLICE_SMOKE {"pass":true,...}` (the full JS→Nitro→C++→Rust→SQLite round-trip).
 - **C.** `./gradlew assembleRelease` clears `:app:mergeDexRelease` without the duplicate-class collision

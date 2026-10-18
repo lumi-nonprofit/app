@@ -156,6 +156,7 @@ File each finding as an issue. Then delete it from this list.
    0.86; the packages were updated by name with `npm update`. `design/` has its own lockfile with
    8 advisories (style-dictionary `^4`, fixed in 5.4.4, a major with a config migration; braces);
    CI does not audit it.
+
 9. **One design document is missing.** ADR 0005 and the transport proposal cite the "M2 canonical
    data-model assessment (2026-06-15)". It is not in the repository. ADR 0005 states its conclusion.
 10. **Issue #8 is open** (test gap: crisis scope-tag precedence).

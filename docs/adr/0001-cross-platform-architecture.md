@@ -3,10 +3,11 @@
 > **⚠ PARTIALLY SUPERSEDED (2026-06-14) — preserved as the historical M0 record.** The original
 > text below is kept intact (with inline `[Superseded …]` notes at each point); the reasoning is
 > not rewritten. Two areas are overtaken by later ratified ADRs:
+>
 > - **The RN↔core binding is Nitro**, not UniFFI. Per **ADR 0003** (validated by spike #1b GO —
 >   `spikes/rn-nitro/SPIKE-REPORT.md`), the v1 mobile binding is `react-native-nitro-modules` +
 >   `nitrogen` over a hand-written **C ABI (cbindgen)** — **not** `uniffi-bindgen-react-native`.
->   (UniFFI remains the planned binding for the *deferred* Swift/Kotlin desktop/watch targets, and
+>   (UniFFI remains the planned binding for the _deferred_ Swift/Kotlin desktop/watch targets, and
 >   `wasm-bindgen` for web — so the §1 "Distribution (UniFFI, locked)" block is still correct for
 >   those.)
 > - **The §7 `apps/` tree is CMP-shaped and predates the D-rn ratification.** The v1 app is the
@@ -17,7 +18,7 @@
 
 - **Status:** **Ratified** (2026-06-13) — M0 step (b) in progress. See the sign-off record
   below. The shared Rust core, the locked crypto/sync design, and the
-  *defer-the-UI-lock-to-M3 + spikes + A-native-fallback* strategy are
+  _defer-the-UI-lock-to-M3 + spikes + A-native-fallback_ strategy are
   approved. Five conditions (sign-off record) must be reflected before
   scaffolding, and the **CMP-vs-Flutter-vs-D** choice stays open pending the M1
   spikes and the **watchOS-in-v1** product call.
@@ -31,7 +32,7 @@
   read of the existing repo. Per-axis conclusions and the judge scoreboard are
   summarised inline; concrete repo facts are cited as `file:line`.
 
-> **Process note.** This milestone produces *this document only*. The ADR is now
+> **Process note.** This milestone produces _this document only_. The ADR is now
 > accepted with conditions (sign-off record below); **scaffolding still waits**
 > until those five conditions are reflected here and confirmed. The brief's M0
 > acceptance ("ADR merged; CI green on an empty scaffold; SBOM produced") is
@@ -52,8 +53,9 @@ of **deferring the irreversible UI lock to the M2→M3 boundary**, gated on four
 de-risking spikes, with **A-native** as the principled fallback.
 
 **Five conditions to reflect before any scaffolding:**
+
 1. **Sync-relay controllership.** Add a controllership + lawful-basis analysis for
-   the *sync relay itself*, separate from the research-toggle Art. 9 work — even
+   the _sync relay itself_, separate from the research-toggle Art. 9 work — even
    ciphertext-only, the relay processes connection metadata (IP, timing, cadence)
    = personal data. → §5.1.
 2. **Crypto-shredding = the Art. 17 erasure mechanism.** Erasure is effected by
@@ -66,12 +68,13 @@ de-risking spikes, with **A-native** as the principled fallback.
 4. **Reserve space in the M0 on-wire format.** Generous reserved fields + explicit
    versioning so the M1 replay/idempotency review can extend the format **without
    a migration.** → §5.
-5. **The Jest suite is a behavioural *spec*, not a runnable asset** — record it as
+5. **The Jest suite is a behavioural _spec_, not a runnable asset** — record it as
    a specification of behaviours to re-implement, not tests that carry over. → §14.
 
 **UI-direction refinements:**
+
 - **Compose Multiplatform and Flutter are co-equal hybrid candidates**, decided by
-  the **gate-2 binding-maturity evaluation** — Flutter is *not* a fallback. → §2.4.
+  the **gate-2 binding-maturity evaluation** — Flutter is _not_ a fallback. → §2.4.
 - **Spike #2 (iOS VoiceOver) is empowered to push most iOS screens to native
   SwiftUI.** So "E-hybrid" realistically = **CMP/Flutter for Android+desktop +
   native-heavy iOS** — this is the plan, not a risk. → §2.4.
@@ -91,6 +94,7 @@ revisions.
 
 **Ratification (2026-06-13 #2).** Both parked questions answered; the ADR is now
 **acted on**:
+
 - **Q1 (UI) — ratified:** **D-rn (keep React Native) for v1, scoped MOBILE-ONLY —
   Android + iOS (iPad via the iOS build).** Desktop (Windows/macOS/Linux) and
   watchOS are **post-v1** milestones, each with its own framework decision (§2.4a /
@@ -110,25 +114,25 @@ revisions.
 
 ## 0. What is locked vs open
 
-| Area | Status | Where |
-|---|---|---|
-| Scope = full cross-platform rebuild, staged | **Locked** (Decision 1) | brief §5 |
-| Unlock = biometric + PIN + recovery code (= migration secret) | **Locked** (Decision 2) | §3 |
-| PHQ-9/GAD-7 = minimal legal-only framing changes | **Locked** (Decision 3) | §13 |
-| Shared **Rust core** holds all crypto/data/sync/merge/validation | **Locked** | §1 |
-| Local store = SQLite + app-layer per-record encryption (SQLCipher = defence-in-depth) | **Locked** (refined here) | §3, §4 |
-| Zero-knowledge, opt-in, ciphertext-only sync server | **Locked** | §5 |
-| Crypto crate stack + key hierarchy parameters | **Recommended-lock** (this ADR) | §3 |
-| Two-track merge (op-log + Automerge) | **Recommended-lock** (this ADR) | §4 |
-| **UI framework** | **Reopened after watchOS deferral** — revised rec = **D-rn (keep RN)** for v1 mobile; broad-surface/native deferred to desktop+watch scope | **§2** |
-| Platform scope | **watchOS DEFERRED from v1; v1 = mobile-first (Android + iOS)**; desktop = post-v1 | §12 |
+| Area                                                                                  | Status                                                                                                                                     | Where    |
+| ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------- |
+| Scope = full cross-platform rebuild, staged                                           | **Locked** (Decision 1)                                                                                                                    | brief §5 |
+| Unlock = biometric + PIN + recovery code (= migration secret)                         | **Locked** (Decision 2)                                                                                                                    | §3       |
+| PHQ-9/GAD-7 = minimal legal-only framing changes                                      | **Locked** (Decision 3)                                                                                                                    | §13      |
+| Shared **Rust core** holds all crypto/data/sync/merge/validation                      | **Locked**                                                                                                                                 | §1       |
+| Local store = SQLite + app-layer per-record encryption (SQLCipher = defence-in-depth) | **Locked** (refined here)                                                                                                                  | §3, §4   |
+| Zero-knowledge, opt-in, ciphertext-only sync server                                   | **Locked**                                                                                                                                 | §5       |
+| Crypto crate stack + key hierarchy parameters                                         | **Recommended-lock** (this ADR)                                                                                                            | §3       |
+| Two-track merge (op-log + Automerge)                                                  | **Recommended-lock** (this ADR)                                                                                                            | §4       |
+| **UI framework**                                                                      | **Reopened after watchOS deferral** — revised rec = **D-rn (keep RN)** for v1 mobile; broad-surface/native deferred to desktop+watch scope | **§2**   |
+| Platform scope                                                                        | **watchOS DEFERRED from v1; v1 = mobile-first (Android + iOS)**; desktop = post-v1                                                         | §12      |
 
 ---
 
 ## 1. The shared Rust core (locked)
 
 One audited Rust crate (`lumi-core`) owns **everything security- or
-correctness-critical**, so the sensitive surface is written and audited *once*
+correctness-critical**, so the sensitive surface is written and audited _once_
 instead of N times:
 
 - **Crypto & key hierarchy** — KDF, AEAD, key wrap/unwrap, vault/content keys,
@@ -147,12 +151,13 @@ instead of N times:
 
 The UI (whatever §2 decides) is a **thin client**: it renders state and forwards
 intent. **It never holds raw key material.** The FFI surface is narrow and
-high-level — it returns *handles* and *plaintext domain objects*, **never raw key
+high-level — it returns _handles_ and _plaintext domain objects_, **never raw key
 bytes**. (This is the explicit fix for the current anti-pattern at
 `src/db/connect.ts:23`, which interpolates the raw hex DB key straight into
 `PRAGMA key` from JS.)
 
 **Distribution (UniFFI, locked):**
+
 - UniFFI **proc-macro mode** → Swift (one xcframework for
   iOS/iPadOS/macOS/watchOS/tvOS) + Kotlin (Android/wearOS via `cargo-ndk` `.aar`).
 - **Web/wasm:** `wasm-bindgen` for the crypto core initially (most battle-tested);
@@ -162,23 +167,23 @@ bytes**. (This is the explicit fix for the current anti-pattern at
   **nightly-free**. Pin the UniFFI version; bump deliberately (0.x has breaking
   minors); gate binding regeneration in CI.
 
-> **[Superseded in part by ADR 0003/0004]** This UniFFI distribution is correct for the *deferred*
+> **[Superseded in part by ADR 0003/0004]** This UniFFI distribution is correct for the _deferred_
 > Swift/Kotlin desktop/watch targets + `wasm-bindgen` for web. The **v1 mobile (RN) binding is
 > Nitro over a hand-written C ABI (cbindgen)** — see ADR 0003 + `spikes/rn-nitro/SPIKE-REPORT.md`.
 
 ---
 
-## 2. UI framework — the deferred decision (signed off as a *process*)
+## 2. UI framework — the deferred decision (signed off as a _process_)
 
 ### 2.1 The shortlist
 
-| | Option | Broad surface | watch/wear | Desktop |
-|---|---|---|---|---|
-| **A** | Native everywhere | SwiftUI (Apple) + Compose (Android) | native | WinUI / GTK |
-| **B** | Compose Multiplatform | CMP (Android/iOS/desktop) | native SwiftUI | CMP-desktop |
-| **C** | Flutter | Flutter (mobile/desktop/web) | native SwiftUI | Flutter-desktop |
-| **D** | Stay React Native | RN + rn-windows/macos | **none (no watchOS)** | rn-windows/macos |
-| **E** | **Hybrid** | CMP **or** Flutter | native SwiftUI shim | CMP/Flutter or Tauri |
+|       | Option                | Broad surface                       | watch/wear            | Desktop              |
+| ----- | --------------------- | ----------------------------------- | --------------------- | -------------------- |
+| **A** | Native everywhere     | SwiftUI (Apple) + Compose (Android) | native                | WinUI / GTK          |
+| **B** | Compose Multiplatform | CMP (Android/iOS/desktop)           | native SwiftUI        | CMP-desktop          |
+| **C** | Flutter               | Flutter (mobile/desktop/web)        | native SwiftUI        | Flutter-desktop      |
+| **D** | Stay React Native     | RN + rn-windows/macos               | **none (no watchOS)** | rn-windows/macos     |
+| **E** | **Hybrid**            | CMP **or** Flutter                  | native SwiftUI shim   | CMP/Flutter or Tauri |
 
 All five sit on the same locked Rust core; they differ only in the UI layer.
 
@@ -190,16 +195,16 @@ E-hybrid 48.5  >  B-compose 43.5  >  C-flutter 40.0  >  A-native 37.5  >  D-rn 3
 
 Per-lens winners tell the real story — **the aggregate and the quality lenses disagree:**
 
-| Lens | Winner | A | B | C | D | E |
-|---|---|---|---|---|---|---|
-| Maintenance burden (solo) | **E** | 2 | 7 | 6 | 4 | **8** |
-| Accessibility (EN 301 549) | **A** | **9** | 7 | 6 | 5 | 8 |
-| Security boundary / auditability | **A** | **8.5** | 7.5 | 6 | 4.5 | 7.5 |
-| Platform reach (incl. watchOS) | **A** | **10** | 8 | 8 | 4 | 10 |
-| Bespoke design-system fidelity | **C/E** | 6 | 9 | **10** | 6 | **10** |
-| Time-to-M3 / delivery risk | **D** | 2 | 5 | 4 | **9** | 5 |
+| Lens                             | Winner  | A       | B   | C      | D     | E      |
+| -------------------------------- | ------- | ------- | --- | ------ | ----- | ------ |
+| Maintenance burden (solo)        | **E**   | 2       | 7   | 6      | 4     | **8**  |
+| Accessibility (EN 301 549)       | **A**   | **9**   | 7   | 6      | 5     | 8      |
+| Security boundary / auditability | **A**   | **8.5** | 7.5 | 6      | 4.5   | 7.5    |
+| Platform reach (incl. watchOS)   | **A**   | **10**  | 8   | 8      | 4     | 10     |
+| Bespoke design-system fidelity   | **C/E** | 6       | 9   | **10** | 6     | **10** |
+| Time-to-M3 / delivery risk       | **D**   | 2       | 5   | 4      | **9** | 5      |
 
-**Read this honestly:** E-hybrid wins on the *proxy* metric (number of UI
+**Read this honestly:** E-hybrid wins on the _proxy_ metric (number of UI
 codebases kept green) and design fidelity. **A-native wins every lens that maps to
 Lumi's hard, legal, existential constraints** — accessibility, the
 zero-knowledge security boundary, and watchOS reach. D-rn wins only the
@@ -207,37 +212,37 @@ first-platform sprint. There is no free lunch; the choice is a priority ordering
 
 ### 2.3 The maintenance-burden analysis (the brief's required deliverable)
 
-- **watch/wear is native in *every* option.** SwiftUI watchOS + Compose wearOS
-  are unavoidable. So the only real lever is the *broad* surface. This shrinks
+- **watch/wear is native in _every_ option.** SwiftUI watchOS + Compose wearOS
+  are unavoidable. So the only real lever is the _broad_ surface. This shrinks
   A-native's apparent disadvantage and E-hybrid's apparent advantage.
 - **A-native is not "7 codebases."** It is realistically **one SwiftUI codebase**
   (iOS/iPadOS/macOS/watchOS/tvOS) + **one Compose codebase** (Android/wearOS),
   with design tokens code-generated from a single source (Style Dictionary →
   `ios-swift` + `compose/object` + `css`). The genuine extra cost is the
   **desktop tier** (Windows/Linux) — adding WinUI + GTK is what makes A
-  unsustainable for a solo dev, *not* the mobile native UIs.
+  unsustainable for a solo dev, _not_ the mobile native UIs.
 - **E-hybrid's maintenance win is partly illusory** (the decisive skeptic
   finding, independently verified): JetBrains' own guidance says
-  *accessibility-critical iOS screens should be native SwiftUI under CMP*. For
+  _accessibility-critical iOS screens should be native SwiftUI under CMP_. For
   Lumi the a11y-critical screens are **most of the app** (crisis interstitial,
   MoodPicker, check-in, questionnaires). So E-hybrid quietly becomes "A-native
   for the screens that matter + CMP for the easy screens" — more seams than the
   score implies, eroding screen-by-screen on every failed a11y audit.
-- **The real recurring solo-maintainer cost for *this* app** is not codebase
+- **The real recurring solo-maintainer cost for _this_ app** is not codebase
   count — it is **(a)** the per-release screen-reader verification loop on a
-  *synthesized* accessibility tree (canvas frameworks: "no semantics = no
+  _synthesized_ accessibility tree (canvas frameworks: "no semantics = no
   accessibility"), and **(b)** a security-critical **third-party** Rust↔Kotlin
   binding. E-hybrid maximises both relative to A-native.
 - **Sunk cost is real but small relative to the horizon.** Today's app is
   ~6,200 LOC of UI/DS + ~1,500 LOC of tests, all RN/TS. Every option except D
   discards the UI and rewrites the RTL/better-sqlite3 test suite. The TS→Rust
-  *core* port is paid equally by **all** options, so it is not a differentiator.
+  _core_ port is paid equally by **all** options, so it is not a differentiator.
 
 ### 2.4 Recommendation
 
 > **REVISION (2026-06-13 — watchOS deferred from v1).** Deferring watchOS removes
 > the one platform D-rn structurally cannot serve and recasts v1 as
-> **mobile-first (Android + iOS)**. The rebuild's *value* is the audited Rust
+> **mobile-first (Android + iOS)**. The rebuild's _value_ is the audited Rust
 > security core + zero-knowledge sync + the data migration — **not** a UI rewrite.
 > Revised recommendation:
 >
@@ -255,20 +260,21 @@ first-platform sprint. There is no free lunch; the choice is a priority ordering
 > risk noted in point 2 below is therefore moot for v1. See ADR 0003.
 
 Why this now wins **for v1**:
+
 1. **Fastest, lowest-risk M3 with full reuse** — ~6,200 LOC of accessible,
    token-faithful UI + ~1,500 LOC of tests + the team's skills carry over. The
-   TS→Rust *core* port is paid by every option anyway, so it is not a
-   differentiator; D-rn is the only option that does not *also* pay a full UI
+   TS→Rust _core_ port is paid by every option anyway, so it is not a
+   differentiator; D-rn is the only option that does not _also_ pay a full UI
    rewrite.
 2. **The security objection largely dissolves in the rebuilt design.** D-rn's low
-   security score reflected the *current* anti-pattern (raw hex key into `PRAGMA`
+   security score reflected the _current_ anti-pattern (raw hex key into `PRAGMA`
    from JS, `src/db/connect.ts:23`). The locked architecture (§1) keeps **all**
    crypto in the core and returns **handles / plaintext only, never raw key
    bytes** — keys never enter the JS heap. Residual risk is the pre-1.0
    `uniffi-bindgen-react-native` binder: pin + spike it like any binding.
-3. **Mobile a11y is a *strength*, not a gap.** RN renders to the **native**
+3. **Mobile a11y is a _strength_, not a gap.** RN renders to the **native**
    accessibility tree (VoiceOver / TalkBack) — the gold-standard default — whereas
-   CMP/Flutter need a *synthesized* tree hand-annotated per screen. D-rn's a11y
+   CMP/Flutter need a _synthesized_ tree hand-annotated per screen. D-rn's a11y
    score was dragged down only by watchOS/Linux, both now out of v1. (The two
    latent gaps in §11 — `MoodShape` `accessible={false}`, `Button` opacity
    disabled — are fixed regardless of framework.)
@@ -279,19 +285,19 @@ Why this now wins **for v1**:
 Trade-offs accepted: **desktop is not solved by this choice.** rn-windows is a
 candidate but its EN 301 549 desktop a11y is unproven; rn-macos carries an
 RN-version downgrade tax; Linux has no first-class RN path. Desktop is an explicit
-later milestone. If desktop + watch later become must-haves *together*, the
+later milestone. If desktop + watch later become must-haves _together_, the
 broad-surface (CMP/Flutter) or A-native analysis below is the path — and because
 the Rust core is framework-independent, that pivot costs the **UI only**, not the
 security foundation.
 
-*The all-platform analysis below stands unchanged as the basis for the
-**desktop + watch milestone** decision.*
+_The all-platform analysis below stands unchanged as the basis for the
+**desktop + watch milestone** decision._
 
 ---
 
 #### 2.4a All-platform analysis (for the desktop + watch milestone)
 
-> **Adopt the *hybrid* shape — Rust core + one broad-surface framework + native
+> **Adopt the _hybrid_ shape — Rust core + one broad-surface framework + native
 > SwiftUI watch — and (a) defer the irreversible lock to the M2→M3 boundary,
 > (b) gate it on the de-risking spikes (§2.5/§13), (c) keep A-native as the
 > named fallback.
@@ -304,16 +310,16 @@ Rationale, in order of weight:
 
 1. **Defer the lock — it costs nothing.** M1 (core: data + crypto) and M2
    (zero-knowledge sync + recovery) are **100% framework-independent**. The UI
-   choice does not bite until M3. So we lock the *direction* now (E-hybrid/CMP)
-   and the *irreversible* choice at M3, after the spikes below resolve the
+   choice does not bite until M3. So we lock the _direction_ now (E-hybrid/CMP)
+   and the _irreversible_ choice at M3, after the spikes below resolve the
    medium-confidence claims it rests on. This is not hedging — it is sequencing a
    high-regret decision behind the cheap experiments that de-risk it, using
    milestone boundaries the brief already defines.
 
-2. **CMP vs Flutter is decided by gate-2, not pre-judged.** On the *security
-   boundary* (the most existential lens for a zero-knowledge vault) Compose leads
+2. **CMP vs Flutter is decided by gate-2, not pre-judged.** On the _security
+   boundary_ (the most existential lens for a zero-knowledge vault) Compose leads
    (7.5 vs 6): **one** UniFFI-KMP binding serves JVM (Android/desktop) +
-   Kotlin/Native (iOS), keys stay in typed compiled heaps, no JS/webview — *but*
+   Kotlin/Native (iOS), keys stay in typed compiled heaps, no JS/webview — _but_
    that binding is third-party and bus-factor-1 (gate 2). Flutter's
    `flutter_rust_bridge` is more established yet adds a **second** binding and a
    **Dart key heap**, against best design fidelity + the most mature desktop +
@@ -322,23 +328,23 @@ Rationale, in order of weight:
 
 3. **A-native is the principled fallback.** If the a11y bar is truly
    absolute-per-platform, A-native is more defensible — it won a11y (9),
-   security (8.5), and reach (10). The recommendation is E-hybrid *because* a
-   solo maintainer realistically *sustains* compliant a11y on one broad surface
+   security (8.5), and reach (10). The recommendation is E-hybrid _because_ a
+   solo maintainer realistically _sustains_ compliant a11y on one broad surface
    better than they sustain four drifting native UIs — but that judgement is
    Anna's to make (§2.6).
 
 ### 2.5 Four hard gates (binding if a broad-surface rewrite is chosen)
 
-*For the revised v1 = D-rn path, only gate 1 (a11y CI gate — without the SwiftUI
+_For the revised v1 = D-rn path, only gate 1 (a11y CI gate — without the SwiftUI
 fallback, since RN uses the native a11y tree) and gate 2 (pin the binding) apply;
-gates 3–4 belong to the desktop+watch milestone.* These are **conditions of the
+gates 3–4 belong to the desktop+watch milestone._ These are **conditions of the
 decision, not aspirations**:
 
 1. **A11y is a blocking CI/release gate, not a vibe.** Per-screen real-device
    VoiceOver / TalkBack / Narrator / Orca + switch-control pass list, with a
    per-screen sign-off checklist. Any iOS screen that fails the synthesized-tree
    audit **falls back to native SwiftUI** — budget the crisis interstitial,
-   MoodPicker, check-in, and questionnaires as *possibly-native up front*.
+   MoodPicker, check-in, and questionnaires as _possibly-native up front_.
 2. **Pin and vendor the Rust↔Kotlin binding.** The CMP UniFFI-KMP generator is
    third-party and **bus-factor-1** (the named `UbiqueInnovation` lineage appears
    stale; active work moved to `gobley`). Evaluate `gobley` vs alternatives vs a
@@ -352,7 +358,7 @@ decision, not aspirations**:
 4. **Treat the SwiftUI watch shim + Kotlin ramp as real front-loaded costs**, not
    footnotes. The team knows RN/TS, not Kotlin/Swift.
 
-### 2.6 The question for sign-off — *resolved, see the sign-off record + §2.4 Revision*
+### 2.6 The question for sign-off — _resolved, see the sign-off record + §2.4 Revision_
 
 The original fork (below) was a **priority ordering** only Anna could set; with
 watchOS deferred it resolved to **D-rn for v1 mobile** (§2.4). Kept for the record:
@@ -373,13 +379,13 @@ This is asked in the accompanying message.
 
 Implements brief Decision 2. **Concrete, current-2026 crate stack:**
 
-| Role | Crate / algorithm | Parameters |
-|---|---|---|
-| KDF (PIN/passphrase, recovery) | `argon2` 0.5.x — **Argon2id**, RFC 9106 | floor **m = 64 MiB, t = 3, p = 1**; time-cost auto-tuned at first run to a fixed unlock-latency budget; params stored in the PHC string. **Benchmark on the weakest target that actually runs it = low-end Android, in M1.** The **watch does not run Argon2id** (it is phone-enrolled — see below), so it is out of this spike. |
-| AEAD (content) | `chacha20poly1305` 0.10.x — **XChaCha20-Poly1305** (default) | **fresh random 24-byte nonce per record**; bind `record_id + version` as **AAD**. Feature-gated `aes-gcm` (AES-256-GCM) path only where AES-NI dominates. |
-| Device keypair | `x25519-dalek` 2.0.x | hardware-backed where the OS allows (§10). |
-| Key wrap (enrolment re-wrap) | **HPKE base-mode** (RFC 9180, X25519-HKDF-SHA256), age-style recipient wrapping | start with `hpke-rs` / `rust-hpke`. |
-| Hygiene | `zeroize` 1.8.x (`ZeroizeOnDrop` on every key/plaintext buffer) + `subtle` (constant-time compare) | — |
+| Role                           | Crate / algorithm                                                                                  | Parameters                                                                                                                                                                                                                                                                                                                       |
+| ------------------------------ | -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| KDF (PIN/passphrase, recovery) | `argon2` 0.5.x — **Argon2id**, RFC 9106                                                            | floor **m = 64 MiB, t = 3, p = 1**; time-cost auto-tuned at first run to a fixed unlock-latency budget; params stored in the PHC string. **Benchmark on the weakest target that actually runs it = low-end Android, in M1.** The **watch does not run Argon2id** (it is phone-enrolled — see below), so it is out of this spike. |
+| AEAD (content)                 | `chacha20poly1305` 0.10.x — **XChaCha20-Poly1305** (default)                                       | **fresh random 24-byte nonce per record**; bind `record_id + version` as **AAD**. Feature-gated `aes-gcm` (AES-256-GCM) path only where AES-NI dominates.                                                                                                                                                                        |
+| Device keypair                 | `x25519-dalek` 2.0.x                                                                               | hardware-backed where the OS allows (§10).                                                                                                                                                                                                                                                                                       |
+| Key wrap (enrolment re-wrap)   | **HPKE base-mode** (RFC 9180, X25519-HKDF-SHA256), age-style recipient wrapping                    | start with `hpke-rs` / `rust-hpke`.                                                                                                                                                                                                                                                                                              |
+| Hygiene                        | `zeroize` 1.8.x (`ZeroizeOnDrop` on every key/plaintext buffer) + `subtle` (constant-time compare) | —                                                                                                                                                                                                                                                                                                                                |
 
 **Key hierarchy:** random **vault key** (account root) → wraps **per-record
 content keys** (one per entry/measurement) → records encrypted with
@@ -403,13 +409,13 @@ X25519 envelope and a future **X-Wing (X25519 + ML-KEM-768)** envelope coexist.
 production until ≥ 1 independent audit lands.
 
 **Rekey (S7):** vault-key rotation + re-wrap of **every** content-key envelope,
-**driven by the core** — *not* SQLCipher `PRAGMA rekey`. Must also re-encrypt the
+**driven by the core** — _not_ SQLCipher `PRAGMA rekey`. Must also re-encrypt the
 Automerge snapshots (§4) — two tracks, easy to miss one. Must be **atomic /
 crash-safe** (a half-rekeyed vault must not brick the app) and define
 multi-device ordering (device A rekeys while B is offline → B enrolls under which
 vault key?). See open item §13.
 
-**Storage posture (refined lock):** all *authoritative* encryption is **app-layer
+**Storage posture (refined lock):** all _authoritative_ encryption is **app-layer
 per-record content keys + wrapped envelopes** (this is what syncs). SQLCipher is
 **optional at-rest defence-in-depth**, not the security boundary.
 
@@ -421,19 +427,19 @@ The four current entities (`drizzle/0000_init.sql`) map cleanly. Each row become
 an **encrypted record** with its own content key; **all search/aggregation is
 client-side after decryption** (the full DB is local anyway).
 
-| Entity | Mutability | Merge track |
-|---|---|---|
-| `entries` (check-ins) | append-only | **Track 1: op-log** |
-| `measurements` (WHO-5/PHQ-9/GAD-7) | append-only | **Track 1: op-log** |
-| `tags` (custom labels) | mutable set | **Track 2: Automerge OR-set** |
-| `settings` (profile + prefs) | mutable registers | **Track 2: Automerge LWW registers** |
+| Entity                             | Mutability        | Merge track                          |
+| ---------------------------------- | ----------------- | ------------------------------------ |
+| `entries` (check-ins)              | append-only       | **Track 1: op-log**                  |
+| `measurements` (WHO-5/PHQ-9/GAD-7) | append-only       | **Track 1: op-log**                  |
+| `tags` (custom labels)             | mutable set       | **Track 2: Automerge OR-set**        |
+| `settings` (profile + prefs)       | mutable registers | **Track 2: Automerge LWW registers** |
 
 **Track 1 — append-only op-log** (immutable check-ins): one ciphertext blob per
 record, keyed by an **opaque random record id** stamped with a **Hybrid Logical
 Clock** (physical time + counter + device id). Convergence = set-union of unseen
 record ids. No CRDT library needed. **HLC replaces the current `Date.now()`-prefix
 ordering** (`src/db/repo.ts`, `src/store.tsx:44`) — see the migration note below;
-this is a *behavioural change* `lastEntryForDate`/`listEntries` ordering and tests
+this is a _behavioural change_ `lastEntryForDate`/`listEntries` ordering and tests
 rely on.
 
 **Track 2 — Automerge** (`automerge-rs` 3.0+ with `autosurgeon`
@@ -443,7 +449,7 @@ re-encrypt the whole small doc per change. **Not `cr-sqlite`** (stalled since
 early 2025; operates on plaintext columns — incompatible with a ciphertext-only
 server).
 
-**Two CRDT-granularity decisions to make (§13):** (a) is each `settings` *key* an
+**Two CRDT-granularity decisions to make (§13):** (a) is each `settings` _key_ an
 independent register (so concurrent edits to `name` on phone and `share` on
 desktop both survive), or is the whole profile one register (last-writer
 clobbers)? The current single-blob shape (`readProfile` reads all keys as one
@@ -456,8 +462,8 @@ devices → unique-violation on merge. Recommend **merge-by-normalised-label**
 **Right-to-erasure (GDPR Art. 17) — crypto-shredding is the named mechanism
 (condition 2).** Erasure is effected by **destroying the per-record content key**,
 which renders that record's ciphertext **permanently unrecoverable everywhere** —
-local store, sync relay, and any lingering blob copy — *without needing to trust a
-remote delete*. Tombstone ops still propagate (so every device drops the record
+local store, sync relay, and any lingering blob copy — _without needing to trust a
+remote delete_. Tombstone ops still propagate (so every device drops the record
 and the relay garbage-collects the now-useless blob), but the **legal erasure
 guarantee rests on key destruction**, not on the server honouring a delete. This
 composes with rekey (§3). It must reconcile with the research-share opt-in and any
@@ -474,8 +480,9 @@ opaque record id, opaque device id, logical-clock cursor, blob hash, wrapped-key
 envelope, and **padded ciphertext**. It can decrypt nothing. Devices reconcile
 entirely client-side after decryption.
 
-**Metadata minimisation is a hard requirement** (for a mental-health app, *timing
-and frequency are themselves clinical signal*):
+**Metadata minimisation is a hard requirement** (for a mental-health app, _timing
+and frequency are themselves clinical signal_):
+
 - **Content-independent random** record/device ids (the current
   `Date.now()`-derived ids would leak check-in wall-clock timing — see §6).
 - **Fixed-size length-padding** (PURB-style buckets) so a WHO-5 result is
@@ -490,7 +497,7 @@ and frequency are themselves clinical signal*):
 at M0, but it carries **explicit version fields + generous reserved/extension
 fields** so the M1 replay-protection + idempotency review (and future PQ
 `wrap_alg` values, §3) can extend it **without a data migration**. Padding-bucket
-sizing is decided at M0 (changing it later *is* a migration); replay/idempotency
+sizing is decided at M0 (changing it later _is_ a migration); replay/idempotency
 semantics ride the reserved space.
 
 ### 5.1 Sync-relay controllership + lawful basis (condition 1)
@@ -605,20 +612,20 @@ npm-only template; `SECURITY.md` (if present) is boilerplate. M0 deliverables:
 
 ## 9. Security requirements S1–S12 → design mapping
 
-| # | Requirement | Satisfied by |
-|---|---|---|
-| S1 | Key non-extractable without user presence (was `requireAuthentication:false`) | §3 hierarchy + §10 hardware keystore + biometric/PIN gate |
-| S2 | Encrypted export by default (was plaintext JSON) | §6 — recovery-key-wrapped export; plaintext only behind a 2nd explicit confirm |
-| S3 | No unencrypted web persistence (was cleartext wasm) | §1 wasm core: WebCrypto + Argon2id encrypt-before-persist; prod web build guard fails if health data unencrypted |
-| S4 | App-lock + inactivity timeout + lock-on-background | M4 app-shell capability, all platforms |
-| S5 | Exclude DB & keys from cloud backup | Android `dataExtractionRules`/`allowBackup=false`; iOS `isExcludedFromBackup`; per-OS equivalents |
-| S6 | Screen-capture / task-switcher protection | §10 matrix (honest per-platform truth, incl. macOS 15+ / Linux gaps) |
-| S7 | Key rotation / rekey | §3 core-driven vault rotation + re-wrap (both tracks) |
-| S8 | Route/consent guards; non-skippable PHQ-9 item-9 interstitial; deep-link validation | centralised guard in the nav layer; preserve current item-9 behaviour (`PHQ9_RISK_QUESTION_INDEX`, `src/features/measure/definitions.ts:66`) |
-| S9 | IME / clipboard hygiene on sensitive inputs | disable autocorrect/learning; no programmatic clipboard of sensitive text (or auto-clear) |
-| S10 | Supply-chain hygiene | §8 |
-| S11 | Optional, non-blocking root/jailbreak + integrity heuristic | M6 defence-in-depth; warn, never hard-block (a11y / false-positive safety) |
-| S12 | No sensitive logging in production | §8; fix `src/db/provider.tsx:28` |
+| #   | Requirement                                                                         | Satisfied by                                                                                                                                 |
+| --- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| S1  | Key non-extractable without user presence (was `requireAuthentication:false`)       | §3 hierarchy + §10 hardware keystore + biometric/PIN gate                                                                                    |
+| S2  | Encrypted export by default (was plaintext JSON)                                    | §6 — recovery-key-wrapped export; plaintext only behind a 2nd explicit confirm                                                               |
+| S3  | No unencrypted web persistence (was cleartext wasm)                                 | §1 wasm core: WebCrypto + Argon2id encrypt-before-persist; prod web build guard fails if health data unencrypted                             |
+| S4  | App-lock + inactivity timeout + lock-on-background                                  | M4 app-shell capability, all platforms                                                                                                       |
+| S5  | Exclude DB & keys from cloud backup                                                 | Android `dataExtractionRules`/`allowBackup=false`; iOS `isExcludedFromBackup`; per-OS equivalents                                            |
+| S6  | Screen-capture / task-switcher protection                                           | §10 matrix (honest per-platform truth, incl. macOS 15+ / Linux gaps)                                                                         |
+| S7  | Key rotation / rekey                                                                | §3 core-driven vault rotation + re-wrap (both tracks)                                                                                        |
+| S8  | Route/consent guards; non-skippable PHQ-9 item-9 interstitial; deep-link validation | centralised guard in the nav layer; preserve current item-9 behaviour (`PHQ9_RISK_QUESTION_INDEX`, `src/features/measure/definitions.ts:66`) |
+| S9  | IME / clipboard hygiene on sensitive inputs                                         | disable autocorrect/learning; no programmatic clipboard of sensitive text (or auto-clear)                                                    |
+| S10 | Supply-chain hygiene                                                                | §8                                                                                                                                           |
+| S11 | Optional, non-blocking root/jailbreak + integrity heuristic                         | M6 defence-in-depth; warn, never hard-block (a11y / false-positive safety)                                                                   |
+| S12 | No sensitive logging in production                                                  | §8; fix `src/db/provider.tsx:28`                                                                                                             |
 
 ---
 
@@ -630,17 +637,17 @@ so it is a tie-breaker, not a decider. **Crypto stays in the core**; the shim on
 (a) creates the hardware device keypair that wraps the at-rest vault-key copy and
 (b) gates its release with biometrics.
 
-| Platform | Key storage (S1) | Capture protection (S6) |
-|---|---|---|
-| iOS / iPadOS | Keychain `WhenUnlockedThisDeviceOnly` + Secure Enclave keypair, `.biometryCurrentSet` | app-switcher blur + secure-text rendering — **best-effort, document it** |
-| macOS | Keychain + Secure Enclave (Apple silicon) | **DEGRADED on macOS 15+** (ScreenCaptureKit ignores flags) — auto-blur-on-background + require-unlock; document |
-| Android / wearOS | Keystore + **StrongBox** where available; `setUserAuthenticationRequired(true)`; **`AUTH_BIOMETRIC_STRONG` (Class 3) only** — fall back to fingerprint/device-credential on Samsung Class-2 face, with clear Czech UX | `FLAG_SECURE` + `setRecentsScreenshotEnabled(false)` |
-| Windows | DPAPI / Credential Manager + **TPM** + Windows Hello | `WDA_EXCLUDEFROMCAPTURE` (`SetWindowDisplayAffinity`) |
-| Linux | Secret Service / libsecret (**software-only — document weaker hardware story**); rely on core PIN/Argon2id-wrapped vault key; optional TPM2 backend opt-in | **ABSENT under Wayland/X11** — no per-window exclude; document; auto-blur-on-background |
-| watchOS | **Phone-provisioned** vault-key copy (WCSession) sealed by the watch's **own Secure Enclave**; no Argon2id, no recovery code on-device (§3) | native |
+| Platform         | Key storage (S1)                                                                                                                                                                                                      | Capture protection (S6)                                                                                         |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| iOS / iPadOS     | Keychain `WhenUnlockedThisDeviceOnly` + Secure Enclave keypair, `.biometryCurrentSet`                                                                                                                                 | app-switcher blur + secure-text rendering — **best-effort, document it**                                        |
+| macOS            | Keychain + Secure Enclave (Apple silicon)                                                                                                                                                                             | **DEGRADED on macOS 15+** (ScreenCaptureKit ignores flags) — auto-blur-on-background + require-unlock; document |
+| Android / wearOS | Keystore + **StrongBox** where available; `setUserAuthenticationRequired(true)`; **`AUTH_BIOMETRIC_STRONG` (Class 3) only** — fall back to fingerprint/device-credential on Samsung Class-2 face, with clear Czech UX | `FLAG_SECURE` + `setRecentsScreenshotEnabled(false)`                                                            |
+| Windows          | DPAPI / Credential Manager + **TPM** + Windows Hello                                                                                                                                                                  | `WDA_EXCLUDEFROMCAPTURE` (`SetWindowDisplayAffinity`)                                                           |
+| Linux            | Secret Service / libsecret (**software-only — document weaker hardware story**); rely on core PIN/Argon2id-wrapped vault key; optional TPM2 backend opt-in                                                            | **ABSENT under Wayland/X11** — no per-window exclude; document; auto-blur-on-background                         |
+| watchOS          | **Phone-provisioned** vault-key copy (WCSession) sealed by the watch's **own Secure Enclave**; no Argon2id, no recovery code on-device (§3)                                                                           | native                                                                                                          |
 
 **Apple `.biometryCurrentSet` / Android `setInvalidatedByBiometricEnrollment`
-invalidate the key on biometric re-enrolment** — this is a *feature* (anti-coercion)
+invalidate the key on biometric re-enrolment** — this is a _feature_ (anti-coercion)
 but makes the **recovery code the only way back in**, which is why the recovery-code
 UX (§13) is the highest-stakes flow in the product.
 
@@ -649,7 +656,7 @@ UX (§13) is the highest-stakes flow in the product.
 ## 11. Accessibility verification (EN 301 549 / WCAG 2.2 AA)
 
 Legal duty (EU Accessibility Act / Czech zák. 424/2023, in force 2025-06-28).
-**Any canvas/synthesized-tree option (B/C/E) is non-compliant *by default*** for
+**Any canvas/synthesized-tree option (B/C/E) is non-compliant _by default_** for
 the bespoke color+shape encoding. Two latent gaps **already exist in the current
 RN app** and must not be carried forward:
 
@@ -667,8 +674,9 @@ RN app** and must not be carried forward:
 **Operationalised gate (M3+):** per-screen real-device VoiceOver / TalkBack /
 Narrator / Orca + switch-control pass list with sign-off; automated matchers per
 framework (CMP: `semantics`/`testTag` + XCTest; Flutter: `AccessibilityGuideline`
-+ DCM; RN: existing `eslint-plugin-react-native-a11y` + Detox/Maestro). **Linux/
-Orca validated on the exact target distro before the statement is published.**
+
+- DCM; RN: existing `eslint-plugin-react-native-a11y` + Detox/Maestro). **Linux/
+  Orca validated on the exact target distro before the statement is published.**
 
 ---
 
@@ -676,16 +684,16 @@ Orca validated on the exact target distro before the statement is published.**
 
 **Decided (2026-06-13): v1 is mobile-first; watchOS deferred.**
 
-| Platform | Recommendation | Note |
-|---|---|---|
-| Android, iOS (+ iPadOS) | **IN — v1 (M3)** | mobile-first; revised rec = D-rn keeps RN (§2.4); iPadOS falls out of iOS |
-| Windows | **Post-v1 milestone** | own framework decision: rn-windows vs Tauri/web-over-core vs native |
-| macOS | **Post-v1 milestone** | rn-macos downgrade tax; Tauri/native candidate; own decision |
-| Linux | **Post-v1, gated** | only if Orca validates (§11), else statement scoped out honestly |
-| watchOS | **DEFERRED (post-v1)** | native SwiftUI when committed; deferral reopened D-rn for v1 (§2.4) |
-| Web (wasm core) | **DEFERRED** | architecture supports it; CMP-web a11y is Beta ("initial" only) — not EAA-grade today. Ship when an a11y-grade path exists. |
-| wearOS | **DEFERRED** | Compose wearOS when Android is stable |
-| tvOS | **OUT (revisit)** | low product value; same native-shim cost as watchOS |
+| Platform                | Recommendation         | Note                                                                                                                        |
+| ----------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Android, iOS (+ iPadOS) | **IN — v1 (M3)**       | mobile-first; revised rec = D-rn keeps RN (§2.4); iPadOS falls out of iOS                                                   |
+| Windows                 | **Post-v1 milestone**  | own framework decision: rn-windows vs Tauri/web-over-core vs native                                                         |
+| macOS                   | **Post-v1 milestone**  | rn-macos downgrade tax; Tauri/native candidate; own decision                                                                |
+| Linux                   | **Post-v1, gated**     | only if Orca validates (§11), else statement scoped out honestly                                                            |
+| watchOS                 | **DEFERRED (post-v1)** | native SwiftUI when committed; deferral reopened D-rn for v1 (§2.4)                                                         |
+| Web (wasm core)         | **DEFERRED**           | architecture supports it; CMP-web a11y is Beta ("initial" only) — not EAA-grade today. Ship when an a11y-grade path exists. |
+| wearOS                  | **DEFERRED**           | Compose wearOS when Android is stable                                                                                       |
+| tvOS                    | **OUT (revisit)**      | low product value; same native-shim cost as watchOS                                                                         |
 
 The desktop + watch milestone reopens the §2.4a all-platform analysis (broad
 surface vs A-native) — to be decided when that scope is committed.
@@ -695,9 +703,10 @@ surface vs A-native) — to be decided when that scope is committed.
 ## 13. Open items for Anna (`TODO(Anna)`) + de-risking spikes
 
 **Clinical / product / legal (Anna owns):**
+
 - Descriptive / baseline-relative measurement band wording (Decision 3 — the
-  current `src/features/measure/scoring.ts` bands like *"středně závažné
-  příznaky"* are the clinical-severity labels to relabel; code restructuring is
+  current `src/features/measure/scoring.ts` bands like _"středně závažné
+  příznaky"_ are the clinical-severity labels to relabel; code restructuring is
   ours, final Czech is hers).
 - Recovery-code explainer + the data-loss/migration caveat copy (Decision 2);
   the **lockout dark-path UX** (biometric re-enrol + lost recovery code =
@@ -721,15 +730,15 @@ surface vs A-native) — to be decided when that scope is committed.
 **Engineering open items the ADR names (resolved in M1–M2, not deferred):**
 recovery-code + rekey UX/blast-radius; sync-server replay/idempotency/retention;
 tombstone propagation; CRDT granularity (per-key registers; unique-label merge);
-test strategy (§14). *(The watchOS key-hierarchy seam is now **resolved** —
+test strategy (§14). _(The watchOS key-hierarchy seam is now **resolved** —
 phone-provisioned via WCSession, SE-sealed, no Argon2id/recovery code on-device,
-local op-log+HLC for offline writes — §3.)*
+local op-log+HLC for offline writes — §3.)_
 
 **De-risking spikes — re-prioritised for the revised v1 = D-rn mobile path
 (2026-06-13).** The watchOS and broad-surface spikes move to the desktop+watch
 milestone.
 
-*M1 spikes for the v1 mobile path (D-rn):*
+_M1 spikes for the v1 mobile path (D-rn):_
 
 > **[Superseded by ADR 0003 — gate resolved]** Spike #1 (`uniffi-bindgen-react-native`) fired
 > **NO-GO** (`spikes/rn-ffi/SPIKE-REPORT.md`); the v1 binding was re-decided to **Nitro** and
@@ -749,16 +758,12 @@ milestone.
 2. **Argon2id 64 MiB on low-end Android** — confirm the unlock-latency budget;
    decide per-platform params if needed. (**Watch excluded** — phone-enrolled, §3.)
 
-*Deferred to the desktop + watch milestone (the §2.4a all-platform decision):*
-3. **Rust 1.95 watchOS/tvOS link** — xcframework on a real watch (run when watchOS
-   is committed).
-4. **iOS VoiceOver (CMP and Flutter)** — only if a broad-surface rewrite is
-   reconsidered; **empowered to push most iOS screens to native SwiftUI** (§2.4a).
-   *(N/A while v1 stays on RN's native a11y tree.)*
-5. **Broad-surface-desktop Orca on the target Linux distro** (gate 3).
-6. **Gate-2 binding-maturity evaluation** — CMP UniFFI-KMP (`gobley` vs the named
-   fork) vs Flutter `flutter_rust_bridge`; chooses CMP vs Flutter **if** a
-   broad-surface rewrite is taken for desktop (§2.4a).
+_Deferred to the desktop + watch milestone (the §2.4a all-platform decision):_ 3. **Rust 1.95 watchOS/tvOS link** — xcframework on a real watch (run when watchOS
+is committed). 4. **iOS VoiceOver (CMP and Flutter)** — only if a broad-surface rewrite is
+reconsidered; **empowered to push most iOS screens to native SwiftUI** (§2.4a).
+_(N/A while v1 stays on RN's native a11y tree.)_ 5. **Broad-surface-desktop Orca on the target Linux distro** (gate 3). 6. **Gate-2 binding-maturity evaluation** — CMP UniFFI-KMP (`gobley` vs the named
+fork) vs Flutter `flutter_rust_bridge`; chooses CMP vs Flutter **if** a
+broad-surface rewrite is taken for desktop (§2.4a).
 
 ---
 
@@ -767,10 +772,11 @@ milestone.
 The current better-sqlite3 DI harness (`test/helpers/testDb.ts`) and ~100 RTL/
 unit scenarios are recorded as a **behavioural specification** (condition 5). Their
 disposition now depends on the v1 path:
+
 - **Revised v1 = D-rn (keep RN):** the suite is **retained and extended as a
   runnable asset** — the migration is core/crypto/sync, not UI. The DI harness's
   `connectDb` mock is repointed at the Rust core; the RTL UI flows keep running.
-  *(This retention is itself an argument for D-rn.)*
+  _(This retention is itself an argument for D-rn.)_
 - **Re-platform options (CMP/Flutter/A-native), if ever taken for desktop+watch:**
   condition 5 applies in full — the suite is a spec to **re-implement**, not a
   runnable asset.
@@ -779,6 +785,7 @@ Either way the existing flows — `test/app.test.tsx`, `measure.test.tsx`,
 `tags.test.tsx`, `insights.test.ts`, `reflection.test.ts`, `crisisCard.test.ts`,
 … — remain the **M3 acceptance bar** and must pass against the new core.
 The Rust core adds what Jest cannot cover:
+
 - **Property tests** for merge convergence + HLC ordering (offline→online,
   reordered delivery).
 - **NIST KAT conformance** for the AEAD / KDF / (future) KEM.
@@ -809,4 +816,7 @@ The Rust core adds what Jest cannot cover:
   framework seam — defensible if the a11y bar is absolute-per-platform.
 - **Revisit at:** the M2→M3 boundary (UI lock, post-spikes), and whenever the
   PQ-crypto audit landscape or CMP-web a11y maturity changes.
+
+```
+
 ```

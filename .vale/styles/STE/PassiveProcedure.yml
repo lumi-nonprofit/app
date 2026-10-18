@@ -1,0 +1,50 @@
+extends: existence
+message: "'%s' is the passive voice. STE: a procedure uses the active voice."
+link: https://www.asd-ste100.org/
+level: error
+ignorecase: true
+raw:
+  - \b(am|are|were|being|is|been|was|be)\b\s+
+tokens:
+  - '[\w]+ed'
+  - built
+  - chosen
+  - done
+  - given
+  - hidden
+  - kept
+  - known
+  - made
+  - put
+  - read
+  - run
+  - seen
+  - sent
+  - set
+  - shown
+  - taken
+  - written
+exceptions:
+  - allowed
+  - based
+  - committed
+  - deprecated
+  - disabled
+  - enabled
+  - encrypted
+  - excluded
+  - expected
+  - included
+  - installed
+  - limited
+  - listed
+  - locked
+  - marked
+  - named
+  - needed
+  - pinned
+  - related
+  - required
+  - signed
+  - supported
+  - unchanged

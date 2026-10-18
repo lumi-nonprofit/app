@@ -4,3 +4,12 @@ dist/
 web-build/
 package-lock.json
 assets/
+# Licensed text, kept as published.
+CODE_OF_CONDUCT.md
+# Provenance data, kept byte for byte.
+core/lumi-core/tests/fixtures/
+# Vale styles and vocabularies.
+.vale/
+# Build output of the Rust workspaces.
+core/target/
+server/target/

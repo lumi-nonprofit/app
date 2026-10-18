@@ -5,9 +5,9 @@
 // §1: only handles, the PIN inbound, plaintext JSON, a hex record id, and a JS-number-safe
 // createdAt cross — NO key bytes. createdAtMs is a number (ms; must stay < 2^53; no raw i64
 // as a JS number). The list is returned as a JSON string the TS wrapper double-decodes.
-import type { HybridObject } from 'react-native-nitro-modules';
+import type { HybridObject } from "react-native-nitro-modules";
 
-export interface LumiVault extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
+export interface LumiVault extends HybridObject<{ ios: "c++"; android: "c++" }> {
   open(dbPath: string): void; // THROWS on error code
   close(): void;
   unlock(pin: string): number; // -> opaque handle (small monotonic counter, < 2^53); THROWS on wrong PIN

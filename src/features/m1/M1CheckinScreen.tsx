@@ -13,7 +13,7 @@
 //    items are named by their visible text (no redundant accessibilityLabel); the group + free-text
 //    inputs carry label + hint.
 //  - Persistent DB at Paths.document/lumi-vault.db (survives restart + cache clear).
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -22,21 +22,21 @@ import {
   Text,
   TextInput,
   View,
-} from 'react-native';
-import { File, Paths } from 'expo-file-system';
-import { LumiVault, type Checkin } from '../../../modules/lumi-vault/src/LumiVault';
+} from "react-native";
+import { File, Paths } from "expo-file-system";
+import { LumiVault, type Checkin } from "../../../modules/lumi-vault/src/LumiVault";
 
 // Persistent (documents) DB path; rusqlite needs a plain filesystem path, so strip file://.
-const DB_PATH = new File(Paths.document, 'lumi-vault.db').uri.replace(/^file:\/\//, '');
+const DB_PATH = new File(Paths.document, "lumi-vault.db").uri.replace(/^file:\/\//, "");
 
 // The 4 real mood ids (inlined to keep the skeleton self-contained; M3 wires src/model MOODS + DS).
 const MOODS = [
-  { id: 'energie', label: 'Energie' },
-  { id: 'napeti', label: 'Napětí' },
-  { id: 'klid', label: 'Klid' },
-  { id: 'utlum', label: 'Útlum' },
+  { id: "energie", label: "Energie" },
+  { id: "napeti", label: "Napětí" },
+  { id: "klid", label: "Klid" },
+  { id: "utlum", label: "Útlum" },
 ] as const;
-type MoodId = (typeof MOODS)[number]['id'];
+type MoodId = (typeof MOODS)[number]["id"];
 const moodLabel = (id: string) => MOODS.find((m) => m.id === id)?.label ?? id;
 
 const INTENSITIES = [1, 2, 3, 4, 5] as const;
@@ -48,14 +48,14 @@ interface CheckinPayload {
 }
 
 export default function M1CheckinScreen() {
-  const [pin, setPin] = useState('1234'); // dev default for the skeleton
+  const [pin, setPin] = useState("1234"); // dev default for the skeleton
   const [unlocking, setUnlocking] = useState(false);
   const [unlockError, setUnlockError] = useState<string | null>(null);
   const [handle, setHandle] = useState<number | null>(null);
 
   const [mood, setMood] = useState<MoodId | null>(null);
   const [intensity, setIntensity] = useState<number>(3);
-  const [note, setNote] = useState('');
+  const [note, setNote] = useState("");
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const [checkins, setCheckins] = useState<Checkin[]>([]);
@@ -83,8 +83,10 @@ export default function M1CheckinScreen() {
       try {
         LumiVault.open(DB_PATH); // idempotent; opens the persistent vault DB
       } catch (e) {
-        if (__DEV__) console.error('M1CheckinScreen open failed', e); // S12: no error logs in prod
-        setUnlockError('Trezor se nepodařilo otevřít (soubor databáze je nedostupný nebo poškozený).');
+        if (__DEV__) console.error("M1CheckinScreen open failed", e); // S12: no error logs in prod
+        setUnlockError(
+          "Trezor se nepodařilo otevřít (soubor databáze je nedostupný nebo poškozený).",
+        );
         setUnlocking(false);
         return;
       }
@@ -94,8 +96,8 @@ export default function M1CheckinScreen() {
         setHandle(h);
         refresh(h);
       } catch (e) {
-        if (__DEV__) console.error('M1CheckinScreen unlock failed', e); // S12: no error logs in prod
-        setUnlockError('Trezor se nepodařilo odemknout (zkontrolujte PIN).');
+        if (__DEV__) console.error("M1CheckinScreen unlock failed", e); // S12: no error logs in prod
+        setUnlockError("Trezor se nepodařilo odemknout (zkontrolujte PIN).");
       } finally {
         setUnlocking(false);
       }
@@ -110,12 +112,12 @@ export default function M1CheckinScreen() {
       LumiVault.putCheckin(handle, payload, Date.now());
       setMood(null);
       setIntensity(3);
-      setNote('');
+      setNote("");
       refresh(handle);
     } catch (e) {
-      if (__DEV__) console.error('Failed to save check-in', e); // S12: no error logs in prod
+      if (__DEV__) console.error("Failed to save check-in", e); // S12: no error logs in prod
       // Surface raw core error text only in dev; production shows the generic message only.
-      const safeDetail = __DEV__ && e instanceof Error && e.message ? ` (${e.message})` : '';
+      const safeDetail = __DEV__ && e instanceof Error && e.message ? ` (${e.message})` : "";
       setSaveError(`Uložení se nepodařilo.${safeDetail}`);
     }
   }, [handle, mood, intensity, note, refresh]);
@@ -194,7 +196,7 @@ export default function M1CheckinScreen() {
                 accessibilityState={{ checked: selected }}
               >
                 <Text style={[styles.chipText, selected && styles.chipTextOn]}>
-                  {selected ? '✓ ' : ''}
+                  {selected ? "✓ " : ""}
                   {m.label}
                 </Text>
               </Pressable>
@@ -244,7 +246,7 @@ export default function M1CheckinScreen() {
         disabled={!canSave}
         accessibilityRole="button"
         accessibilityState={{ disabled: !canSave }}
-        accessibilityHint={canSave ? 'Zašifruje a uloží check-in.' : 'Nejdřív vyber náladu.'}
+        accessibilityHint={canSave ? "Zašifruje a uloží check-in." : "Nejdřív vyber náladu."}
       >
         <Text style={styles.ctaText}>Uložit check-in</Text>
       </Pressable>
@@ -262,7 +264,7 @@ export default function M1CheckinScreen() {
       ) : (
         checkins.map((c) => {
           const p = c.payload as CheckinPayload;
-          const when = new Date(c.createdAt).toLocaleString('cs-CZ');
+          const when = new Date(c.createdAt).toLocaleString("cs-CZ");
           return (
             <View key={c.recordId} style={styles.item} accessible>
               <Text style={styles.itemTitle}>
@@ -282,59 +284,59 @@ export default function M1CheckinScreen() {
 
 const styles = StyleSheet.create({
   container: { padding: 20, gap: 14 },
-  row: { flexDirection: 'row', alignItems: 'center' },
-  wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 6 },
-  h1: { fontSize: 24, fontWeight: '700' },
-  h2: { fontSize: 18, fontWeight: '700', marginTop: 18 },
-  label: { fontSize: 15, fontWeight: '600', marginTop: 6 },
-  hint: { fontSize: 14, color: '#555' },
+  row: { flexDirection: "row", alignItems: "center" },
+  wrap: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 6 },
+  h1: { fontSize: 24, fontWeight: "700" },
+  h2: { fontSize: 18, fontWeight: "700", marginTop: 18 },
+  label: { fontSize: 15, fontWeight: "600", marginTop: 6 },
+  hint: { fontSize: 14, color: "#555" },
   input: {
     borderWidth: 1,
-    borderColor: '#999',
+    borderColor: "#999",
     borderRadius: 8,
     paddingHorizontal: 12,
     minHeight: 48,
     fontSize: 16,
   },
-  note: { minHeight: 72, textAlignVertical: 'top', paddingTop: 10 },
+  note: { minHeight: 72, textAlignVertical: "top", paddingTop: 10 },
   chip: {
     borderWidth: 1,
-    borderColor: '#888',
+    borderColor: "#888",
     borderRadius: 22,
     paddingHorizontal: 16,
     minHeight: 44,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
-  chipOn: { borderColor: '#1b5e20', borderWidth: 2, backgroundColor: '#e8f5e9' },
+  chipOn: { borderColor: "#1b5e20", borderWidth: 2, backgroundColor: "#e8f5e9" },
   chipText: { fontSize: 16 },
-  chipTextOn: { fontWeight: '700', color: '#1b5e20' },
+  chipTextOn: { fontWeight: "700", color: "#1b5e20" },
   num: {
     borderWidth: 1,
-    borderColor: '#888',
+    borderColor: "#888",
     borderRadius: 8,
     minWidth: 48,
     minHeight: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
-  numOn: { borderColor: '#1b5e20', borderWidth: 2, backgroundColor: '#e8f5e9' },
+  numOn: { borderColor: "#1b5e20", borderWidth: 2, backgroundColor: "#e8f5e9" },
   numText: { fontSize: 16 },
   cta: {
-    backgroundColor: '#1b5e20',
+    backgroundColor: "#1b5e20",
     borderRadius: 10,
     minHeight: 52,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: 8,
   },
   ctaBusy: { opacity: 0.9 },
-  ctaDisabled: { backgroundColor: '#9e9e9e' },
-  ctaText: { color: '#fff', fontSize: 17, fontWeight: '700' },
+  ctaDisabled: { backgroundColor: "#9e9e9e" },
+  ctaText: { color: "#fff", fontSize: 17, fontWeight: "700" },
   ctaTextBusy: { marginLeft: 8 },
-  error: { color: '#b00020', fontSize: 14, marginTop: 8 },
-  item: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, gap: 2 },
-  itemTitle: { fontSize: 16, fontWeight: '600' },
-  itemNote: { fontSize: 14, color: '#333' },
-  itemWhen: { fontSize: 12, color: '#777' },
-  debug: { fontSize: 11, color: '#aaa', marginTop: 16 },
+  error: { color: "#b00020", fontSize: 14, marginTop: 8 },
+  item: { borderWidth: 1, borderColor: "#ddd", borderRadius: 8, padding: 12, gap: 2 },
+  itemTitle: { fontSize: 16, fontWeight: "600" },
+  itemNote: { fontSize: 14, color: "#333" },
+  itemWhen: { fontSize: 12, color: "#777" },
+  debug: { fontSize: 11, color: "#aaa", marginTop: 16 },
 });

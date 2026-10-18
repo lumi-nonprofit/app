@@ -21,19 +21,19 @@ server that can never read them. M1's key model — **vault key = Argon2id(PIN)*
 local-only vault** but **cannot be carried into sync**.
 
 A **4-digit PIN cannot protect key material stored on a server.** The adversary zero-knowledge sync
-exists to defend against is *a breach of the sync server itself*. An attacker who breaches that
+exists to defend against is _a breach of the sync server itself_. An attacker who breaches that
 server and obtains a **PIN-wrapped key plus its salt and Argon2 parameters** can **brute-force all
 10⁴ PINs offline** — running each candidate through Argon2id locally, in **minutes** — and then
 **decrypt everything that was synced.** Argon2id's cost floor (m=64 MiB / t=3 / p=1) is tuned to
-make a *single online* unlock acceptable on a phone; it does **not** turn a 10⁴-element keyspace into
-something safe against an *offline* attacker with the wrapped blob in hand.
+make a _single online_ unlock acceptable on a phone; it does **not** turn a 10⁴-element keyspace into
+something safe against an _offline_ attacker with the wrapped blob in hand.
 
 Therefore the key model must **decouple the quick-unlock PIN from anything portable or server-held.**
 
 > **Invariant (the one accuracy guardrail of this ADR).** The PIN is a **local quick-unlock only.**
 > It **never** appears as a server-side or cross-device unlock, and **nothing the server can hold may
 > be crackable down to the 4-digit PIN.** Any design that lets a server-held blob be reduced to the
-> PIN is out of scope and rejected (see *Rejected alternative*).
+> PIN is out of scope and rejected (see _Rejected alternative_).
 
 ## Decision — Option 3 (hybrid)
 
@@ -45,7 +45,7 @@ delivered**, via **three independent paths.**
 ### (a) The vault key (VK) and the per-record hierarchy — unchanged
 
 - **VK is a random 256-bit key** (not derived from the PIN) — **as it already is in M1**, where VK is
-  a random 32-byte key and only the *key that wraps it* is PIN-derived (the Argon2id PIN key →
+  a random 32-byte key and only the _key that wraps it_ is PIN-derived (the Argon2id PIN key →
   `wrapped_vault_key`). It is the root the M1 per-record scheme already wraps content keys under;
   **per-record AEAD sealing (XChaCha20-Poly1305, per-record content key, AAD, crypto-shredding) is
   untouched.**
@@ -54,14 +54,14 @@ delivered**, via **three independent paths.**
 
 - **VK is wrapped under a device key held in the OS keystore** — **Android Keystore / StrongBox**,
   **iOS Keychain / Secure Enclave**.
-- **The PIN gates keystore *access*, not the data:** **PIN → keystore releases the device key →
+- **The PIN gates keystore _access_, not the data:** **PIN → keystore releases the device key →
   unwrap VK.** The **PIN never leaves the device** and **never wraps server-bound material.**
-- **What is *intended* to make a 4-digit PIN acceptable here is the keystore's hardware
+- **What is _intended_ to make a 4-digit PIN acceptable here is the keystore's hardware
   rate-limiting** — not Argon2id — applied **on-device only.** **This acceptability is conditional,
   not settled:** on Android, Keystore hardware rate-limiting binds to the **device lockscreen
   credential** (`setUserAuthenticationRequired`), **not an arbitrary app-defined PIN** — so the claim
-  holds **only once the PIN→keystore gating mechanism is resolved** (see *Headline question for the
-  crypto review*, below).
+  holds **only once the PIN→keystore gating mechanism is resolved** (see _Headline question for the
+  crypto review_, below).
 
 ### (c) Path 2 — Add a device (authenticated device-to-device transfer)
 
@@ -76,7 +76,7 @@ delivered**, via **three independent paths.**
   fully ship until ADR 0004 (c)'s PQ maturity gate clears** (audited ≥ 1.0 `ml-kem` / `x-wing`
   crates, draft re-verified) — a **real sequencing dependency.** **Likely interim: classical X25519
   first, the ML-KEM layer added once the crates mature** — acceptable because the PQ benefit on this
-  path is **harvest-now-decrypt-later on a *captured handshake***, a **bounded risk over an
+  path is **harvest-now-decrypt-later on a _captured handshake_**, a **bounded risk over an
   authenticated (SAS/QR) channel.** This **shapes the slice and transport sequencing.**
 
 ### (d) Path 3 — Recovery (optional)
@@ -98,7 +98,7 @@ delivered**, via **three independent paths.**
 
 ### (f) Scope of "zero-knowledge" — keys and content, not metadata
 
-- **"Zero-knowledge" in this ADR means confidentiality of keys and record *content*, not metadata.**
+- **"Zero-knowledge" in this ADR means confidentiality of keys and record _content_, not metadata.**
   The synced records still expose to the server **`record_id`, the nonces, ciphertext length,
   `wrapped_content_key`, and — notably — plaintext `created_at`** (the leak accepted in ADR 0004 (e)).
   That **`created_at` leak compounds once every record type shares one synced timeline** (per-record
@@ -145,28 +145,29 @@ the server or another device can hold.
 
 ## Change vs M1
 
-- **The vault-key *wrapping / unlock* layer changes — but VK itself does not.** In M1, VK is already
+- **The vault-key _wrapping / unlock_ layer changes — but VK itself does not.** In M1, VK is already
   a **random 32-byte key**; what is PIN-derived is only the **key that wraps it** (Argon2id PIN key →
   AEAD-wraps VK → `wrapped_vault_key`). Under M2 the **PIN stops wrapping VK and instead gates the
   keystore** that holds the device key wrapping VK (Path 1), with device-to-device (Path 2) and
-  optional recovery (Path 3) added. **VK is unchanged, so the per-record content keys are *not*
-  re-wrapped — only VK's *outer* wrap changes.**
+  optional recovery (Path 3) added. **VK is unchanged, so the per-record content keys are _not_
+  re-wrapped — only VK's _outer_ wrap changes.**
 - **The per-record AEAD sealing is unchanged** (per-record content keys under VK, XChaCha20-Poly1305,
   AAD, crypto-shredding).
 - **The existing vault crypto will need re-testing after this layer is reworked.** (M1 ships only the
   PIN-wrap; the vault row was deliberately versioned to admit the keystore copy + recovery wrap
   without reformatting persisted data — ADR 0004 Deferred item 5.)
 - **No M1→M2 data migration is required:** the M1 vault is a **dev skeleton with no real user data.**
-  For a *real* vault the change would be **adding a keystore (and optional recovery) wrap of the
-  *same* VK** — not minting a new VK and not re-sealing records; but because the skeleton holds
+  For a _real_ vault the change would be **adding a keystore (and optional recovery) wrap of the
+  _same_ VK** — not minting a new VK and not re-sealing records; but because the skeleton holds
   nothing, simply **starting fresh** under the new key layer is fine here. (Distinct from, and
-  compatible with, ADR 0004 Deferred-5's *format* forward-compatibility, which still holds.)
-- **Changing the PIN re-gates the keystore (device-key access) but does *not* rotate VK** — a PIN
+  compatible with, ADR 0004 Deferred-5's _format_ forward-compatibility, which still holds.)
+- **Changing the PIN re-gates the keystore (device-key access) but does _not_ rotate VK** — a PIN
   change is therefore **cheap: no record re-wrap, no re-sealing.**
 
 ## Consequences
 
 **Benefits.**
+
 - **Maximal zero-knowledge:** **no PIN-crackable material on the server, ever** — the property M1's
   model could not provide for sync.
 - **Optional recovery** the user controls (high-entropy RK), without weakening the default posture.
@@ -175,6 +176,7 @@ the server or another device can hold.
   (Art. 17) carry straight into sync.
 
 **Costs / downsides (recorded honestly).**
+
 - **More to build:** a **device-to-device channel**, **recovery-key UX**, and **keystore key
   management** across two platforms — substantially more than the M1 PIN-wrap.
 - **The recovery-key UX is genuinely hard:** users lose codes. It needs a **deliberate
@@ -183,7 +185,7 @@ the server or another device can hold.
 - **Total loss without recovery = data loss:** if the user declines recovery and loses every device,
   the data is **unrecoverable** (the price of the server holding zero key material).
 - **The M1 key-layer rework** + the **re-test** of the existing vault crypto.
-- **A sliver of posture is traded when recovery is *on*:** the server then holds a **strongly-wrapped
+- **A sliver of posture is traded when recovery is _on_:** the server then holds a **strongly-wrapped
   key (RK-wrapped-VK)** rather than nothing. Safe (RK is high-entropy), but not the absolute
   "server holds zero key material" of the recovery-off path.
 
@@ -192,31 +194,31 @@ the server or another device can hold.
 Each below has a **recommended default**, but all are **implementation-level** and **finalized during
 build and the independent crypto review**, not locked by this ADR:
 
-1. **Device-to-device KEM: X-Wing (X25519 + ML-KEM-768) — confirmed.** *(Subject to ADR 0004 (c)'s
+1. **Device-to-device KEM: X-Wing (X25519 + ML-KEM-768) — confirmed.** _(Subject to ADR 0004 (c)'s
    PQ flip-on maturity gate — audited ≥ 1.0 `ml-kem` / `x-wing` crates, draft tracking — before any
    ML-KEM key bytes are transmitted; see **Path 2** for the classical-X25519-first interim and the
-   explicit sequencing dependency.)*
+   explicit sequencing dependency.)_
 2. **Recovery-key format / entropy:** recommend a **256-bit value rendered as a BIP39-style
    mnemonic.**
 3. **Per-platform keystore specifics** (Android Keystore / StrongBox vs iOS Keychain / Secure
-   Enclave). *(The PIN→keystore **gating mechanism** is **not** an implementation detail — it is
-   promoted to the crypto-review **Headline question** above.)*
+   Enclave). _(The PIN→keystore **gating mechanism** is **not** an implementation detail — it is
+   promoted to the crypto-review **Headline question** above.)_
 4. **The SAS / QR pairing-authentication details** (string length / format, QR contents, the
    confirmation UX that defeats MITM).
 
 ## Deferred / open items (to resolve before implementation)
 
-1. **Device revocation / VK rotation — unspecified, and security-relevant *for Lumi specifically*.**
+1. **Device revocation / VK rotation — unspecified, and security-relevant _for Lumi specifically_.**
    The design covers **add-device** and **recovery** but **not revoking a lost or stolen device when
    recovery is off.** For this app this is **not an edge case but a real harm:** a lost or stolen
    device that cannot be revoked means **an abuser or an ex retains access through the old phone** to
    a mood journal and clinical scores. It is **feasible** — **VK rotation = re-wrap every per-record
-   content key under a new VK, with *no* record re-sealing** (the ciphertext is unchanged; only the
+   content key under a new VK, with _no_ record re-sealing** (the ciphertext is unchanged; only the
    content-key wraps and the VK-delivery paths rotate) — but the **trigger, the re-distribution to
    the remaining good devices, and the server-side cleanup are currently unspecified.** Needs real
    design, **likely in the transport / server ADR or a dedicated follow-up.**
 
-*See also, recorded above as open before implementation:* the **PIN→keystore gating mechanism** (the
+_See also, recorded above as open before implementation:_ the **PIN→keystore gating mechanism** (the
 crypto-review **Headline question**) and the **PQ sequencing dependency** on **Path 2** (the ML-KEM
 layer gated on ADR 0004 (c)).
 

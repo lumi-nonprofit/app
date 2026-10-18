@@ -1,7 +1,7 @@
 {
   "calendar": {
-    "badge_month": "last 28 days",
-    "badge_week": "this week",
+    "badgeMonth": "last 28 days",
+    "badgeWeek": "this week",
     "day": {
       "a11yHint": "Summary of the day: colour and shape show the mood, size shows the intensity.",
       "empty": "{{day}} — no entry",
@@ -29,26 +29,26 @@
   },
   "insights": {
     "addEntry": "Add an entry",
-    "daypart_afternoon": "In the afternoon, {{mood}} shows up most often.",
-    "daypart_evening": "In the evening, {{mood}} shows up most often.",
-    "daypart_morning": "In the morning, {{mood}} shows up most often.",
+    "daypartAfternoon": "In the afternoon, {{mood}} shows up most often.",
+    "daypartEvening": "In the evening, {{mood}} shows up most often.",
+    "daypartMorning": "In the morning, {{mood}} shows up most often.",
     "frequent": "{{period}}, {{mood}} shows up most often.",
     "frequentWithWord": "{{period}}, {{mood}} shows up most often — most often with the word “{{word}}”.",
-    "tagMood_energie": "{{mood}} most often came {{tag}} {{period}}.",
-    "tagMood_klid": "{{mood}} most often came {{tag}} {{period}}.",
-    "tagMood_napeti": "{{mood}} most often came {{tag}} {{period}}.",
-    "tagMood_utlum": "{{mood}} most often came {{tag}} {{period}}.",
+    "tagMoodEnergie": "{{mood}} most often came {{tag}} {{period}}.",
+    "tagMoodKlid": "{{mood}} most often came {{tag}} {{period}}.",
+    "tagMoodNapeti": "{{mood}} most often came {{tag}} {{period}}.",
+    "tagMoodUtlum": "{{mood}} most often came {{tag}} {{period}}.",
     "title": "What shows up",
     "tooFewData": "Too few entries for patterns yet — every entry helps."
   },
   "period": {
     "a11yHint": "Switches the view between the week and the month.",
     "a11yLabel": "Period",
-    "inSentence_month": "this month",
-    "inSentence_week": "this week",
+    "inSentenceMonth": "this month",
+    "inSentenceWeek": "this week",
     "month": "month",
-    "sentenceStart_month": "This month",
-    "sentenceStart_week": "This week",
+    "sentenceStartMonth": "This month",
+    "sentenceStartWeek": "This week",
     "week": "week"
   },
   "reflection": {

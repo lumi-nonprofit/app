@@ -1,7 +1,7 @@
 /* Local insights: pure functions over the entries of a period. The wording is always
    descriptive and never causal ("came with", "shows up", never "because of"). Below the data
-   threshold the functions return nothing. The sentences come from the `stats` catalog; the
-   gender of the Czech verb follows the mood through the i18next context. */
+   threshold the functions return nothing. The sentences come from the `stats` catalog; each
+   mood has its own sentence, because the gender of the Czech verb follows the mood. */
 import { MOOD_BY_ID, tagLabel, wordLabel, type Entry, type MoodId } from "../../model";
 import { isTagId } from "../../db/vocab";
 import i18n from "../../i18n";
@@ -66,7 +66,10 @@ function frequentInsight(entries: Entry[], period: Period): Insight | null {
       (w) => w,
     ),
   );
-  const periodText = i18n.t("stats:period.sentenceStart", { context: period });
+  const periodText =
+    period === "week"
+      ? i18n.t("stats:period.sentenceStartWeek")
+      : i18n.t("stats:period.sentenceStartMonth");
   const text = words
     ? i18n.t("stats:insights.frequentWithWord", {
         period: periodText,
@@ -75,6 +78,32 @@ function frequentInsight(entries: Entry[], period: Period): Insight | null {
       })
     : i18n.t("stats:insights.frequent", { period: periodText, mood: mood.nameInSentence });
   return { id: "frequent", text };
+}
+
+/* The Czech verb agrees with the gender of the mood, so each mood has its own sentence. The keys
+   are literals: the extractor (i18next-cli) cannot read a key that the code builds. */
+function tagMoodText(moodId: MoodId, vars: { mood: string; period: string; tag: string }): string {
+  switch (moodId) {
+    case "energie":
+      return i18n.t("stats:insights.tagMoodEnergie", vars);
+    case "napeti":
+      return i18n.t("stats:insights.tagMoodNapeti", vars);
+    case "klid":
+      return i18n.t("stats:insights.tagMoodKlid", vars);
+    default:
+      return i18n.t("stats:insights.tagMoodUtlum", vars);
+  }
+}
+
+function daypartText(daypart: Daypart, mood: string): string {
+  switch (daypart) {
+    case "morning":
+      return i18n.t("stats:insights.daypartMorning", { mood });
+    case "afternoon":
+      return i18n.t("stats:insights.daypartAfternoon", { mood });
+    default:
+      return i18n.t("stats:insights.daypartEvening", { mood });
+  }
 }
 
 /** (b) The co-occurrence of a tag and a mood, only with 3 or more occurrences of the pair. */
@@ -90,15 +119,15 @@ function tagMoodInsight(entries: Entry[], period: Period): Insight | null {
   const moodId = top[0].slice(0, sep) as MoodId;
   const tag = top[0].slice(sep + 1);
   const mood = MOOD_BY_ID[moodId];
-  return {
-    id: "tag-mood",
-    text: i18n.t("stats:insights.tagMood", {
-      context: moodId,
-      mood: mood.name,
-      period: i18n.t("stats:period.inSentence", { context: period }),
-      tag: tagPhrase(tag),
-    }),
+  const vars = {
+    mood: mood.name,
+    period:
+      period === "week"
+        ? i18n.t("stats:period.inSentenceWeek")
+        : i18n.t("stats:period.inSentenceMonth"),
+    tag: tagPhrase(tag),
   };
+  return { id: "tag-mood", text: tagMoodText(moodId, vars) };
 }
 
 /** (c) The pattern of the part of the day (morning, afternoon, evening and mood), threshold 3. */
@@ -107,13 +136,7 @@ function daypartInsight(entries: Entry[]): Insight | null {
   const top = topOf(pairs);
   if (!top || top[1] < INSIGHT_MIN_OCCURRENCES) return null;
   const [daypart, moodId] = top[0].split(" ") as [Daypart, MoodId];
-  return {
-    id: "daypart",
-    text: i18n.t("stats:insights.daypart", {
-      context: daypart,
-      mood: MOOD_BY_ID[moodId].nameInSentence,
-    }),
-  };
+  return { id: "daypart", text: daypartText(daypart, MOOD_BY_ID[moodId].nameInSentence) };
 }
 
 /** At most 3 insights, in this order: the frequent mood, tag and mood, part of the day. */

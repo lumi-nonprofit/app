@@ -1,7 +1,7 @@
 {
   "calendar": {
-    "badge_month": "posledních 28 dní",
-    "badge_week": "tento týden",
+    "badgeMonth": "posledních 28 dní",
+    "badgeWeek": "tento týden",
     "day": {
       "a11yHint": "Souhrn dne: barva a tvar značí stav, velikost intenzitu.",
       "empty": "{{day}} — bez záznamu",
@@ -14,9 +14,9 @@
     "today": "dnes"
   },
   "deep": {
-    "intro_one": "Krátký dotazník ({{count}} otázka) · dobrovolný",
     "intro_few": "Krátký dotazník ({{count}} otázky) · dobrovolný",
     "intro_many": "Krátký dotazník ({{count}} otázky) · dobrovolný",
+    "intro_one": "Krátký dotazník ({{count}} otázka) · dobrovolný",
     "intro_other": "Krátký dotazník ({{count}} otázek) · dobrovolný",
     "last": "Naposledy: {{band}}",
     "lastLess": "Naposledy: {{band}} · {{amount}} míň než minule",
@@ -31,26 +31,26 @@
   },
   "insights": {
     "addEntry": "Přidat zápis",
-    "daypart_afternoon": "Odpoledne se nejčastěji objevuje {{mood}}.",
-    "daypart_evening": "Večer se nejčastěji objevuje {{mood}}.",
-    "daypart_morning": "Ráno se nejčastěji objevuje {{mood}}.",
+    "daypartAfternoon": "Odpoledne se nejčastěji objevuje {{mood}}.",
+    "daypartEvening": "Večer se nejčastěji objevuje {{mood}}.",
+    "daypartMorning": "Ráno se nejčastěji objevuje {{mood}}.",
     "frequent": "{{period}} se nejčastěji objevuje {{mood}}.",
     "frequentWithWord": "{{period}} se nejčastěji objevuje {{mood}} — nejčastěji se slovem „{{word}}“.",
-    "tagMood_energie": "{{mood}} se ti {{period}} nejčastěji pojila {{tag}}.",
-    "tagMood_klid": "{{mood}} se ti {{period}} nejčastěji pojil {{tag}}.",
-    "tagMood_napeti": "{{mood}} se ti {{period}} nejčastěji pojilo {{tag}}.",
-    "tagMood_utlum": "{{mood}} se ti {{period}} nejčastěji pojil {{tag}}.",
+    "tagMoodEnergie": "{{mood}} se ti {{period}} nejčastěji pojila {{tag}}.",
+    "tagMoodKlid": "{{mood}} se ti {{period}} nejčastěji pojil {{tag}}.",
+    "tagMoodNapeti": "{{mood}} se ti {{period}} nejčastěji pojilo {{tag}}.",
+    "tagMoodUtlum": "{{mood}} se ti {{period}} nejčastěji pojil {{tag}}.",
     "title": "Co se ukazuje",
     "tooFewData": "Zatím je tu málo záznamů na vzorce — každý zápis pomáhá."
   },
   "period": {
     "a11yHint": "Přepíná zobrazení mezi týdnem a měsícem.",
     "a11yLabel": "Období",
-    "inSentence_month": "tenhle měsíc",
-    "inSentence_week": "tenhle týden",
+    "inSentenceMonth": "tenhle měsíc",
+    "inSentenceWeek": "tenhle týden",
     "month": "měsíc",
-    "sentenceStart_month": "Tenhle měsíc",
-    "sentenceStart_week": "Tenhle týden",
+    "sentenceStartMonth": "Tenhle měsíc",
+    "sentenceStartWeek": "Tenhle týden",
     "week": "týden"
   },
   "reflection": {
@@ -63,9 +63,9 @@
     "titleCurrent": "Tvůj týden",
     "titleLast": "Tvůj minulý týden",
     "topWords": "Nejčastější slova",
-    "total_one": "Celkem {{count}} záznam.",
     "total_few": "Celkem {{count}} záznamy.",
     "total_many": "Celkem {{count}} záznamu.",
+    "total_one": "Celkem {{count}} záznam.",
     "total_other": "Celkem {{count}} záznamů."
   },
   "wellbeing": {
@@ -79,14 +79,14 @@
     "title": "Wellbeing index"
   },
   "who5": {
-    "filledAgo_one": "Vyplněno před {{count}} dnem.",
     "filledAgo_few": "Vyplněno před {{count}} dny.",
     "filledAgo_many": "Vyplněno před {{count}} dne.",
+    "filledAgo_one": "Vyplněno před {{count}} dnem.",
     "filledAgo_other": "Vyplněno před {{count}} dny.",
     "filledToday": "Vyplněno dnes.",
-    "nextIn_one": "Další dotazník tě čeká za {{count}} den.",
     "nextIn_few": "Další dotazník tě čeká za {{count}} dny.",
     "nextIn_many": "Další dotazník tě čeká za {{count}} dne.",
+    "nextIn_one": "Další dotazník tě čeká za {{count}} den.",
     "nextIn_other": "Další dotazník tě čeká za {{count}} dní.",
     "nextToday": "Další dotazník tě čeká dnes."
   }

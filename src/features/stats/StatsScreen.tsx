@@ -201,7 +201,7 @@ export default function StatsScreen() {
           <Text accessibilityRole="header" variant="headline">
             {t("calendar.title")}
           </Text>
-          <Badge>{t("calendar.badge", { context: period })}</Badge>
+          <Badge>{period === "week" ? t("calendar.badgeWeek") : t("calendar.badgeMonth")}</Badge>
         </View>
 
         {empty ? (

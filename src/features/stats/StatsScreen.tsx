@@ -1,8 +1,8 @@
-/* Přehledy — týden jako tečky (barva + tvar = stav, velikost = intenzita,
-   prázdný den = obrysový kruh), vzorce, wellbeing index, hlubší screeningy.
-   Nastavení (sdílení, připomínky, záloha) má vlastní obrazovku.
-   Varianty jsou datové: prázdný týden = 0–1 záznam, empatická varianta
-   při WHO-5 pod 50 % — žádné alarmy, žádná vina. */
+/* The overview: the week as dots (colour and shape are the mood, size is the intensity, an
+   empty day is an outlined circle), patterns, the wellbeing index and the deeper screenings.
+   Settings (research toggle, reminders, backup) has its own screen.
+   The variants follow the data: an empty week has 0 or 1 entries, and a WHO-5 below 50 % shows
+   the empathetic variant. No alarms, no guilt. */
 import React from "react";
 import { View } from "react-native";
 import { Stack, useRouter } from "expo-router";
@@ -12,9 +12,11 @@ import { LumiHeader, SectionLabel } from "../../components/Header";
 import { headerItems } from "../../components/HeaderItems";
 import MoodShape from "../../components/MoodShape";
 import { createThemedStyles, useTheme } from "../../theme";
+import i18n, { useTranslation } from "../../i18n";
+import { formatPercent, formatWeekdayDate } from "../../i18n/format";
+import { INSTRUMENTS } from "../measure/definitions";
 import {
   intensityLabel,
-  weekdayNames,
   type Intensity,
   MOODS,
   MOOD_BY_ID,
@@ -30,36 +32,37 @@ import {
 import type { WeekDay } from "../../model";
 import { useEntries, useMeasurements } from "../../db/hooks";
 import type { Measurement } from "../../db/repo";
-import { gad7Band, phq9Band, trendText, type Band } from "../measure/scoring";
+import { gad7Band, phq9Band, type Band } from "../measure/scoring";
 import InsightsCard from "./InsightsCard";
+import type { Period } from "./insights";
 import { isReflectionWindowOpen } from "./reflection";
-
-type Period = "týden" | "měsíc";
-const PERIODS: { value: Period; label: string }[] = [
-  { value: "týden", label: "týden" },
-  { value: "měsíc", label: "měsíc" },
-];
 
 interface DayDotProps {
   day: WeekDay;
 }
 
-/* den jako tečka: barva + tvar = stav, velikost = intenzita, prázdný = obrysový kruh */
+/* A day as a dot: colour and shape are the mood, size is the intensity, an empty day is an
+   outlined circle. */
 function DayDot({ day }: DayDotProps) {
   const styles = useStyles();
+  const { t } = useTranslation("stats");
   const mood = day.entry ? MOOD_BY_ID[day.entry.mood] : null;
   const size = day.entry ? 13 + day.entry.intensity * 3.4 : 14;
-  /* `mood` existuje právě tehdy, když `day.entry` — podmínka rozšířena jen kvůli zúžení typů */
+  /* `mood` exists exactly when `day.entry` exists; the condition narrows the types. */
   const label =
     day.entry && mood
-      ? `${day.dayName} — ${mood.name}, ${intensityLabel(day.entry.intensity)}`
-      : `${day.dayName} — bez záznamu`;
+      ? t("calendar.day.entry", {
+          day: day.dayName,
+          mood: mood.name,
+          intensity: intensityLabel(day.entry.intensity),
+        })
+      : t("calendar.day.empty", { day: day.dayName });
   return (
     <View
       accessible
       accessibilityRole="image"
       accessibilityLabel={label}
-      accessibilityHint="Souhrn dne: barva a tvar značí stav, velikost intenzitu."
+      accessibilityHint={t("calendar.day.a11yHint")}
       style={[styles.dayDot, { opacity: day.future ? 0.45 : 1 }]}
     >
       <View style={styles.dayDotShape}>
@@ -75,7 +78,7 @@ function DayDot({ day }: DayDotProps) {
         color={day.today ? "textAccent" : "textMuted"}
         maxFontSizeMultiplier={1.6}
       >
-        {day.today ? "dnes" : day.label}
+        {day.today ? t("calendar.today") : day.label}
       </Text>
     </View>
   );
@@ -83,58 +86,67 @@ function DayDot({ day }: DayDotProps) {
 
 function MoodLegend() {
   const styles = useStyles();
+  const { t } = useTranslation("stats");
   return (
     <View style={styles.legend}>
       {MOODS.map((m) => (
         <View key={m.id} style={styles.legendItem}>
           <MoodShape mood={m} size={11} />
           <Text variant="caption1" weight="regular">
-            {m.name.toLowerCase()}
+            {m.nameInSentence}
           </Text>
         </View>
       ))}
       <View style={styles.legendItem}>
         <MoodShape size={11} outline />
         <Text variant="caption1" weight="regular">
-          bez záznamu
+          {t("calendar.legendEmpty")}
         </Text>
       </View>
     </View>
   );
 }
 
-/** Podtitulek karty hlubšího screeningu: poslední pásmo + trend, nikdy diagnóza. */
+/** The subtitle of a deeper screening card: the last band and the trend, never a diagnosis. */
 function deepSubtitle(
   list: Measurement[],
   questionCount: number,
   band: (s: number) => Band,
 ): string {
-  if (!list.length) return `Krátký dotazník (${questionCount} otázek) · dobrovolný`;
+  if (!list.length) return i18n.t("stats:deep.intro", { count: questionCount });
   const last = list[list.length - 1];
   const prev = list.length > 1 ? list[list.length - 2].score : null;
-  const trend = trendText(last.score, prev);
-  const suffix = trend ? ` · ${trend.charAt(0).toLowerCase()}${trend.slice(1)}` : "";
-  return `Naposledy: ${band(last.score).label}${suffix}`;
+  const label = band(last.score).label;
+  if (prev === null) return i18n.t("stats:deep.last", { band: label });
+  const diff = last.score - prev;
+  if (diff === 0) return i18n.t("stats:deep.lastSame", { band: label });
+  const amount = i18n.t("measure:trend.byPoints", { count: Math.abs(diff) });
+  return diff > 0
+    ? i18n.t("stats:deep.lastMore", { band: label, amount })
+    : i18n.t("stats:deep.lastLess", { band: label, amount });
 }
 
-/** Popisek buňky měsíční mřížky: „pondělí 6. 10. — Napětí, silně“ / „bez záznamu“. */
+/** The label of a month cell: "pondělí 6. 10. — Napětí, silně" or "... — bez záznamu". */
 function monthCellLabel(
-  dayIndex: number,
   iso: string,
   entry: { mood: keyof typeof MOOD_BY_ID; intensity: number } | null,
 ): string {
-  const [, m, d] = iso.split("-");
-  const date = `${weekdayNames()[dayIndex]} ${Number(d)}. ${Number(m)}.`;
+  const day = formatWeekdayDate(iso);
   return entry
-    ? `${date} — ${MOOD_BY_ID[entry.mood].name}, ${intensityLabel(entry.intensity as Intensity)}`
-    : `${date} — bez záznamu`;
+    ? i18n.t("stats:calendar.day.entry", {
+        day,
+        mood: MOOD_BY_ID[entry.mood].name,
+        intensity: intensityLabel(entry.intensity as Intensity),
+      })
+    : i18n.t("stats:calendar.day.empty", { day });
 }
 
 export default function StatsScreen() {
   const router = useRouter();
   const theme = useTheme();
   const styles = useStyles();
-  /* měsíční pohled jde 4 kalendářní týdny zpět — 35 dní rozsah bohatě stačí */
+  const { t } = useTranslation("stats");
+  /* The month view goes 4 calendar weeks back; a range of 35 days is enough. */
   const monthStart = new Date();
   monthStart.setDate(monthStart.getDate() - 35);
   const entries = useEntries({ from: toISODate(monthStart) });
@@ -143,7 +155,11 @@ export default function StatsScreen() {
   const phq9 = useMeasurements("phq9");
   const gad7 = useMeasurements("gad7");
 
-  const [period, setPeriod] = React.useState<Period>("týden");
+  const [period, setPeriod] = React.useState<Period>("week");
+  const periods: { value: Period; label: string }[] = [
+    { value: "week", label: t("period.week") },
+    { value: "month", label: t("period.month") },
+  ];
   const week = buildWeek(entries);
   const empty = weekEntryCount(entries) <= 1;
   const measurement = latestWho5(who5);
@@ -158,7 +174,7 @@ export default function StatsScreen() {
         options={headerItems(theme, {
           right: [
             {
-              label: "Nastavení",
+              label: t("header.settings"),
               icon: "gear",
               sf: "gearshape",
               onPress: () => router.push("/settings"),
@@ -167,25 +183,25 @@ export default function StatsScreen() {
         })}
       />
       <LumiHeader
-        title="Tvůj týden"
+        title={t("header.title")}
         trailing={
           <SegmentedControl
-            options={PERIODS}
+            options={periods}
             value={period}
             onChange={setPeriod}
-            accessibilityLabel="Období"
-            accessibilityHint="Přepíná zobrazení mezi týdnem a měsícem."
+            accessibilityLabel={t("period.a11yLabel")}
+            accessibilityHint={t("period.a11yHint")}
           />
         }
       />
 
-      {/* kalendář nálad */}
+      {/* The mood calendar. */}
       <Card>
         <View style={styles.cardHead}>
           <Text accessibilityRole="header" variant="headline">
-            Nálada podle dní
+            {t("calendar.title")}
           </Text>
-          <Badge>{period === "týden" ? "tento týden" : "posledních 28 dní"}</Badge>
+          <Badge>{t("calendar.badge", { context: period })}</Badge>
         </View>
 
         {empty ? (
@@ -196,7 +212,7 @@ export default function StatsScreen() {
               ))}
             </View>
             <Text variant="body" style={styles.emptyText}>
-              Zatím tu toho moc není — každý zápis se počítá.
+              {t("calendar.emptyText")}
             </Text>
             <Button
               variant="secondary"
@@ -204,10 +220,10 @@ export default function StatsScreen() {
               onPress={() => router.push("/checkin")}
               style={styles.selfStart}
             >
-              Začít check-in
+              {t("calendar.startCheckin")}
             </Button>
           </View>
-        ) : period === "týden" ? (
+        ) : period === "week" ? (
           <View style={styles.weekRow}>
             {week.map((d) => (
               <DayDot key={d.label} day={d} />
@@ -217,17 +233,17 @@ export default function StatsScreen() {
           <View style={styles.monthGrid}>
             {buildMonth(entries).map((row, w) => (
               <View key={w} style={styles.weekRow}>
-                {row.map((d, i) => {
+                {row.map((d) => {
                   const m = d.entry ? MOOD_BY_ID[d.entry.mood] : null;
                   return (
                     <View
                       key={d.iso}
                       accessible
                       accessibilityRole="image"
-                      accessibilityLabel={monthCellLabel(i, d.iso, d.entry)}
+                      accessibilityLabel={monthCellLabel(d.iso, d.entry)}
                       style={[styles.monthCell, { opacity: d.future ? 0.45 : 1 }]}
                     >
-                      {/* `m` existuje právě tehdy, když `d.entry` — podmínka rozšířena jen kvůli zúžení typů */}
+                      {/* `m` exists exactly when `d.entry` exists; the condition narrows the types. */}
                       {d.entry && m ? (
                         <MoodShape mood={m} size={8 + d.entry.intensity * 1.6} />
                       ) : (
@@ -243,39 +259,39 @@ export default function StatsScreen() {
         {!empty ? <MoodLegend /> : null}
       </Card>
 
-      {/* lokální vzorce ze záznamů zvoleného období */}
+      {/* Local patterns from the entries of the chosen period. */}
       <InsightsCard entries={entries} period={period} />
 
-      {/* týdenní reflexe — karta jen v okně neděle 17:00 → konec pondělí */}
+      {/* The weekly reflection: the card shows only from Sunday 17:00 to the end of Monday. */}
       {isReflectionWindowOpen(new Date()) ? (
         <Card style={styles.deepCard}>
           <ListItem
             icon="sparkles"
-            title="Ohlédnutí za týdnem"
-            subtitle="Souhrn: tečky, slova a co se ukazuje"
+            title={t("reflection.card.title")}
+            subtitle={t("reflection.card.subtitle")}
             onPress={() => router.push("/reflection")}
           />
         </Card>
       ) : null}
 
-      {/* wellbeing index */}
+      {/* The wellbeing index. */}
       <Card>
         <View style={styles.wellRow}>
           <ProgressRing
             value={measurement ? measurement.score / 100 : 0}
             size={84}
             color={low ? theme.colors.textInfo : undefined}
-            label={measurement ? `${measurement.score} %` : "—"}
-            sublabel="WHO-5"
+            label={measurement ? formatPercent(measurement.score) : t("wellbeing.noValue")}
+            sublabel={t("wellbeing.sublabel")}
           />
           <View style={styles.wellBody}>
             <Text accessibilityRole="header" variant="headline">
-              Wellbeing index
+              {t("wellbeing.title")}
             </Text>
             {!measurement ? (
               <View>
                 <Text variant="subheadline" color="textMuted" style={styles.wellTextSpaced}>
-                  Krátký dotazník (5 otázek) ti nastaví výchozí bod. Bez známek, bez porovnávání.
+                  {t("wellbeing.intro")}
                 </Text>
                 <Button
                   variant="secondary"
@@ -283,21 +299,21 @@ export default function StatsScreen() {
                   onPress={() => router.push("/measure/who5")}
                   style={styles.selfStart}
                 >
-                  Vyplnit první dotazník
+                  {t("wellbeing.firstQuestionnaire")}
                 </Button>
               </View>
             ) : low ? (
               <View>
                 <Text variant="subheadline" color="textMuted" style={styles.wellTextSpaced}>
-                  Poslední dva týdny vypadají náročně. Je v pořádku říct si o podporu.
+                  {t("wellbeing.low")}
                 </Text>
                 <View style={styles.lowActions}>
                   <Button variant="secondary" size="sm" onPress={() => router.push("/help")}>
-                    Otevřít Pomoc
+                    {t("wellbeing.openHelp")}
                   </Button>
                   {who5Due ? (
                     <Button variant="ghost" size="sm" onPress={() => router.push("/measure/who5")}>
-                      Vyplnit dotazník
+                      {t("wellbeing.questionnaire")}
                     </Button>
                   ) : null}
                 </View>
@@ -318,7 +334,7 @@ export default function StatsScreen() {
                     onPress={() => router.push("/measure/who5")}
                     style={styles.selfStart}
                   >
-                    Vyplnit dotazník
+                    {t("wellbeing.questionnaire")}
                   </Button>
                 ) : null}
               </View>
@@ -327,27 +343,27 @@ export default function StatsScreen() {
         </View>
       </Card>
 
-      {/* hlubší screeningy — dobrovolné, nikdy nevnucované, žádné notifikace */}
+      {/* The deeper screenings: optional, never pushed, no notifications. */}
       <View>
-        <SectionLabel>Chceš jít víc do hloubky?</SectionLabel>
+        <SectionLabel>{t("deep.title")}</SectionLabel>
         <Card style={styles.deepCard}>
           <ListItem
             icon="cloud"
             tone="info"
-            title="Nálada do hloubky"
-            subtitle={deepSubtitle(phq9, 9, phq9Band)}
+            title={INSTRUMENTS.phq9.title}
+            subtitle={deepSubtitle(phq9, INSTRUMENTS.phq9.questions.length, phq9Band)}
             onPress={() => router.push("/measure/phq9")}
           />
           <ListItem
             icon="waves"
             tone="info"
-            title="Napětí a obavy do hloubky"
-            subtitle={deepSubtitle(gad7, 7, gad7Band)}
+            title={INSTRUMENTS.gad7.title}
+            subtitle={deepSubtitle(gad7, INSTRUMENTS.gad7.questions.length, gad7Band)}
             onPress={() => router.push("/measure/gad7")}
           />
         </Card>
         <Text variant="footnote" color="textMuted" style={styles.deepNote}>
-          Dobrovolné — jen když chceš. Lumi ti je nikdy nebude připomínat.
+          {t("deep.note")}
         </Text>
       </View>
     </Screen>

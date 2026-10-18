@@ -1,8 +1,10 @@
-/* Lokální insights — čisté funkce nad záznamy zvoleného období.
-   Formulace VŽDY deskriptivní, nikdy kauzální („pojilo se“, „objevuje
-   se“ — ne „protože“ ani „kvůli“). Pod prahem dat se nic nevymýšlí. */
+/* Local insights: pure functions over the entries of a period. The wording is always
+   descriptive and never causal ("came with", "shows up", never "because of"). Below the data
+   threshold the functions return nothing. The sentences come from the `stats` catalog; the
+   gender of the Czech verb follows the mood through the i18next context. */
 import { MOOD_BY_ID, tagLabel, wordLabel, type Entry, type MoodId } from "../../model";
 import { isTagId } from "../../db/vocab";
+import i18n from "../../i18n";
 import { contentText } from "../../i18n/content";
 
 export interface Insight {
@@ -10,21 +12,19 @@ export interface Insight {
   text: string;
 }
 
-/** Práh: vzorec hlásíme až od 3 výskytů kombinace; celkově od 3 záznamů. */
+export type Period = "week" | "month";
+export type Daypart = "morning" | "afternoon" | "evening";
+
+/** Threshold: a pattern needs 3 occurrences of the combination, and 3 entries in total. */
 export const INSIGHT_MIN_OCCURRENCES = 3;
 
-export const TOO_FEW_DATA_TEXT = "Zatím je tu málo záznamů na vzorce — každý zápis pomáhá.";
+/** The text below the data threshold, in the active language. */
+export function tooFewDataText(): string {
+  return i18n.t("stats:insights.tooFewData");
+}
 
-/* minulé příčestí „pojil/a/o se“ podle rodu podstatného jména stavu */
-const MOOD_VERB: Record<MoodId, string> = {
-  energie: "pojila", // ta energie
-  napeti: "pojilo", // to napětí
-  klid: "pojil", // ten klid
-  utlum: "pojil", // ten útlum
-};
-
-/* instrumentál vestavěných štítků („se školou“) z katalogu; vlastní štítky dostávají
-   obecný tvar „se štítkem „X““ — skloňování neznámých slov negenerujeme */
+/* The instrumental case of a built-in tag ("se školou") comes from the catalog; a custom tag
+   gets the generic form ("se štítkem „X“"), because the app cannot decline unknown words. */
 const tagPhrase = (tag: string): string =>
   isTagId(tag)
     ? contentText(`tags.${tag}.instrumental`)
@@ -46,16 +46,16 @@ function countBy<T>(items: T[], key: (item: T) => string | null): Map<string, nu
   return counts;
 }
 
-/** Část dne podle hodiny zápisu: ráno < 12, odpoledne 12–17, večer ≥ 18. */
-export function daypartOf(time: string): "ráno" | "odpoledne" | "večer" {
+/** The part of the day of an entry time: morning before 12, afternoon 12 to 17, evening from 18. */
+export function daypartOf(time: string): Daypart {
   const hour = Number.parseInt(time, 10);
-  if (Number.isNaN(hour) || hour < 12) return "ráno";
-  if (hour < 18) return "odpoledne";
-  return "večer";
+  if (Number.isNaN(hour) || hour < 12) return "morning";
+  if (hour < 18) return "afternoon";
+  return "evening";
 }
 
-/** (a) Nejčastější stav a slova období. */
-function frequentInsight(entries: Entry[], periodLabel: string): Insight | null {
+/** (a) The most frequent mood and word of the period. */
+function frequentInsight(entries: Entry[], period: Period): Insight | null {
   if (entries.length < INSIGHT_MIN_OCCURRENCES) return null;
   const topMood = topOf(countBy(entries, (e) => e.mood));
   if (!topMood) return null;
@@ -66,50 +66,61 @@ function frequentInsight(entries: Entry[], periodLabel: string): Insight | null 
       (w) => w,
     ),
   );
-  const wordsPart = words ? ` — nejčastěji se slovem „${wordLabel(words[0])}“` : "";
-  return {
-    id: "frequent",
-    text: `${periodLabel} se nejčastěji objevuje ${mood.name.toLowerCase()}${wordsPart}.`,
-  };
+  const periodText = i18n.t("stats:period.sentenceStart", { context: period });
+  const text = words
+    ? i18n.t("stats:insights.frequentWithWord", {
+        period: periodText,
+        mood: mood.nameInSentence,
+        word: wordLabel(words[0]),
+      })
+    : i18n.t("stats:insights.frequent", { period: periodText, mood: mood.nameInSentence });
+  return { id: "frequent", text };
 }
 
-/** (b) Ko-výskyt štítek × stav, jen při ≥ 3 výskytech kombinace. */
-function tagMoodInsight(entries: Entry[], periodLabel: string): Insight | null {
+/** (b) The co-occurrence of a tag and a mood, only with 3 or more occurrences of the pair. */
+function tagMoodInsight(entries: Entry[], period: Period): Insight | null {
   const pairs = countBy(
     entries.flatMap((e) => e.tags.map((t) => ({ mood: e.mood, tag: t }))),
     (p) => `${p.mood} ${p.tag}`,
   );
   const top = topOf(pairs);
   if (!top || top[1] < INSIGHT_MIN_OCCURRENCES) return null;
-  // štítek může obsahovat mezery — klíč se dělí jen na prvním oddělovači
+  // A tag can contain spaces: the key splits at the first separator only.
   const sep = top[0].indexOf(" ");
   const moodId = top[0].slice(0, sep) as MoodId;
   const tag = top[0].slice(sep + 1);
   const mood = MOOD_BY_ID[moodId];
   return {
     id: "tag-mood",
-    text: `${mood.name} se ti ${periodLabel.toLowerCase()} nejčastěji ${MOOD_VERB[moodId]} ${tagPhrase(tag)}.`,
+    text: i18n.t("stats:insights.tagMood", {
+      context: moodId,
+      mood: mood.name,
+      period: i18n.t("stats:period.inSentence", { context: period }),
+      tag: tagPhrase(tag),
+    }),
   };
 }
 
-/** (c) Vzorec denní doby (ráno/odpoledne/večer × stav), práh ≥ 3. */
+/** (c) The pattern of the part of the day (morning, afternoon, evening and mood), threshold 3. */
 function daypartInsight(entries: Entry[]): Insight | null {
   const pairs = countBy(entries, (e) => `${daypartOf(e.time)} ${e.mood}`);
   const top = topOf(pairs);
   if (!top || top[1] < INSIGHT_MIN_OCCURRENCES) return null;
-  const [daypart, moodId] = top[0].split(" ") as [string, MoodId];
-  const daypartCap = daypart.charAt(0).toUpperCase() + daypart.slice(1);
+  const [daypart, moodId] = top[0].split(" ") as [Daypart, MoodId];
   return {
     id: "daypart",
-    text: `${daypartCap} se nejčastěji objevuje ${MOOD_BY_ID[moodId].name.toLowerCase()}.`,
+    text: i18n.t("stats:insights.daypart", {
+      context: daypart,
+      mood: MOOD_BY_ID[moodId].nameInSentence,
+    }),
   };
 }
 
-/** Max 3 nálezy v pořadí: nejčastější stav, štítek×stav, denní doba. */
-export function computeInsights(entries: Entry[], periodLabel = "Tenhle měsíc"): Insight[] {
+/** At most 3 insights, in this order: the frequent mood, tag and mood, part of the day. */
+export function computeInsights(entries: Entry[], period: Period = "month"): Insight[] {
   const found = [
-    frequentInsight(entries, periodLabel),
-    tagMoodInsight(entries, periodLabel),
+    frequentInsight(entries, period),
+    tagMoodInsight(entries, period),
     daypartInsight(entries),
   ].filter((i): i is Insight => i !== null);
   return found.slice(0, 3);

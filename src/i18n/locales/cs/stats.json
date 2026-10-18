@@ -1,4 +1,83 @@
 {
+  "calendar": {
+    "badge_month": "posledních 28 dní",
+    "badge_week": "tento týden",
+    "day": {
+      "a11yHint": "Souhrn dne: barva a tvar značí stav, velikost intenzitu.",
+      "empty": "{{day}} — bez záznamu",
+      "entry": "{{day}} — {{mood}}, {{intensity}}"
+    },
+    "emptyText": "Zatím tu toho moc není — každý zápis se počítá.",
+    "legendEmpty": "bez záznamu",
+    "startCheckin": "Začít check-in",
+    "title": "Nálada podle dní",
+    "today": "dnes"
+  },
+  "deep": {
+    "intro_one": "Krátký dotazník ({{count}} otázka) · dobrovolný",
+    "intro_few": "Krátký dotazník ({{count}} otázky) · dobrovolný",
+    "intro_many": "Krátký dotazník ({{count}} otázky) · dobrovolný",
+    "intro_other": "Krátký dotazník ({{count}} otázek) · dobrovolný",
+    "last": "Naposledy: {{band}}",
+    "lastLess": "Naposledy: {{band}} · {{amount}} míň než minule",
+    "lastMore": "Naposledy: {{band}} · {{amount}} víc než minule",
+    "lastSame": "Naposledy: {{band}} · stejně jako minule",
+    "note": "Dobrovolné — jen když chceš. Lumi ti je nikdy nebude připomínat.",
+    "title": "Chceš jít víc do hloubky?"
+  },
+  "header": {
+    "settings": "Nastavení",
+    "title": "Tvůj týden"
+  },
+  "insights": {
+    "addEntry": "Přidat zápis",
+    "daypart_afternoon": "Odpoledne se nejčastěji objevuje {{mood}}.",
+    "daypart_evening": "Večer se nejčastěji objevuje {{mood}}.",
+    "daypart_morning": "Ráno se nejčastěji objevuje {{mood}}.",
+    "frequent": "{{period}} se nejčastěji objevuje {{mood}}.",
+    "frequentWithWord": "{{period}} se nejčastěji objevuje {{mood}} — nejčastěji se slovem „{{word}}“.",
+    "tagMood_energie": "{{mood}} se ti {{period}} nejčastěji pojila {{tag}}.",
+    "tagMood_klid": "{{mood}} se ti {{period}} nejčastěji pojil {{tag}}.",
+    "tagMood_napeti": "{{mood}} se ti {{period}} nejčastěji pojilo {{tag}}.",
+    "tagMood_utlum": "{{mood}} se ti {{period}} nejčastěji pojil {{tag}}.",
+    "title": "Co se ukazuje",
+    "tooFewData": "Zatím je tu málo záznamů na vzorce — každý zápis pomáhá."
+  },
+  "period": {
+    "a11yHint": "Přepíná zobrazení mezi týdnem a měsícem.",
+    "a11yLabel": "Období",
+    "inSentence_month": "tenhle měsíc",
+    "inSentence_week": "tenhle týden",
+    "month": "měsíc",
+    "sentenceStart_month": "Tenhle měsíc",
+    "sentenceStart_week": "Tenhle týden",
+    "week": "týden"
+  },
+  "reflection": {
+    "card": {
+      "subtitle": "Souhrn: tečky, slova a co se ukazuje",
+      "title": "Ohlédnutí za týdnem"
+    },
+    "closing": "Ať byl týden jakýkoliv, díky, že si ho všímáš.",
+    "insightsTitle": "Co se ukazuje",
+    "titleCurrent": "Tvůj týden",
+    "titleLast": "Tvůj minulý týden",
+    "topWords": "Nejčastější slova",
+    "total_one": "Celkem {{count}} záznam.",
+    "total_few": "Celkem {{count}} záznamy.",
+    "total_many": "Celkem {{count}} záznamu.",
+    "total_other": "Celkem {{count}} záznamů."
+  },
+  "wellbeing": {
+    "firstQuestionnaire": "Vyplnit první dotazník",
+    "intro": "Krátký dotazník (5 otázek) ti nastaví výchozí bod. Bez známek, bez porovnávání.",
+    "low": "Poslední dva týdny vypadají náročně. Je v pořádku říct si o podporu.",
+    "noValue": "—",
+    "openHelp": "Otevřít Pomoc",
+    "questionnaire": "Vyplnit dotazník",
+    "sublabel": "WHO-5",
+    "title": "Wellbeing index"
+  },
   "who5": {
     "filledAgo_one": "Vyplněno před {{count}} dnem.",
     "filledAgo_few": "Vyplněno před {{count}} dny.",

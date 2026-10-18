@@ -1,12 +1,12 @@
-/* UI nad insights: karta „Co se ukazuje“ v Přehledech (vzorce vs. málo dat)
-   a Ohlédnutí za týdnem. Karta reflexe v Přehledech závisí na reálném dni
-   v týdnu (okno neděle 17:00 → pondělí), proto se obrazovka testuje přímou
-   routou /reflection. Data se sejí do DB před renderem (viz helpers/testDb),
-   onboarding se přeskakuje zápisem profilu rovnou do settings. */
+/* The UI above the insights: the card "Co se ukazuje" in the overview (patterns or too few
+   data) and the weekly reflection. The reflection card in the overview depends on the real day
+   of the week (the window from Sunday 17:00 to Monday), so the test opens the route /reflection
+   directly. The data goes into the database before the render (see helpers/testDb); the test
+   skips the onboarding with a profile written to the settings. */
 import { userEvent } from "@testing-library/react-native";
 import { renderRouter, screen } from "expo-router/testing-library";
 import { insertEntry, writeProfile } from "../src/db/repo";
-import { TOO_FEW_DATA_TEXT } from "../src/features/stats/insights";
+import { tooFewDataText } from "../src/features/stats/insights";
 import { reflectionWeekRange } from "../src/features/stats/reflection";
 import { toISODate, type Entry } from "../src/model";
 import { getTestDb } from "./helpers/testDb";
@@ -22,13 +22,13 @@ const entry = (e: Partial<Entry> & Pick<Entry, "date" | "mood">): Entry => ({
   ...e,
 });
 
-/** Onboarding rovnou v DB — UI testy začínají v tabech. */
+/** The onboarding goes directly into the database: the UI tests start in the tabs. */
 function seedProfile(): void {
   writeProfile(getTestDb(), { onboarded: true, name: "Janko", age: "u26", share: false });
 }
 
-describe("Co se ukazuje (Přehledy)", () => {
-  it("≥ 3 záznamy stejného stavu a štítku v týdnu → vzorce jsou vidět", async () => {
+describe("What shows up (the overview)", () => {
+  it("shows the patterns from 3 entries with the same mood and tag in a week", async () => {
     seedProfile();
     const today = toISODate();
     for (let i = 0; i < 3; i++) {
@@ -52,22 +52,22 @@ describe("Co se ukazuje (Přehledy)", () => {
       screen.getByText("Napětí se ti tenhle týden nejčastěji pojilo se školou."),
     ).toBeOnTheScreen();
     expect(screen.getByText("Ráno se nejčastěji objevuje napětí.")).toBeOnTheScreen();
-    expect(screen.queryByText(TOO_FEW_DATA_TEXT)).toBeNull();
+    expect(screen.queryByText(tooFewDataText())).toBeNull();
   });
 
-  it("bez záznamů → jemné povzbuzení místo vzorců", async () => {
+  it("shows a gentle encouragement instead of patterns without entries", async () => {
     seedProfile();
     const user = userEvent.setup();
     await renderRouter("app");
     await user.press(await screen.findByRole("tab", { name: "Přehledy" }));
 
     expect(await screen.findByText("Co se ukazuje")).toBeOnTheScreen();
-    expect(screen.getByText(TOO_FEW_DATA_TEXT)).toBeOnTheScreen();
+    expect(screen.getByText(tooFewDataText())).toBeOnTheScreen();
   });
 });
 
-describe("Ohlédnutí za týdnem (/reflection)", () => {
-  it("souhrn reflektovaného týdne: počet záznamů, slova, nálezy, klidné zakončení", async () => {
+describe("Weekly reflection (/reflection)", () => {
+  it("summarises the reflected week: entry count, words, insights, a calm closing", async () => {
     seedProfile();
     const range = reflectionWeekRange(new Date());
     for (let i = 0; i < 3; i++) {
@@ -79,7 +79,7 @@ describe("Ohlédnutí za týdnem (/reflection)", () => {
 
     await renderRouter("app", { initialUrl: "/reflection" });
 
-    // v neděli „Tvůj týden“, jinak „Tvůj minulý týden“ — test nezná den spuštění
+    // On Sunday "Tvůj týden", otherwise "Tvůj minulý týden": the test does not know its day.
     expect(await screen.findByRole("header", { name: /Tvůj (minulý )?týden/ })).toBeOnTheScreen();
     expect(screen.getByText(/3 záznamy/)).toBeOnTheScreen();
     expect(screen.getByText("Nejčastější slova")).toBeOnTheScreen();
@@ -90,13 +90,13 @@ describe("Ohlédnutí za týdnem (/reflection)", () => {
     expect(screen.getByText("Ať byl týden jakýkoliv, díky, že si ho všímáš.")).toBeOnTheScreen();
   });
 
-  it("prázdný týden: nulový počet bez viny, povzbuzení místo vzorců", async () => {
+  it("shows an empty week without guilt: a zero count and an encouragement", async () => {
     seedProfile();
     await renderRouter("app", { initialUrl: "/reflection" });
 
     expect(await screen.findByRole("header", { name: /Tvůj (minulý )?týden/ })).toBeOnTheScreen();
     expect(screen.getByText(/0 záznamů/)).toBeOnTheScreen();
-    expect(screen.getByText(TOO_FEW_DATA_TEXT)).toBeOnTheScreen();
+    expect(screen.getByText(tooFewDataText())).toBeOnTheScreen();
     expect(screen.queryByText("Nejčastější slova")).toBeNull();
     expect(screen.getByText("Ať byl týden jakýkoliv, díky, že si ho všímáš.")).toBeOnTheScreen();
   });

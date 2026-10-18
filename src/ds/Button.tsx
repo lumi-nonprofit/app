@@ -1,12 +1,13 @@
-/* Button — pill tlačítko pro všechny akce Lumi.
-   primary = plný ink (zlatá jako výplň neprojde kontrastem), crisis = clay700
-   (bílý text 6,5:1; v dark clay300 + inkoust), soft = zlatý wash s textem sun700.
-   Disabled = obrys + inkoustový text na zapuštěném podkladu, NIKDY snížená opacita
-   (README, ADR 0001 §11); volitelný `hint` pod tlačítkem říká, co chybí.
-   Press state: Android ripple, iOS opacita (HIG Buttons). `loading` ukáže
-   indikátor a volitelný náhradní label („Ukládám…“). `href` otevírá odkaz přes
-   Linking se stejným vzhledem (tel: linky) a rolí link. Popisek škáluje
-   s Dynamic Type do 2× (HIG: text tlačítka neořezávat, výška roste). */
+/* Button: the pill button for every action in Lumi.
+   `primary` is solid ink: gold as a fill does not pass the contrast check. `crisis` is
+   clay700 with white text (6.5:1); in dark mode clay300 with ink text. `soft` is a gold
+   wash with sun700 text. Disabled = an outline + ink text on the sunken surface, NEVER a
+   lower opacity (README, ADR 0001 §11). The optional `hint` under the button says what the
+   user still needs. Press state: Android ripple, iOS opacity (HIG Buttons). The busy state
+   shows an indicator and an optional replacement label (`loadingLabel`, "Ukládám…"). `href`
+   opens the link through `Linking` with the same look (tel: lines) and the role link. The
+   label scales with Dynamic Type up to 2× (HIG: do not clip the button text, the height
+   grows). */
 import React from "react";
 import {
   ActivityIndicator,
@@ -45,9 +46,10 @@ interface Props {
   size?: ButtonSize;
   fullWidth?: boolean;
   disabled?: boolean;
-  /** Vysvětlení disabled stavu pod tlačítkem (HIG Feedback: říct, proč nelze). */
+  /** The explanation of the disabled state under the button (HIG Feedback: say why the
+      action is not possible). */
   hint?: string;
-  /** Probíhající akce: indikátor + volitelný náhradní label. */
+  /** An action in progress: an indicator + an optional replacement label. */
   loading?: boolean;
   loadingLabel?: string;
   onPress?: (e: GestureResponderEvent) => void;
@@ -81,17 +83,17 @@ export default function Button({
   const handlePress = (e: GestureResponderEvent) => {
     if (inactive) return;
     if (onPress) onPress(e);
-    /* bez dialeru/handleru (tablet, web) nesmí spadnout unhandled rejection —
-       číslo je vždy viditelné v popisku tlačítka, dá se vytočit ručně */
+    /* Without a dialer or a handler (tablet, web) an unhandled rejection must not occur.
+       The number is always visible in the button label, so the user can dial it by hand. */
     if (href) Linking.openURL(href).catch(() => {});
   };
 
   const textColor: TextColor = disabled ? "textOnSunken" : TEXT_COLORS[variant];
 
-  /* Stringové děti obalíme do <Text>; sousední texty slučujeme do jednoho uzlu,
-     aby je gap 8 neroztrhal. Krajní mezery (JSX kolem ikon) odřezáváme — web je
-     kolaboval; mezeru mezi ikonou a textem dělá gap. Elementy (Icon) zůstávají
-     beze změny — barvu jim předává volající explicitně. */
+  /* The string children go into `<Text>`; adjacent strings merge into one node, so that the
+     gap of 8 does not tear them apart. Outer spaces (JSX around icons) are cut off: the web
+     collapsed them; the gap makes the space between the icon and the text. Elements (`Icon`)
+     stay as they are: the caller passes them the color explicitly. */
   const content: React.ReactNode[] = [];
   let run = "";
   const flush = () => {
@@ -141,7 +143,10 @@ export default function Button({
         !inactive && pressedStyle(theme, pressed),
       ]}
     >
-      {loading ? <ActivityIndicator size="small" color={theme.colors[textColor]} /> : null}
+      {loading ? (
+        /* Decorative: the button has the busy state and the label (aria-hidden covers web too). */
+        <ActivityIndicator size="small" color={theme.colors[textColor]} aria-hidden />
+      ) : null}
       {content}
     </Pressable>
   );
@@ -171,22 +176,22 @@ const useStyles = createThemedStyles((t) => ({
     overflow: "hidden",
   },
 
-  /* varianty */
+  /* variants */
   primary: { backgroundColor: t.colors.surfacePrimary },
   secondary: { backgroundColor: t.colors.surfaceCard, borderColor: t.colors.borderStrong },
   soft: { backgroundColor: t.colors.accentSoft },
   ghost: { backgroundColor: "transparent" },
   crisis: { backgroundColor: t.colors.surfaceCrisis },
 
-  /* velikosti — i sm drží dotykový cíl ≥ 44/48 pt (HIG / Android) */
+  /* sizes: also `sm` keeps the touch target ≥ 44/48 pt (HIG / Android) */
   sm: { paddingVertical: 7, paddingHorizontal: 14, minHeight: t.platform.minTouch },
   md: { paddingVertical: 10, paddingHorizontal: 20, minHeight: t.platform.minTouch },
   lg: { paddingVertical: 14, paddingHorizontal: 28, minHeight: 52 },
 
   full: { width: "100%", alignSelf: "stretch" },
-  /* disabled: obrys + inkoust na zapuštěném podkladu, ne opacita */
+  /* disabled: an outline + ink on the sunken surface, not opacity */
   disabled: { backgroundColor: t.colors.surfaceSunken, borderColor: t.colors.borderStrong },
 
-  /* text se smí zalomit (Dynamic Type), tlačítko roste do výšky */
+  /* the text can wrap (Dynamic Type), the button grows in height */
   text: { flexShrink: 1, textAlign: "center" },
 }));

@@ -1,7 +1,7 @@
-/* SegmentedControl — přepínač úzce souvisejících pohledů (HIG: segmented
-   control, podstatná jména, ≤ 5 segmentů). iOS: nativní UISegmentedControl;
-   Android a web: Material 3 segmented buttons (obrysová skupina, vybraný
-   segment = měkká výplň + fajfka, 48 dp, ripple), role radiogroup/radio. */
+/* SegmentedControl: a switch between closely related views (HIG: segmented
+   control, nouns, ≤ 5 segments). iOS: the native UISegmentedControl;
+   Android and web: Material 3 segmented buttons (an outlined group, selected
+   segment = soft fill + check mark, 48 dp, ripple), the roles radiogroup/radio. */
 import React from "react";
 import { Pressable, View } from "react-native";
 import type { StyleProp, ViewStyle } from "react-native";
@@ -72,6 +72,7 @@ export default function SegmentedControl<T extends string>({
             key={o.value}
             accessibilityRole="radio"
             accessibilityState={{ checked: selected }}
+            aria-checked={selected}
             onPress={() => onChange(o.value)}
             {...pressFeedback(theme)}
             style={({ pressed }) => [

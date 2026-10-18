@@ -1,7 +1,7 @@
-/* Switch — přepínač nastavení v řádku seznamu (HIG Toggles: switch jen v řádku,
-   kontext dává řádek; Android: label vlevo, přepínač vpravo). Celý řádek je
-   klepnutelný; stav nese accessibilityState, ne text labelu. Barva „zapnuto“
-   = accentFill (≥ 3:1), vypnuto = platformní výchozí. */
+/* Switch: a settings toggle in a list row. HIG Toggles: a switch only in a row, the row
+   gives the context; Android: the label on the left, the switch on the right. The whole
+   row is tappable; `accessibilityState` carries the state, not the label text. The "on"
+   color = accentFill (≥ 3:1), off = the platform default. */
 import { Pressable, Switch as RNSwitch, View } from "react-native";
 import type { StyleProp, ViewStyle } from "react-native";
 import { createThemedStyles, useTheme } from "../theme";
@@ -11,7 +11,7 @@ interface Props {
   checked?: boolean;
   onChange?: (value: boolean) => void;
   label?: string;
-  /** Doplňující popis pod labelem (Android settings pattern: supporting text). */
+  /** A supplementary description under the label (Android settings pattern: secondary text). */
   description?: string;
   accessibilityHint?: string;
   disabled?: boolean;
@@ -34,7 +34,8 @@ export default function Switch({
   };
   const control = (
     <RNSwitch
-      /* explicitně přístupný prvek: čtečky i testy (RNTL) ho berou jako „switch“ i na Androidu */
+      /* an explicitly accessible element: screen readers and tests (RNTL) see it as a
+         "switch" also on Android */
       accessible
       accessibilityState={{ checked, disabled }}
       value={checked}

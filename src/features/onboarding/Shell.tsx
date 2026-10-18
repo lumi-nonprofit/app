@@ -36,8 +36,13 @@ export function ObShell({ step, onBack, children }: ObShellProps) {
           )}
           <View
             style={styles.dots}
+            accessibilityRole="progressbar"
             accessibilityLabel={t("shell.progress.a11yLabel", { step, total: STEPS.length })}
             accessibilityHint={t("shell.progress.a11yHint")}
+            accessibilityValue={{ min: 1, max: STEPS.length, now: step }}
+            aria-valuemin={1}
+            aria-valuemax={STEPS.length}
+            aria-valuenow={step}
           >
             {STEPS.map((i) => (
               <View key={i} style={[styles.dot, i === step && styles.dotActive]} />

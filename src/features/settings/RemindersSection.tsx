@@ -1,8 +1,9 @@
-/* Připomínky (Nastavení): denní pozvání k zápisu jako lokální notifikace
-   (plánování viz ./reminders), volitelná Večerka a nedělní ohlédnutí.
-   Vše opt-in s výchozím stavem vypnuto; o povolení notifikací se žádá až
-   při zapnutí přepínače (HIG Privacy: v kontextu funkce). Při zamítnutí
-   vede tlačítko do systémového nastavení. Žádné výčitky, žádné streaky. */
+/* Reminders (Settings): the daily invitation to write an entry as a local notification (the
+   scheduling lives in ./reminders), the optional evening reminder and the Sunday reflection.
+   All of it is opt-in, off by default; the app asks for the notification permission when the
+   person turns the switch on (HIG Privacy: in the context of the feature). After a refusal, a
+   button leads to the system settings. No blame, no streaks. The times of the evening and the
+   weekly reminders come from the constants in ./reminders and go through formatTime. */
 import React from "react";
 import { Platform, Pressable, View } from "react-native";
 import DateTimePicker, { type DateTimePickerEvent } from "@react-native-community/datetimepicker";
@@ -12,13 +13,17 @@ import { SectionLabel } from "../../components/Header";
 import { useDb } from "../../db/provider";
 import { useDbWriter } from "../../db/hooks";
 import { getSetting, setSetting } from "../../db/repo";
+import { currentLocale, useTranslation } from "../../i18n";
+import { formatTime, uses24Hour } from "../../i18n/format";
 import { announce } from "../../lib/a11y";
 import {
   DEFAULT_REMINDER_TIME,
   EVENING_ENABLED_KEY,
+  EVENING_TIME,
   REMINDER_ENABLED_KEY,
   REMINDER_TIME_KEY,
   WEEKLY_ENABLED_KEY,
+  WEEKLY_REFLECTION_TIME,
   cancelDailyReminder,
   cancelEveningReminder,
   cancelWeeklyReflection,
@@ -31,16 +36,14 @@ import {
 } from "./reminders";
 import { createThemedStyles, useTheme } from "../../theme";
 
-/** { hour: 19, minute: 0 } → "19:00" */
-const formatTime = (t: ReminderTime): string => `${t.hour}:${String(t.minute).padStart(2, "0")}`;
-
 export default function RemindersSection() {
+  const { t } = useTranslation("settings");
   const db = useDb();
   const write = useDbWriter();
   const theme = useTheme();
   const styles = useStyles();
 
-  /* stav přepínačů žije v settings tabulce — inicializace přímým čtením */
+  /* The state of the switches lives in the settings table; the initial values come from a direct read. */
   const [enabled, setEnabled] = React.useState<boolean>(
     () => getSetting<boolean>(db, REMINDER_ENABLED_KEY) ?? false,
   );
@@ -58,8 +61,8 @@ export default function RemindersSection() {
 
   const toggleMain = async (value: boolean): Promise<void> => {
     if (!value) {
-      /* vypnutí ruší i podřízené notifikace — jejich volby zůstávají uložené
-         a při dalším zapnutí se obnoví (skrytý přepínač nesmí dál pípat) */
+      /* The switch off also cancels the dependent notifications. Their options stay saved and
+         come back with the next switch on (a hidden switch must not keep its notifications alive). */
       setEnabled(false);
       setPicking(false);
       write((d) => setSetting(d, REMINDER_ENABLED_KEY, false));
@@ -68,14 +71,14 @@ export default function RemindersSection() {
     }
     const granted = await requestReminderPermission();
     if (!granted) {
-      /* bez povolení přepínač zůstává vypnutý; vysvětlení bez výčitek + cesta do systému */
+      /* Without the permission the switch stays off: an explanation without blame and a path to the system. */
       setDenied(true);
-      announce("Bez povolení notifikací to nepůjde. Povol je v nastavení systému.");
+      announce(t("reminders.denied.announce"));
       return;
     }
     setDenied(false);
     await scheduleDailyReminder(time);
-    /* obnova dřív zapnutých podřízených připomínek */
+    /* The dependent reminders that were on before come back. */
     if (evening) await scheduleEveningReminder();
     if (weekly) await scheduleWeeklyReflection();
     setEnabled(true);
@@ -89,7 +92,7 @@ export default function RemindersSection() {
   };
 
   const onPickTime = (event: DateTimePickerEvent, date?: Date): void => {
-    /* Android dialog se zavírá při každé akci; iOS spinner zůstává otevřený */
+    /* The Android dialog closes after each action; the iOS spinner stays open. */
     if (Platform.OS === "android") setPicking(false);
     if (event.type === "set" && date) {
       applyTime({ hour: date.getHours(), minute: date.getMinutes() });
@@ -110,41 +113,40 @@ export default function RemindersSection() {
     else await cancelWeeklyReflection();
   };
 
+  const timeLabel = t("reminders.time.label", { time: formatTime(time) });
+  const weeklyTime = formatTime(WEEKLY_REFLECTION_TIME);
+
   return (
     <View>
-      <SectionLabel>Připomínky</SectionLabel>
+      <SectionLabel>{t("reminders.title")}</SectionLabel>
       <Card style={styles.card}>
         <Switch
           checked={enabled}
           onChange={(v) => void toggleMain(v)}
-          label="Denní připomínka"
-          description="Jemné pozvání k zápisu, jednou denně."
-          accessibilityHint="Naplánuje každodenní jemné pozvání k zápisu."
+          label={t("reminders.daily.label")}
+          description={t("reminders.daily.description")}
+          accessibilityHint={t("reminders.daily.a11yHint")}
         />
 
         {denied ? (
           <View style={styles.denied}>
-            <Text variant="subheadline">
-              Bez povolení notifikací to nepůjde — povol je v nastavení systému.
-            </Text>
+            <Text variant="subheadline">{t("reminders.denied.text")}</Text>
             <Button variant="secondary" size="sm" onPress={openSystemNotificationSettings}>
-              Otevřít nastavení systému
+              {t("reminders.denied.openSettings")}
             </Button>
           </View>
         ) : null}
 
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Čas: ${formatTime(time)}`}
-          accessibilityHint={
-            picking ? "Zavře výběr času připomínky." : "Otevře výběr času denní připomínky."
-          }
+          accessibilityLabel={timeLabel}
+          accessibilityHint={picking ? t("reminders.time.closeHint") : t("reminders.time.openHint")}
           onPress={() => setPicking((p) => !p)}
           {...pressFeedback(theme)}
           style={({ pressed }) => [styles.timeRow, pressedStyle(theme, pressed)]}
         >
           <Text variant="body" weight="semibold" color="textStrong">
-            Čas: {formatTime(time)}
+            {timeLabel}
           </Text>
           <Icon name="chevron-right" size={18} color={theme.colors.textOnSunken} />
         </Pressable>
@@ -153,8 +155,8 @@ export default function RemindersSection() {
           <DateTimePicker
             value={new Date(2000, 0, 1, time.hour, time.minute)}
             mode="time"
-            is24Hour
-            locale="cs"
+            is24Hour={uses24Hour()}
+            locale={currentLocale()}
             display={Platform.OS === "ios" ? "spinner" : "default"}
             onChange={onPickTime}
           />
@@ -165,23 +167,22 @@ export default function RemindersSection() {
             <Switch
               checked={evening}
               onChange={(v) => void toggleEvening(v)}
-              label="Večerka ve 21:00"
-              description="Pozvání ke klidnému usínání."
-              accessibilityHint="Každý večer pozvání ke klidnému usínání."
+              label={t("reminders.evening.label", { time: formatTime(EVENING_TIME) })}
+              description={t("reminders.evening.description")}
+              accessibilityHint={t("reminders.evening.a11yHint")}
             />
             <Switch
               checked={weekly}
               onChange={(v) => void toggleWeekly(v)}
-              label="Nedělní ohlédnutí za týdnem"
-              description="V neděli v 17:00."
-              accessibilityHint="Každou neděli v 17:00 pozvání k ohlédnutí za týdnem."
+              label={t("reminders.weekly.label")}
+              description={t("reminders.weekly.description", { time: weeklyTime })}
+              accessibilityHint={t("reminders.weekly.a11yHint", { time: weeklyTime })}
             />
           </View>
         ) : null}
 
         <Text variant="footnote" color="textMuted">
-          Jen jemné pozvání — žádné výčitky, když zápis vynecháš. Na zamčené obrazovce se text
-          nezobrazuje.
+          {t("reminders.footer")}
         </Text>
       </Card>
     </View>
@@ -191,7 +192,7 @@ export default function RemindersSection() {
 const useStyles = createThemedStyles((t) => ({
   card: { marginTop: 6, gap: 12 },
   denied: { gap: 10 },
-  /* řádek s časem: sunken pozadí + šipka = klikatelnost není jen barvou */
+  /* The time row: a sunken background and an arrow, so the tap target is not only a colour. */
   timeRow: {
     flexDirection: "row",
     alignItems: "center",

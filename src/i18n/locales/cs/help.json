@@ -1,1 +1,73 @@
-{}
+{
+  "calm": {
+    "subtitle": "Dech a uzemnění na 2 minuty",
+    "title": "Rychlé zklidnění"
+  },
+  "card": {
+    "back": "Zadní strana",
+    "front": "Přední strana",
+    "line": "{{phone}} — {{name}}",
+    "lineWithAge": "{{phone}} — {{name}} ({{age}})",
+    "note": "Vytiskni, přelož, zalaminuj — a nos s sebou."
+  },
+  "contacts": {
+    "title": "Kontakty"
+  },
+  "crisis": {
+    "lead": "Linky jsou zdarma a nonstop. Nemusíš vědět, co přesně říct — stačí zavolat.",
+    "title": "Potřebuješ si promluvit hned?"
+  },
+  "guides": {
+    "title": "Co dělat, když…"
+  },
+  "handover": {
+    "callAdults": "Zavolat {{phone}} — dospělí",
+    "callYouth": "Zavolat {{phone}} — děti a studenti",
+    "emergency": "Při ohrožení života: {{ambulance}} záchranná služba · {{emergency}} tísňová linka",
+    "entry": {
+      "subtitle": "Otevři režim pro chvíli, kdy držíš telefon za druhého",
+      "title": "Pomáháš někomu blízkému?"
+    },
+    "principles": {
+      "listen": "Hlavně poslouchejte.",
+      "noAdvice": "Neraďte a nebagatelizujte.",
+      "stayClose": "Zůstaňte nablízku.",
+      "stayWith": "Při ohrožení nenechávejte o samotě.",
+      "takeSeriously": "Berte to vážně."
+    },
+    "return": "Vrátit telefon",
+    "title": "Jste tu pro někoho — to je to nejdůležitější."
+  },
+  "lines": {
+    "call": "Zavolat {{phone}}",
+    "callWithName": "Zavolat {{phone}} · {{name}}",
+    "emergencyIntro": "Při bezprostředním ohrožení života:",
+    "emergencyShort": "{{phone}} · {{short}}",
+    "nameWithPhone": "{{name}} · {{phone}}",
+    "yourLine": "tvoje linka"
+  },
+  "plan": {
+    "discard": {
+      "message": "Text v této sekci se neuloží.",
+      "title": "Zahodit změny v plánu?"
+    },
+    "editor": {
+      "a11yHint": "Text zůstává jen v tvém telefonu."
+    },
+    "print": {
+      "emptyMessage": "Kartička se skládá z tvého krizového plánu — vyplň aspoň jednu část.",
+      "emptyTitle": "Nejdřív si plán vyplň",
+      "failedMessage": "Kartičku se teď nepodařilo vytvořit. Zkus to prosím znovu.",
+      "failedTitle": "Nepovedlo se",
+      "shareTitle": "Krizová kartička",
+      "subtitle": "PDF na přeložení a zalaminování",
+      "title": "Vytisknout kartičku do peněženky"
+    },
+    "sectionFilled": "{{subtitle}} · vyplněno",
+    "subtitle": "Připrav si kroky, dokud je klid.",
+    "title": "Můj krizový plán"
+  },
+  "screen": {
+    "title": "Pomoc je blízko"
+  }
+}

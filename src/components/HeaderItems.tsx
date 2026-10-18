@@ -1,24 +1,25 @@
-/* Položky nativní hlavičky. iOS: skutečné UIBarButtonItems přes
-   `unstable_headerLeftItems/RightItems` (SF Symbols, Liquid Glass, text pro
-   Zrušit/Hotovo — HIG Toolbars). Android a web: prvky v `headerLeft/Right`
-   s ripple a 48 dp cílem (Material top app bar), v jestu dotazovatelné podle
-   role a popisku. Popisek je vždy česky: na iOS u ikony jen pro VoiceOver. */
+/* Items of the native header. iOS: real UIBarButtonItems through
+   `unstable_headerLeftItems/RightItems` (SF Symbols, Liquid Glass, text for "Zrušit" and
+   "Hotovo", HIG Toolbars). Android and web: elements in `headerLeft/Right` with a ripple and a
+   48 dp target (Material top app bar); Jest can query them by role and label. The label comes
+   from the message catalog: on iOS an icon item uses it only for VoiceOver. */
 import React from "react";
 import { View } from "react-native";
 import type { NativeStackHeaderItem, NativeStackNavigationOptions } from "expo-router";
 import type { SFSymbol } from "sf-symbols-typescript";
 import { Button, IconButton } from "../ds";
 import type { IconName } from "../ds/Icon";
+import i18n from "../i18n";
 import type { Theme } from "../theme";
 
 export interface HeaderItemSpec {
-  /** Český popisek: text položky bez ikony, jinak label pro čtečku. */
+  /** The label from the catalog: the text of an item without an icon, otherwise the screen reader label. */
   label: string;
-  /** Ikona pro Android/web (lucide) a iOS (SF Symbol); bez ikony = textová položka. */
+  /** The icon for Android/web (Lucide) and iOS (SF Symbol); without an icon the item is text. */
   icon?: IconName;
   sf?: SFSymbol;
   onPress: () => void;
-  /** Zvýrazněná hlavní akce (Hotovo): iOS prominent, Android primární text. */
+  /** The prominent main action ("Hotovo"): iOS prominent, Android primary text. */
   prominent?: boolean;
   disabled?: boolean;
   accessibilityHint?: string;
@@ -70,7 +71,7 @@ function HeaderItemRow({ items, side }: { items: HeaderItemSpec[]; side: "left" 
   );
 }
 
-/** Volby obrazovky s položkami hlavičky: `<Stack.Screen options={{ title, ...headerItems(theme, {...}) }} />` */
+/** The screen options with header items: `<Stack.Screen options={{ title, ...headerItems(theme, {...}) }} />`. */
 export function headerItems(theme: Theme, spec: HeaderItemsSpec): NativeStackNavigationOptions {
   if (theme.platform.isIOS) {
     return {
@@ -84,12 +85,18 @@ export function headerItems(theme: Theme, spec: HeaderItemsSpec): NativeStackNav
   };
 }
 
-/** Standardní Zavřít (HIG: xmark / Material: close) pro modální úlohy. */
-export function closeItem(onPress: () => void, label = "Zavřít"): HeaderItemSpec {
+/** The standard close item (HIG: xmark / Material: close) for modal tasks. */
+export function closeItem(
+  onPress: () => void,
+  label: string = i18n.t("navigation:actions.close"),
+): HeaderItemSpec {
   return { label, icon: "close", sf: "xmark", onPress };
 }
 
-/** Zpět v rámci jedné obrazovky (krok dotazníku) — vzhled systémového Zpět. */
-export function backItem(onPress: () => void, label = "Zpět"): HeaderItemSpec {
+/** Back inside one screen (a questionnaire step), with the look of the system back button. */
+export function backItem(
+  onPress: () => void,
+  label: string = i18n.t("navigation:actions.back"),
+): HeaderItemSpec {
   return { label, icon: "arrow-left", sf: "chevron.backward", onPress };
 }

@@ -1,13 +1,14 @@
-/* Check-in · krok 2 — upřesňující slova (1–2), kontextové štítky, nepovinná
-   poznámka; uložení zapíše Entry do stavu aplikace a vede na potvrzení. */
+/* Check-in, step 2: the words that refine the state (1 to 2), the context tags and an optional
+   note. The save writes the Entry to the database and leads to the confirmation. */
 import React from "react";
-import { View, TextInput, Alert } from "react-native";
+import { View, TextInput } from "react-native";
 import { useNavigation, useRouter } from "expo-router";
 import { Button, Chip, Input, Text } from "../../ds";
 import { textStyle } from "../../ds/Text";
 import { LumiHeader } from "../../components/Header";
 import MoodShape from "../../components/MoodShape";
 import Screen from "../../components/Screen";
+import { useTranslation } from "../../i18n";
 import {
   CONTEXT_TAGS,
   MOOD_BY_ID,
@@ -24,25 +25,27 @@ import { useDb, useDbVersion } from "../../db/provider";
 import { useDbWriter } from "../../db/hooks";
 import { addCustomTag, deleteCustomTag, insertEntry, listCustomTags } from "../../db/repo";
 import type { Tag } from "../../db/repo";
+import { confirmDelete } from "../../lib/dialogs";
 import { haptics } from "../../lib/haptics";
 import { useDiscardGuard } from "../../lib/useDiscardGuard";
 import { createThemedStyles, useTheme } from "../../theme";
 import { isDraftDirty, useCheckinDraft } from "./draft";
 
 export default function Step2Screen() {
+  const { t } = useTranslation(["checkin", "common"]);
   const router = useRouter();
   const theme = useTheme();
   const styles = useStyles();
   const { draft, setDraft, saved, markSaved } = useCheckinDraft();
   const writeDb = useDbWriter();
   const navigation = useNavigation();
-  /* Guard zachytí jen zavření celého sheetu (swipe-down = POP cílený na kořenový
-     stack). Zpět (GO_BACK) a pop uvnitř stacku check-inu jen vrací na krok 1 —
-     draft žije v provideru, nic se nezahazuje; uložení projde přes leave(). */
+  /* The guard catches only the close of the whole sheet (swipe-down is a POP that targets the
+     root stack). Back (GO_BACK) and a pop inside the check-in stack only return to step 1: the
+     draft lives in the provider, nothing is lost. The save leaves through leave(). */
   const { leave } = useDiscardGuard({
     dirty: !saved && isDraftDirty(draft),
-    title: "Zahodit rozepsaný zápis?",
-    message: "Vybraný stav, slova ani poznámka se neuloží.",
+    title: t("discard.title"),
+    message: t("discard.message"),
     allow: (action) =>
       action.type === "GO_BACK" ||
       action.type === "REPLACE" ||
@@ -50,7 +53,7 @@ export default function Step2Screen() {
         (action.target === undefined || action.target === navigation.getState()?.key)),
   });
 
-  /* draft.mood může být null — fallback za `||` to jistí, přetypování jen pro index */
+  /* draft.mood can be null: the fallback after `||` covers it; the cast serves only the index. */
   const mood = MOOD_BY_ID[draft.mood as MoodId] || MOOD_BY_ID.napeti;
   const moodColors = theme.mood[mood.id];
   const words = MOOD_WORDS[mood.id];
@@ -58,20 +61,20 @@ export default function Step2Screen() {
     const has = draft.words.includes(w);
     if (has) setDraft({ words: draft.words.filter((x) => x !== w) });
     else if (draft.words.length < 2) setDraft({ words: [...draft.words, w] });
-    else return; // třetí slovo se nevybere — bez haptiky
+    else return; // The third word stays unselected: no haptics.
     haptics.select();
   };
-  const toggleTag = (t: string) => {
-    const has = draft.tags.includes(t);
-    setDraft({ tags: has ? draft.tags.filter((x) => x !== t) : [...draft.tags, t] });
+  const toggleTag = (tag: string) => {
+    const has = draft.tags.includes(tag);
+    setDraft({ tags: has ? draft.tags.filter((x) => x !== tag) : [...draft.tags, tag] });
     haptics.select();
   };
 
-  /* vlastní štítky — řadí se vždy za vestavěné; verze dat vynutí re-query po zápisu */
+  /* Custom tags always come after the built-in ones; the data version forces a new query after a write. */
   const db = useDb();
   const { version } = useDbVersion();
   const customTags = React.useMemo(() => {
-    void version; // zápis zvyšuje verzi → vynucený re-query
+    void version; // A write raises the version, which forces the query to run again.
     return listCustomTags(db);
   }, [db, version]);
 
@@ -81,7 +84,7 @@ export default function Step2Screen() {
     setAddingTag((open) => !open);
     setNewTagLabel("");
   };
-  /* Prázdný vstup nic nedělá. Duplicitní label vrátí existující štítek → jen se vybere. */
+  /* An empty input does nothing. A duplicate label returns the existing tag, which only gets selected. */
   const submitNewTag = () => {
     const label = newTagLabel.trim();
     if (!label) return;
@@ -91,19 +94,15 @@ export default function Step2Screen() {
     setAddingTag(false);
     haptics.select();
   };
-  /* Mazat jde jen vlastní štítky; záznamy, kde už je štítek použitý, zůstávají beze změny. */
+  /* Only custom tags can go; the entries that already use the tag stay unchanged. */
   const confirmDeleteTag = (tag: Tag) => {
-    Alert.alert("Smazat štítek?", "Záznamy, kde už je použitý, zůstanou beze změny.", [
-      { text: "Zrušit", style: "cancel" },
-      {
-        text: "Smazat",
-        style: "destructive",
-        onPress: () => {
-          writeDb((d) => deleteCustomTag(d, tag.id));
-          setDraft({ tags: draft.tags.filter((t) => t !== tag.label) });
-        },
-      },
-    ]);
+    confirmDelete({ title: t("step2.deleteTag.title"), message: t("step2.deleteTag.message") })
+      .then((ok) => {
+        if (!ok) return;
+        writeDb((d) => deleteCustomTag(d, tag.id));
+        setDraft({ tags: draft.tags.filter((x) => x !== tag.label) });
+      })
+      .catch(() => {});
   };
   const save = () => {
     if (!draft.mood) return;
@@ -118,32 +117,32 @@ export default function Step2Screen() {
       tags: draft.tags,
       note: draft.note.trim(),
     };
-    writeDb((d) => insertEntry(d, entry)); // INSERT, žádné přepisování celku
+    writeDb((d) => insertEntry(d, entry)); // An INSERT, no rewrite of the whole table.
     haptics.success();
     markSaved();
-    /* replace, ne push: hardware back z potvrzení se nevrací na už uložený krok */
+    /* replace, not push: the hardware back button from the confirmation does not return to the saved step. */
     leave(() => router.replace("/checkin/confirm"));
   };
 
   return (
     <Screen keyboard>
-      {/* Zpět na krok 1 = systémové Zpět v nativní hlavičce */}
-      <LumiHeader kicker="Check-in · krok 2 ze 2" title="Které slovo to vystihuje nejlíp?" />
+      {/* Back to step 1 is the system back button in the native header. */}
+      <LumiHeader kicker={t("step2.kicker")} title={t("step2.title")} />
 
-      {/* shrnutí zvoleného stavu — na měkké výplni jen textStrong/textBody */}
+      {/* The summary of the chosen state: on the soft fill only textStrong/textBody. */}
       <View style={[styles.moodSummary, { backgroundColor: moodColors.soft }]}>
         <MoodShape mood={mood} size={18} />
         <Text variant="body" weight="semibold" color="textStrong">
           {mood.name}
         </Text>
         <Text variant="subheadline" color="textBody">
-          · {intensityLabel(draft.intensity)}
+          {t("step2.summary.intensity", { intensity: intensityLabel(draft.intensity) })}
         </Text>
       </View>
 
       <View>
         <Text variant="subheadline" color="textMuted" style={styles.wordsHint}>
-          Vyber jedno nebo dvě.
+          {t("step2.words.hint")}
         </Text>
         <View style={styles.chipWrap}>
           {words.map((w) => (
@@ -156,32 +155,32 @@ export default function Step2Screen() {
 
       <View>
         <Text variant="body" weight="semibold" color="textBody" style={styles.tagsLabel}>
-          Co s tím souvisí?
+          {t("step2.tags.title")}
         </Text>
         <View style={styles.chipWrap}>
-          {CONTEXT_TAGS.map((t) => (
-            <Chip key={t} selected={draft.tags.includes(t)} onPress={() => toggleTag(t)}>
-              {tagLabel(t)}
+          {CONTEXT_TAGS.map((tag) => (
+            <Chip key={tag} selected={draft.tags.includes(tag)} onPress={() => toggleTag(tag)}>
+              {tagLabel(tag)}
             </Chip>
           ))}
-          {customTags.map((t) => (
+          {customTags.map((tag) => (
             <Chip
-              key={t.id}
-              selected={draft.tags.includes(t.label)}
-              onPress={() => toggleTag(t.label)}
-              onLongPress={() => confirmDeleteTag(t)}
-              accessibilityHint="Podržením smažeš štítek."
+              key={tag.id}
+              selected={draft.tags.includes(tag.label)}
+              onPress={() => toggleTag(tag.label)}
+              onLongPress={() => confirmDeleteTag(tag)}
+              accessibilityHint={t("step2.tags.custom.a11yHint")}
             >
-              {t.label}
+              {tag.label}
             </Chip>
           ))}
           <Chip
             onPress={toggleAddTag}
             accessibilityHint={
-              addingTag ? "Zavře pole pro nový štítek." : "Otevře pole pro nový štítek."
+              addingTag ? t("step2.newTag.close.a11yHint") : t("step2.newTag.open.a11yHint")
             }
           >
-            + přidat
+            {t("step2.newTag.chip")}
           </Chip>
         </View>
         {addingTag ? (
@@ -190,26 +189,26 @@ export default function Step2Screen() {
               style={styles.addTagInput}
               value={newTagLabel}
               onChangeText={setNewTagLabel}
-              placeholder="nový štítek"
+              placeholder={t("step2.newTag.placeholder")}
               placeholderTextColor={theme.colors.textOnSunken}
               selectionColor={theme.colors.accentFill}
               autoFocus
               returnKeyType="done"
               maxLength={24}
               onSubmitEditing={submitNewTag}
-              accessibilityLabel="Nový štítek"
-              accessibilityHint="Napiš název a potvrď tlačítkem Přidat."
+              accessibilityLabel={t("step2.newTag.a11yLabel")}
+              accessibilityHint={t("step2.newTag.a11yHint")}
             />
             <Button variant="secondary" size="sm" onPress={submitNewTag}>
-              Přidat
+              {t("common:actions.add")}
             </Button>
           </View>
         ) : null}
       </View>
 
       <Input
-        label="Poznámka"
-        placeholder="Co máš na srdci? (nepovinné)"
+        label={t("step2.note.label")}
+        placeholder={t("step2.note.placeholder")}
         multiline
         value={draft.note}
         onChangeText={(v) => setDraft({ note: v })}
@@ -220,9 +219,9 @@ export default function Step2Screen() {
         fullWidth
         disabled={draft.words.length === 0}
         onPress={save}
-        hint="Vyber aspoň jedno slovo — pomáhá v Přehledech."
+        hint={t("step2.saveHint")}
       >
-        Uložit zápis
+        {t("step2.save")}
       </Button>
     </Screen>
   );
@@ -242,7 +241,7 @@ const useStyles = createThemedStyles((t) => ({
   tagsLabel: { marginTop: 4, marginBottom: 8 },
   chipWrap: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   addTagRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 10 },
-  /* inline vstup stylem odpovídá chipu (pill, subheadline), výška drží dotykový cíl */
+  /* The inline input matches the chip style (pill, subheadline); the height keeps the touch target. */
   addTagInput: {
     flex: 1,
     ...textStyle("subheadline", "medium"),

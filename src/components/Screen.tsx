@@ -1,8 +1,8 @@
-/* Screen — obrazovka se scrollem pod nativní hlavičkou. Horní odsazení řeší
-   navigátor (iOS velký titulek přes contentInsetAdjustmentBehavior); spodní
-   bezpečnou zónu v tabech řeší nativní tab bar, mimo taby ji přidá Screen.
-   Okraj obsahu podle platformy (HIG 20 pt / Material 16 dp). `keyboard`
-   zvedne obsah nad klávesnici (iOS; Android řeší adjustResize). */
+/* Screen: a screen that scrolls under the native header. The navigator handles the top inset
+   (iOS large title through contentInsetAdjustmentBehavior). Inside the tabs the native tab bar
+   handles the bottom safe area; outside the tabs Screen adds it. The content margin follows the
+   platform (HIG 20 pt / Material 16 dp). `keyboard` lifts the content above the keyboard
+   (iOS; Android uses adjustResize). */
 import React from "react";
 import { ScrollView, type StyleProp, type ViewStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -12,7 +12,7 @@ import { useInsideTabs } from "./TabContent";
 interface Props {
   children: React.ReactNode;
   contentStyle?: StyleProp<ViewStyle>;
-  /** Obrazovka s textovým vstupem: obsah se posune nad klávesnici. */
+  /** A screen with a text input: the content moves above the keyboard. */
   keyboard?: boolean;
 }
 

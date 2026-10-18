@@ -1,1 +1,34 @@
-{}
+{
+  "age": {
+    "body": "Your age picks the right crisis line.",
+    "continueHint": "Pick one of the bands — it only sets the crisis line.",
+    "group": {
+      "a11yHint": "Your age sets the primary crisis line.",
+      "a11yLabel": "Age band"
+    },
+    "title": "How old are you?"
+  },
+  "name": {
+    "body": "I will help you notice how you are and find what does you good. Everything stays with you.",
+    "hint": "Optional — only to address you, it is never sent anywhere.",
+    "label": "What should I call you?",
+    "placeholder": "For example Alex",
+    "start": "Start",
+    "title": "Hi, this is Lumi."
+  },
+  "privacy": {
+    "rows": {
+      "off": "Sharing is off for now.",
+      "phone": "Your entries stay only on this phone.",
+      "research": "If you ever want to, you can share them anonymously for research — but only if you turn it on in Settings."
+    },
+    "title": "Your data stays with you"
+  },
+  "shell": {
+    "crisis": "Need help right now?",
+    "progress": {
+      "a11yHint": "Progress of the initial setup.",
+      "a11yLabel": "Step {{step}} of {{total}}"
+    }
+  }
+}

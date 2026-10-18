@@ -1,6 +1,6 @@
-/* Krizová kartička (čistá funkce, žádný render): escapování uživatelského
-   textu, přítomnost krizových linek a nadpisů, zkracování dlouhých sekcí
-   a tiskové parametry stránky. */
+/* The crisis card (a pure function, no render): the escape of the text of the user, the presence
+   of the crisis lines and the headings, the cut of long sections and the print parameters of the
+   page. */
 import {
   crisisCardHtml,
   escapeHtml,
@@ -10,20 +10,20 @@ import {
 } from "../src/features/help/crisisCard";
 
 describe("crisisCardHtml", () => {
-  it("escapuje nebezpečný uživatelský vstup (žádný syrový < ani &)", () => {
+  it("escapes dangerous input of the user (no raw < or &)", () => {
     const html = crisisCardHtml({
       signals: "<script>alert(1)</script>",
       helps: "káva & klid",
       contacts: "máma",
     });
-    // injektovaný tag se nesmí dostat do HTML jako syrová značka
+    // The injected tag must not reach the HTML as a raw tag.
     expect(html).not.toContain("<script");
     expect(html).toContain("&lt;script&gt;");
-    // ampersand z uživatelského textu je escapovaný
+    // escapeHtml replaces the ampersand from the text of the user.
     expect(html).toContain("&amp;");
   });
 
-  it("obsahuje všechna čtyři krizová čísla", () => {
+  it("contains all 4 crisis numbers", () => {
     const html = crisisCardHtml({ signals: "", helps: "", contacts: "" });
     expect(html).toContain("116 111");
     expect(html).toContain("116 123");
@@ -31,17 +31,17 @@ describe("crisisCardHtml", () => {
     expect(html).toContain("112");
   });
 
-  it("obsahuje tři nadpisy sekcí", () => {
+  it("contains the 3 section headings", () => {
     const html = crisisCardHtml({ signals: "", helps: "", contacts: "" });
     expect(html).toContain("Moje varovné signály");
     expect(html).toContain("Co mi pomáhá");
     expect(html).toContain("Na koho se obrátím");
   });
 
-  it("dlouhou sekci zkrátí na rozumnou délku zakončenou výpustkou", () => {
-    const long = "slovo ".repeat(100).trim(); // ~599 znaků
+  it("cuts a long section to a sensible length that ends with an ellipsis", () => {
+    const long = "slovo ".repeat(100).trim(); // about 599 characters
     const html = crisisCardHtml({ signals: long, helps: "", contacts: "" });
-    // vytáhni tělo první sekce (odstavec za nadpisem „Moje varovné signály")
+    // Take the body of the first section (the paragraph after the heading "Moje varovné signály").
     const match = html.match(/Moje varovné signály<\/h2>\s*<p>([\s\S]*?)<\/p>/);
     expect(match).not.toBeNull();
     const body = match![1];
@@ -49,39 +49,39 @@ describe("crisisCardHtml", () => {
     expect(body.endsWith("…")).toBe(true);
   });
 
-  it("obsahuje tiskové parametry stránky a rozměry kartičky", () => {
+  it("contains the print parameters of the page and the size of the card", () => {
     const html = crisisCardHtml({ signals: "", helps: "", contacts: "" });
     expect(html).toContain("@page");
     expect(html).toContain("85.6mm");
     expect(html).toContain("54mm");
   });
 
-  it("obsahuje pokyn k tisku mimo kartičky", () => {
+  it("contains the print instruction outside the cards", () => {
     const html = crisisCardHtml({ signals: "", helps: "", contacts: "" });
     expect(html).toContain("Vytiskni, přelož, zalaminuj — a nos s sebou.");
   });
 });
 
 describe("escapeHtml", () => {
-  it("nahradí & < > \" '", () => {
+  it("replaces & < > \" '", () => {
     expect(escapeHtml("a & b < c > d \" e ' f")).toBe("a &amp; b &lt; c &gt; d &quot; e &#39; f");
   });
 });
 
 describe("truncate", () => {
-  it("krátký text nechá beze změny", () => {
+  it("keeps a short text unchanged", () => {
     expect(truncate("krátké")).toBe("krátké");
   });
 
-  it("dlouhý text zkrátí na hranici slova a doplní výpustku", () => {
+  it("cuts a long text at a word boundary and adds an ellipsis", () => {
     const out = truncate("a".repeat(60) + " " + "b".repeat(200), 100);
     expect(out.length).toBeLessThanOrEqual(100);
     expect(out.endsWith("…")).toBe(true);
   });
 });
 
-describe("rozměry kartičky", () => {
-  it("odpovídají ISO 7810 ID-1", () => {
+describe("card size", () => {
+  it("matches ISO 7810 ID-1", () => {
     expect(CARD_W_MM).toBe(85.6);
     expect(CARD_H_MM).toBe(54);
   });

@@ -1,5 +1,5 @@
-/* DS: přepínač pohledů a výběrový řádek pod Android presetem — role a stavy
-   pro TalkBack, výběr nese accessibilityState (ne jen barva). */
+/* DS: the view switch and the choice row under the Android preset. The roles and the states
+   serve TalkBack; the selection carries accessibilityState, not only a colour. */
 import { render, screen, userEvent } from "@testing-library/react-native";
 import { RadioRow, SegmentedControl } from "../src/ds";
 import { ThemeProvider } from "../src/theme";
@@ -10,7 +10,7 @@ const PERIODS = [
 ] as const;
 
 describe("SegmentedControl (Android: M3 segmented buttons)", () => {
-  it("je radiogroup s radio segmenty; výběr nese stav a volá onChange", async () => {
+  it("is a radiogroup with radio segments; the selection carries the state and calls onChange", async () => {
     const user = userEvent.setup();
     const onChange = jest.fn();
     await render(
@@ -23,7 +23,7 @@ describe("SegmentedControl (Android: M3 segmented buttons)", () => {
         />
       </ThemeProvider>,
     );
-    /* skupina není `accessible` (čtečka má procházet jednotlivé volby), proto podle popisku */
+    /* The group is not `accessible` (the screen reader walks through each choice), so the query uses the label. */
     expect(screen.getByLabelText("Období").props.accessibilityRole).toBe("radiogroup");
     expect(screen.getByRole("radio", { name: "týden" })).toBeChecked();
     expect(screen.getByRole("radio", { name: "měsíc" })).not.toBeChecked();
@@ -33,7 +33,7 @@ describe("SegmentedControl (Android: M3 segmented buttons)", () => {
 });
 
 describe("RadioRow", () => {
-  it("jméno z textu volby, stav z accessibilityState, popis pod labelem", async () => {
+  it("takes the name from the choice text, the state from accessibilityState, the description under the label", async () => {
     const user = userEvent.setup();
     const onPress = jest.fn();
     await render(

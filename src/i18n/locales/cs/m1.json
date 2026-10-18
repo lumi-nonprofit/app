@@ -1,1 +1,57 @@
-{}
+{
+  "capture": {
+    "intensity": {
+      "a11yHint": "Vyber intenzitu od 1 (nejméně) do 5 (nejvíce).",
+      "label": "Intenzita"
+    },
+    "mood": {
+      "a11yHint": "Vyber, jak se právě cítíš.",
+      "label": "Nálada"
+    },
+    "note": {
+      "a11yHint": "Nepovinná krátká poznámka k tomuto check-inu.",
+      "a11yLabel": "Poznámka, volitelné",
+      "label": "Poznámka (volitelné)",
+      "placeholder": "Pár slov…"
+    },
+    "option": {
+      "selected": "✓ {{name}}"
+    },
+    "save": {
+      "a11yHint": "Zašifruje a uloží check-in.",
+      "label": "Uložit check-in",
+      "noMood": {
+        "a11yHint": "Nejdřív vyber náladu."
+      }
+    },
+    "title": "Jak ti je?"
+  },
+  "debug": {
+    "dbPath": "DB: {{path}}"
+  },
+  "errors": {
+    "open": "Trezor se nepodařilo otevřít (soubor databáze je nedostupný nebo poškozený).",
+    "save": "Uložení se nepodařilo.",
+    "saveDetail": "Uložení se nepodařilo. ({{detail}})",
+    "unlock": "Trezor se nepodařilo odemknout (zkontrolujte PIN)."
+  },
+  "list": {
+    "empty": "Zatím žádné. Ulož první.",
+    "item": "{{mood}} · {{intensity}}/5",
+    "title": "Uložené check-iny"
+  },
+  "locked": {
+    "hint": "Odemkni trezor svým PINem.",
+    "pin": {
+      "a11yHint": "Zadej PIN a potvrď pro odemčení šifrovaného trezoru.",
+      "a11yLabel": "PIN k trezoru",
+      "placeholder": "PIN"
+    },
+    "title": "Lumi — check-in (M1)",
+    "unlock": {
+      "a11yHint": "Odemkne šifrovaný trezor (Argon2id).",
+      "busy": "Odemykám…",
+      "label": "Odemknout"
+    }
+  }
+}

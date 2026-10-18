@@ -1,6 +1,6 @@
-/* Dnes — domovská obrazovka. Stavy jsou datové: bez WHO-5 měření se místo
-   procenta zobrazí výzva k prvnímu dotazníku (varianta „první den“),
-   po dnešním zápisu se check-in karta změní na shrnutí. */
+/* "Dnes": the home screen. The states follow the data. Without a WHO-5 measurement the card
+   shows the call to the first questionnaire instead of the percentage (the "first day" variant).
+   After an entry today the check-in card turns into a summary. */
 import { View } from "react-native";
 import { Stack, useRouter } from "expo-router";
 import type { Href } from "expo-router";
@@ -9,6 +9,8 @@ import { LumiHeader, SectionLabel } from "../../components/Header";
 import { headerItems } from "../../components/HeaderItems";
 import MoodShape from "../../components/MoodShape";
 import Screen from "../../components/Screen";
+import { useTranslation } from "../../i18n";
+import { formatPercent, formatStoredTime } from "../../i18n/format";
 import {
   MOOD_BY_ID,
   RECOMMENDATIONS,
@@ -20,11 +22,13 @@ import {
   who5HomeText,
   wordLabel,
 } from "../../model";
+import { INSTRUMENTS } from "../measure/definitions";
 import { useAppStore } from "../../store";
 import { useEntries, useMeasurements } from "../../db/hooks";
 import { createThemedStyles, useTheme } from "../../theme";
 
 export default function HomeScreen() {
+  const { t } = useTranslation(["home", "common"]);
   const { state } = useAppStore();
   const router = useRouter();
   const theme = useTheme();
@@ -39,74 +43,76 @@ export default function HomeScreen() {
   const openHelp = () => router.push("/help");
   const openStats = () => router.push("/stats");
 
-  /* mood je non-null vždy, když existuje todayEntry — TS to přes ternár
-     nenarrowuje, proto níže `mood!` (čistě typová aserce, bez vlivu na runtime) */
-  const mood = todayEntry ? MOOD_BY_ID[todayEntry.mood] : null;
+  const todayMood = todayEntry ? MOOD_BY_ID[todayEntry.mood] : null;
+  /* The words of the entry of today, as one list in the active language. */
+  const todayWords = todayEntry?.words.map(wordLabel).join(t("common:list.separator")) ?? "";
   const measurement = latestWho5(who5);
+  const questionCount = t("common:counts.questions", {
+    count: INSTRUMENTS.who5.questions.length,
+  });
   return (
     <Screen>
-      {/* „+“ v hlavičce: check-in je akce, ne tab (HIG Tab bars); nastavení mimo hlavní navigaci */}
+      {/* "+" in the header: the check-in is an action, not a tab (HIG Tab bars); the settings sit outside the main navigation. */}
       <Stack.Screen
         options={headerItems(theme, {
           right: [
-            { label: "Nový check-in", icon: "plus", sf: "plus", onPress: startCheckin },
-            { label: "Nastavení", icon: "gear", sf: "gearshape", onPress: openSettings },
+            { label: t("header.newCheckin"), icon: "plus", sf: "plus", onPress: startCheckin },
+            { label: t("header.settings"), icon: "gear", sf: "gearshape", onPress: openSettings },
           ],
         })}
       />
       <LumiHeader kicker={todayHeading()} title={greeting(name)} />
 
-      {/* Check-in karta (dominantní) */}
-      {todayEntry ? (
+      {/* The check-in card (dominant). */}
+      {todayEntry && todayMood ? (
         <Card variant="sunken">
           <View style={styles.entryRow}>
-            <MoodShape mood={mood} size={22} />
+            <MoodShape mood={todayMood} size={22} />
             <View style={styles.flex1}>
               <Text variant="body" weight="semibold" color="textStrong">
-                Dnes zapsáno: {mood!.name}
-                {todayEntry.words && todayEntry.words.length
-                  ? ` · ${todayEntry.words.map(wordLabel).join(", ")}`
-                  : ""}
+                {todayWords
+                  ? t("entry.summaryWithWords", { mood: todayMood.name, words: todayWords })
+                  : t("entry.summary", { mood: todayMood.name })}
               </Text>
               <Text variant="footnote" color="textOnSunken">
-                v {todayEntry.time} · záznam najdeš v Přehledech
+                {t("entry.meta", { time: formatStoredTime(todayEntry.time) })}
               </Text>
             </View>
           </View>
           <View style={styles.entryActions}>
             <Button variant="ghost" size="sm" onPress={startCheckin} style={styles.selfStart}>
-              Přidat další zápis
+              {t("entry.addAnother")}
             </Button>
           </View>
         </Card>
       ) : (
         <Card variant="ink">
-          {/* ink karta: text na primární ploše nedědí, barva explicitně */}
+          {/* The ink card: text on the primary surface does not inherit, the colour is explicit. */}
           <Text variant="title3" color="textOnPrimary" style={styles.inkTitle}>
-            Jak se dnes cítíš?
+            {t("checkin.title")}
           </Text>
           <Text variant="body" color="textOnPrimary" style={styles.inkText}>
-            Krátký check-in pomáhá najít, co ti dělá dobře.
+            {t("checkin.body")}
           </Text>
           <Button variant="soft" onPress={startCheckin} style={styles.selfStart}>
-            Začít check-in
+            {t("checkin.start")}
           </Button>
         </Card>
       )}
 
-      {/* Wellbeing index */}
+      {/* The wellbeing index. */}
       {measurement ? (
         <Card onPress={openStats}>
           <View style={styles.ringRow}>
             <ProgressRing
               value={measurement.score / 100}
               size={78}
-              label={`${measurement.score} %`}
-              sublabel="wellbeing"
+              label={formatPercent(measurement.score)}
+              sublabel={t("wellbeing.ringLabel")}
             />
             <View style={styles.flex1}>
               <Text accessibilityRole="header" variant="headline">
-                Wellbeing index
+                {INSTRUMENTS.who5.title}
               </Text>
               <Text variant="subheadline" color="textMuted">
                 {who5HomeText(who5)}
@@ -117,13 +123,18 @@ export default function HomeScreen() {
       ) : (
         <Card>
           <View style={styles.ringRow}>
-            <ProgressRing value={0} size={78} label="—" sublabel="wellbeing" />
+            <ProgressRing
+              value={0}
+              size={78}
+              label={t("wellbeing.noScore")}
+              sublabel={t("wellbeing.ringLabel")}
+            />
             <View style={styles.flex1}>
               <Text accessibilityRole="header" variant="headline">
-                Wellbeing index
+                {INSTRUMENTS.who5.title}
               </Text>
               <Text variant="subheadline" color="textMuted" style={styles.ringTextEmpty}>
-                Krátký dotazník (5 otázek) ti nastaví výchozí bod. Bez známek, bez porovnávání.
+                {t("wellbeing.emptyBody", { questions: questionCount })}
               </Text>
               <Button
                 variant="secondary"
@@ -131,16 +142,16 @@ export default function HomeScreen() {
                 onPress={() => router.push("/measure/who5")}
                 style={styles.selfStart}
               >
-                Vyplnit první dotazník
+                {t("wellbeing.firstQuestionnaire")}
               </Button>
             </View>
           </View>
         </Card>
       )}
 
-      {/* Pro tebe */}
+      {/* "Pro tebe": the recommendations. */}
       <View>
-        <SectionLabel>Pro tebe</SectionLabel>
+        <SectionLabel>{t("forYou.title")}</SectionLabel>
         <Card style={styles.listCard}>
           {RECOMMENDATIONS.map((rec) => (
             <ListItem
@@ -156,7 +167,7 @@ export default function HomeScreen() {
         </Card>
       </View>
 
-      {/* Krizová karta — jemně odlišená, ne alarmující */}
+      {/* The crisis card: gently different, not an alarm. */}
       <View style={styles.crisisSection}>
         <View style={styles.crisisHeader}>
           <Icon name="heart-handshake" size={20} color={theme.colors.textDanger} />
@@ -166,15 +177,15 @@ export default function HomeScreen() {
             color="textDanger"
             style={styles.flex1}
           >
-            Není ti dobře?
+            {t("crisis.title")}
           </Text>
         </View>
         <Text variant="body" style={styles.crisisText}>
-          Pomoc je tu pořád — nemusíš na nic čekat.
+          {t("crisis.body")}
         </Text>
         <Button variant="crisis" onPress={openHelp} style={styles.selfStart}>
           <Icon name="heart-handshake" size={18} color={theme.colors.textOnCrisis} />
-          Otevřít Pomoc
+          {t("crisis.open")}
         </Button>
       </View>
     </Screen>
@@ -185,22 +196,22 @@ const useStyles = createThemedStyles((t) => ({
   flex1: { flex: 1 },
   selfStart: { alignSelf: "flex-start" },
 
-  /* shrnutí dnešního zápisu */
+  /* The summary of the entry of today. */
   entryRow: { flexDirection: "row", alignItems: "center", gap: 12 },
   entryActions: { marginTop: 12 },
 
-  /* ink karta — výzva k check-inu */
+  /* The ink card: the call to the check-in. */
   inkTitle: { marginBottom: 4 },
   inkText: { marginBottom: 16 },
 
-  /* wellbeing index */
+  /* The wellbeing index. */
   ringRow: { flexDirection: "row", alignItems: "center", gap: 16 },
   ringTextEmpty: { marginTop: 2, marginBottom: 10 },
 
-  /* Pro tebe */
+  /* "Pro tebe". */
   listCard: { paddingVertical: 8, paddingHorizontal: 12, marginTop: 6 },
 
-  /* krizová karta */
+  /* The crisis card. */
   crisisSection: {
     backgroundColor: t.colors.dangerSoft,
     borderRadius: t.radius.lg,

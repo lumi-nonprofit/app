@@ -1,1 +1,102 @@
-{}
+{
+  "actions": {
+    "again": "Ještě jednou",
+    "pause": "Pozastavit",
+    "play": "Přehrát",
+    "restart": "Začít znovu",
+    "start": "Začít",
+    "stop": "Ukončit"
+  },
+  "audio": {
+    "pause": {
+      "a11yHint": "Pozastaví audio, postup zůstane."
+    },
+    "playDuck": {
+      "a11yHint": "Spustí audio. Hudba z jiných aplikací se po dobu přehrávání ztiší."
+    },
+    "playMix": {
+      "a11yHint": "Spustí audio. Hudba z jiných aplikací hraje dál."
+    }
+  },
+  "blind": {
+    "countdown": {
+      "announce": "{{seconds}}. Schovej telefon do kapsy.",
+      "hint": "Schovej telefon do kapsy"
+    },
+    "done": {
+      "title": "Hotovo. Díky za chvilku."
+    },
+    "duration": {
+      "a11yHint": "Vyber, jak dlouho chceš dýchat.",
+      "a11yLabel": "Délka cvičení",
+      "label": "Jak dlouho"
+    },
+    "intro": "Telefon můžeš nechat v kapse — rytmus dechu vedou vibrace. Funguje i bez koukání na displej.",
+    "rhythm": {
+      "a11yHint": "Vyber rytmus, ve kterém tě vibrace povedou.",
+      "a11yLabel": "Rytmus dechu",
+      "label": "Rytmus"
+    },
+    "rhythm44": "4-4 · klidný rytmus",
+    "rhythm478": "4-7-8 · při napětí",
+    "running": {
+      "a11yHint": "Poklepáním cvičení ukončíš.",
+      "a11yLabel": "Probíhá dech naslepo",
+      "stopAction": "Ukončit cvičení",
+      "tapHint": "Klepni dvakrát pro konec"
+    }
+  },
+  "breath478": {
+    "hint": "4 s nádech · 7 s zádrž · 8 s výdech",
+    "pause": {
+      "a11yHint": "Pozastaví cvičení, postup zůstane."
+    },
+    "restart": {
+      "a11yHint": "Spustí cvičení znovu od začátku."
+    },
+    "start": {
+      "a11yHint": "Spustí dechové cvičení: 4 vteřiny nádech, 7 zádrž, 8 výdech."
+    }
+  },
+  "circle": {
+    "idle": "Začneme?"
+  },
+  "comingSoon": {
+    "badge": "připravujeme",
+    "play": {
+      "a11yHint": "Audio zatím není k dispozici."
+    },
+    "text": "Audio připravujeme — brzy si ho tu pustíš."
+  },
+  "launcher": {
+    "activeHint": "4 s nádech · 4 s výdech",
+    "idleHint": "Klepni a dýchej se mnou",
+    "start": {
+      "a11yHint": "Spustí společné dýchání: 4 s nádech, 4 s výdech.",
+      "a11yLabel": "Začít dýchat"
+    },
+    "stop": {
+      "a11yHint": "Zastaví dechové cvičení.",
+      "a11yLabel": "Zastavit dýchání"
+    }
+  },
+  "phaseExhale": "Výdech",
+  "phaseHold": "Zádrž",
+  "phaseInhale": "Nádech",
+  "player": {
+    "done": {
+      "announce": "Hotovo. Díky za chvilku klidu.",
+      "text": "Díky za chvilku klidu.",
+      "title": "Hotovo"
+    },
+    "finished": "Konec cvičení",
+    "loading": "Načítá se…",
+    "remaining_one": "Zbývá {{count}} min",
+    "remaining_few": "Zbývá {{count}} min",
+    "remaining_many": "Zbývá {{count}} min",
+    "remaining_other": "Zbývá {{count}} min"
+  },
+  "screen": {
+    "title": "Na chvilku se zastav"
+  }
+}

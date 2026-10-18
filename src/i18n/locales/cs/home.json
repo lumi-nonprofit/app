@@ -1,7 +1,34 @@
 {
+  "checkin": {
+    "body": "Krátký check-in pomáhá najít, co ti dělá dobře.",
+    "start": "Začít check-in",
+    "title": "Jak se dnes cítíš?"
+  },
+  "crisis": {
+    "body": "Pomoc je tu pořád — nemusíš na nic čekat.",
+    "open": "Otevřít Pomoc",
+    "title": "Není ti dobře?"
+  },
+  "entry": {
+    "addAnother": "Přidat další zápis",
+    "meta": "v {{time}} · záznam najdeš v Přehledech",
+    "summary": "Dnes zapsáno: {{mood}}",
+    "summaryWithWords": "Dnes zapsáno: {{mood}} · {{words}}"
+  },
+  "forYou": {
+    "title": "Pro tebe"
+  },
+  "header": {
+    "newCheckin": "Nový check-in",
+    "settings": "Nastavení"
+  },
   "wellbeing": {
     "aboveAverage": "WHO-5 za posledních 14 dní. Drží se nad tvým průměrem.",
     "baseline": "WHO-5 za posledních 14 dní. Tvůj výchozí bod.",
-    "belowAverage": "WHO-5 za posledních 14 dní. Je teď kousek pod tvým průměrem."
+    "belowAverage": "WHO-5 za posledních 14 dní. Je teď kousek pod tvým průměrem.",
+    "emptyBody": "Krátký dotazník ({{questions}}) ti nastaví výchozí bod. Bez známek, bez porovnávání.",
+    "firstQuestionnaire": "Vyplnit první dotazník",
+    "noScore": "—",
+    "ringLabel": "wellbeing"
   }
 }

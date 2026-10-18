@@ -1,7 +1,7 @@
-/* Záloha (Nastavení): export záznamů do JSON souboru (expo-file-system +
-   expo-sharing) a import s náhledem počtů a sloučením bez duplicit.
-   Srozumitelně a bez právničiny; exportovaný soubor už není šifrovaný —
-   říkáme to rovnou. Výsledek zůstává inline (HIG: žádné samo-mizející prvky). */
+/* Backup (Settings): the export of the entries into a JSON file (expo-file-system and
+   the system share sheet) and the import with a preview of the counts and a merge without duplicates.
+   Plain words, no legal language; the exported file is no longer encrypted, and the text says so.
+   The result stays inline (HIG: no element that disappears on its own). */
 import React from "react";
 import { View } from "react-native";
 import { File, Paths } from "expo-file-system";
@@ -12,46 +12,58 @@ import { SectionLabel } from "../../components/Header";
 import { buildBackup, importBackup, parseBackup, type ParseResult } from "../../db/backup";
 import { useDb } from "../../db/provider";
 import { useDbWriter } from "../../db/hooks";
+import { useTranslation } from "../../i18n";
+import { formatDateNumeric } from "../../i18n/format";
 import { announce } from "../../lib/a11y";
-import { toISODate, type ISODate } from "../../model";
-import i18n from "../../i18n";
+import { toISODate } from "../../model";
 import { createThemedStyles } from "../../theme";
 
-/** "2026-06-12" → "12. 6. 2026" */
-const isoToCz = (iso: ISODate): string => {
-  const [y, m, d] = iso.split("-");
-  return `${Number(d)}. ${Number(m)}. ${y}`;
-};
+type Parsed = Extract<ParseResult, { ok: true }>;
+type ParseFailure = Extract<ParseResult, { ok: false }>;
 
 type Flow =
   | { kind: "idle" }
-  | { kind: "preview"; parsed: Extract<ParseResult, { ok: true }> }
+  | { kind: "preview"; parsed: Parsed }
   | { kind: "done"; message: string }
   | { kind: "error"; message: string };
 
 export default function BackupSection() {
+  const { t } = useTranslation(["settings", "common"]);
   const db = useDb();
   const write = useDbWriter();
   const styles = useStyles();
   const [flow, setFlow] = React.useState<Flow>({ kind: "idle" });
-  /* výsledek zůstává inline a oznámí se čtečce */
+  /* The result stays inline and a screen reader announces it. */
   React.useEffect(() => {
     if (flow.kind === "done" || flow.kind === "error") announce(flow.message);
   }, [flow]);
 
+  /* Each error code of parseBackup has its own message in the catalog. */
+  const parseErrorText = (reason: ParseFailure["reason"]): string => {
+    switch (reason) {
+      case "invalid-json":
+        return t("backup.errors.invalid-json");
+      case "not-a-backup":
+        return t("backup.errors.not-a-backup");
+      case "unknown-version":
+        return t("backup.errors.unknown-version");
+    }
+  };
+
   const exportBackup = async () => {
     try {
       const backup = buildBackup(db);
+      /* The file name is a technical identifier and stays the same in every language. */
       const file = new File(Paths.cache, `lumi-zaloha-${toISODate()}.json`);
       if (!file.exists) file.create();
       file.write(JSON.stringify(backup, null, 2));
       await Sharing.shareAsync(file.uri, {
         mimeType: "application/json",
-        dialogTitle: "Uložit zálohu Lumi",
+        dialogTitle: t("backup.export.shareTitle"),
       });
-      setFlow({ kind: "done", message: "Záloha je vytvořená. Ulož si soubor někam bezpečně." });
+      setFlow({ kind: "done", message: t("backup.export.done") });
     } catch {
-      setFlow({ kind: "error", message: "Export se nepovedl. Zkus to prosím znovu." });
+      setFlow({ kind: "error", message: t("backup.export.failed") });
     }
   };
 
@@ -65,43 +77,51 @@ export default function BackupSection() {
       const text = await new File(res.assets[0].uri).text();
       const parsed = parseBackup(text);
       if (!parsed.ok) {
-        setFlow({
-          kind: "error",
-          message: "Tenhle soubor nejde načíst — vypadá to, že není záloha z Lumi.",
-        });
+        setFlow({ kind: "error", message: parseErrorText(parsed.reason) });
         return;
       }
       setFlow({ kind: "preview", parsed });
     } catch {
-      setFlow({ kind: "error", message: "Soubor se nepodařilo otevřít. Zkus to prosím znovu." });
+      setFlow({ kind: "error", message: t("backup.import.openFailed") });
     }
   };
 
-  const confirmImport = (parsed: Extract<ParseResult, { ok: true }>) => {
+  const confirmImport = (parsed: Parsed) => {
     const result = write((d) => importBackup(d, parsed.backup));
     const total = result.addedEntries + result.addedMeasurements;
     setFlow({
       kind: "done",
       message: total
-        ? `Hotovo — přidáno ${i18n.t("common:counts.entries", { count: result.addedEntries })} a ${result.addedMeasurements} měření.`
-        : "Vše už v telefonu je — nic nebylo potřeba přidávat.",
+        ? t("backup.import.done", {
+            entries: t("common:counts.entries", { count: result.addedEntries }),
+            count: result.addedMeasurements,
+          })
+        : t("backup.import.nothingNew"),
     });
   };
 
-  const previewText = (parsed: Extract<ParseResult, { ok: true }>): string => {
+  const previewText = (parsed: Parsed): string => {
     const { entryCount, measurementCount, from, to } = parsed.preview;
-    if (!entryCount && !measurementCount) return "Záloha je prázdná — není co přidat.";
-    const range = from && to ? ` z období ${isoToCz(from)} – ${isoToCz(to)}` : "";
-    return `Najdeš tu ${i18n.t("common:counts.entries", { count: entryCount })}${range} a ${measurementCount} měření. Přidá se jen to, co v telefonu ještě není.`;
+    if (!entryCount && !measurementCount) return t("backup.preview.empty");
+    const entries = t("common:counts.entries", { count: entryCount });
+    const found =
+      from && to
+        ? t("backup.preview.found", {
+            entries,
+            from: formatDateNumeric(from),
+            to: formatDateNumeric(to),
+            count: measurementCount,
+          })
+        : t("backup.preview.foundNoRange", { entries, count: measurementCount });
+    return `${found} ${t("backup.preview.mergeNote")}`;
   };
 
   return (
     <View>
-      <SectionLabel>Záloha</SectionLabel>
+      <SectionLabel>{t("backup.title")}</SectionLabel>
       <Card style={styles.card}>
         <Text variant="subheadline" color="textMuted">
-          Záznamy si můžeš uložit do souboru a přenést do jiného telefonu. Exportovaný soubor už
-          není šifrovaný — ulož si ho někam bezpečně.
+          {t("backup.intro")}
         </Text>
 
         {flow.kind === "preview" ? (
@@ -112,21 +132,21 @@ export default function BackupSection() {
             <View style={styles.row}>
               {flow.parsed.preview.entryCount + flow.parsed.preview.measurementCount > 0 ? (
                 <Button size="sm" onPress={() => confirmImport(flow.parsed)}>
-                  Sloučit do aplikace
+                  {t("backup.preview.merge")}
                 </Button>
               ) : null}
               <Button variant="ghost" size="sm" onPress={() => setFlow({ kind: "idle" })}>
-                Zrušit
+                {t("common:actions.cancel")}
               </Button>
             </View>
           </View>
         ) : (
           <View style={styles.row}>
             <Button variant="secondary" size="sm" onPress={exportBackup}>
-              Exportovat zálohu
+              {t("backup.export.action")}
             </Button>
             <Button variant="ghost" size="sm" onPress={pickImport}>
-              Obnovit ze zálohy
+              {t("backup.import.action")}
             </Button>
           </View>
         )}

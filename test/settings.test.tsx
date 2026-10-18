@@ -1,6 +1,6 @@
-/* Nastavení: profil (jméno, věk vč. „Nechci uvádět“), haptika (uložená volba
-   platí po restartu), vlastní štítky s tlačítkem Smazat (negestová alternativa),
-   zavření přes Zavřít. Vzhled se nenastavuje — žádný přepínač tématu. */
+/* Settings: the profile (the name, the age with "Nechci uvádět"), haptics (the saved choice holds
+   after a restart), custom tags with a Delete button (the alternative to the gesture), and the
+   close through Close. The appearance is not a setting: no theme switch. */
 import { Alert } from "react-native";
 import { fireEvent, userEvent, waitFor } from "@testing-library/react-native";
 import { renderRouter, screen } from "expo-router/testing-library";
@@ -26,13 +26,13 @@ async function openSettings(): Promise<User> {
   return user;
 }
 
-describe("Nastavení", () => {
+describe("Settings", () => {
   beforeEach(() => {
     writeProfile(getTestDb(), { onboarded: true, name: "Janko", age: "u26", share: false });
     haptics.setEnabled(true);
   });
 
-  it("profil: jméno a věk jdou změnit, „Nechci uvádět“ vynuluje věk", async () => {
+  it("changes the name and the age; the option without an age clears the age", async () => {
     const user = await openSettings();
     expect(screen.getByRole("radio", { name: /do 26 let/ })).toBeChecked();
     await user.press(screen.getByRole("radio", { name: /27 a více/ }));
@@ -45,7 +45,7 @@ describe("Nastavení", () => {
     expect(readProfile(getTestDb()).name).toBe("Alex");
   });
 
-  it("haptika: vypnutí se uloží a modul ji přestane pouštět", async () => {
+  it("saves the haptics switch off and the module stops the feedback", async () => {
     await openSettings();
     const toggle = screen.getByRole("switch", { name: "Haptická odezva" });
     expect(toggle).toBeChecked();
@@ -54,7 +54,7 @@ describe("Nastavení", () => {
     expect(getSetting<boolean>(getTestDb(), HAPTICS_ENABLED_KEY)).toBe(false);
   });
 
-  it("vlastní štítky: Smazat s potvrzením, bez gesta", async () => {
+  it("deletes a custom tag with a confirmation and without a gesture", async () => {
     addCustomTag(getTestDb(), "terapie");
     jest.spyOn(Alert, "alert").mockImplementation((_t, _m, buttons) => {
       buttons?.find((b) => b.style === "destructive")?.onPress?.();
@@ -66,7 +66,7 @@ describe("Nastavení", () => {
     expect(await screen.findByText(/Vlastní štítky přidáš/)).toBeOnTheScreen();
   });
 
-  it("žádný přepínač vzhledu; Zavřít vrací na Dnes", async () => {
+  it("has no appearance switch; Close returns to Home", async () => {
     const user = await openSettings();
     expect(screen.queryByText(/Tmavý režim|Vzhled/)).toBeNull();
     await user.press(screen.getByRole("button", { name: "Zavřít" }));

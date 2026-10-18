@@ -1,28 +1,35 @@
 {
-  "tabs": {
-    "home": "Dnes",
-    "calm": "Klid",
-    "stats": "Přehledy",
-    "help": "Pomoc"
-  },
-  "titles": {
-    "measure": "Dotazník",
-    "calm": "Klid",
-    "settings": "Nastavení",
-    "handover": "Pomoc blízkému",
-    "crisis": "Pomoc hned",
-    "checkinStep1": "Krok 1",
-    "checkin": "Check-in"
-  },
   "actions": {
-    "close": "Zavřít",
     "back": "Zpět",
     "cancel": "Zrušit",
+    "close": "Zavřít",
     "done": "Hotovo"
   },
   "notFound": {
-    "title": "Nenalezeno",
-    "message": "Tahle obrazovka v aplikaci není.",
-    "home": "Zpět na Dnes"
+    "heading": "Tahle stránka v Lumi není",
+    "home": "Zpět na Dnes",
+    "message": "Odkaz je asi neplatný nebo zastaralý.",
+    "title": "Nenalezeno"
+  },
+  "tabs": {
+    "calm": "Klid",
+    "help": "Pomoc",
+    "home": "Dnes",
+    "stats": "Přehledy"
+  },
+  "titles": {
+    "calm": "Klid",
+    "checkin": "Check-in",
+    "checkinSaved": "Uloženo",
+    "checkinStep1": "Krok 1",
+    "crisis": "Pomoc hned",
+    "handover": "Pomoc blízkému",
+    "help": "Pomoc",
+    "home": "Dnes",
+    "measure": "Dotazník",
+    "plan": "Krizový plán",
+    "reflection": "Ohlédnutí",
+    "settings": "Nastavení",
+    "stats": "Přehledy"
   }
 }

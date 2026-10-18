@@ -1,18 +1,21 @@
-// M1 WALKING-SKELETON check-in screen — minimal but REAL: real Argon2id unlock, real per-record
-// AEAD encryption + SQLite persistence, rendered from DECRYPTED data. This is NOT the M3 designed
-// UI (the real flow lives in app/checkin/ + src/features/checkin and is untouched). It talks to the
-// vault only through the proven wrapper (modules/lumi-vault/src/LumiVault).
+// The M1 skeleton check-in screen: minimal but real. It has the real Argon2id unlock, the real
+// per-record AEAD encryption with SQLite persistence, and it renders from decrypted data. It is not
+// the M3 user interface (the real flow lives in app/checkin/ and src/features/checkin and stays as
+// it is). It talks to the vault only through the proven wrapper (modules/lumi-vault/src/LumiVault).
 //
-// Design notes for review (steer these):
-//  - Separate isolated route (/m1-checkin); does not touch the real check-in flow.
-//  - PIN defaults to a dev value "1234" (skeleton) — but the REAL Argon2id unlock runs.
-//  - unlock() is a SYNC Nitro call: Argon2id (64 MiB) blocks the JS thread ~100-200ms. Deferred one
-//    frame so "Odemykám…" paints. M3 should move it off-thread (Nitro async / worker).
-//  - Plain labelled controls (no DS / MoodShape) to stay self-contained; the 4 mood ids are inlined.
-//    Selection is conveyed by text + a check mark + a11y state, never colour alone. Radios/list
-//    items are named by their visible text (no redundant accessibilityLabel); the group + free-text
-//    inputs carry label + hint.
-//  - Persistent DB at Paths.document/lumi-vault.db (survives restart + cache clear).
+// Design notes for the review (steer these):
+//  - A separate route (/m1-checkin) that does not touch the real check-in flow.
+//  - The PIN has the development default "1234" (skeleton), but the real Argon2id unlock runs.
+//  - unlock() is a synchronous Nitro call: Argon2id (64 MiB) blocks the JS thread for about
+//    100 to 200 ms. The call waits one frame so that the busy state paints. M3 must move it off
+//    the thread (Nitro async or a worker).
+//  - Plain labelled controls (no DS, no MoodShape) keep the screen self-contained; the mood ids
+//    and names come from src/model (MOODS). The selection shows as text, a check mark and the
+//    a11y state, never as colour alone. The radios and the list items take their name from their
+//    visible text (no redundant accessibilityLabel). The group and the free-text inputs carry a
+//    label and a hint.
+//  - The persistent database is at Paths.document/lumi-vault.db (it survives a restart and a
+//    cache clear).
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -25,19 +28,16 @@ import {
 } from "react-native";
 import { File, Paths } from "expo-file-system";
 import { LumiVault, type Checkin } from "../../../modules/lumi-vault/src/LumiVault";
+import { useTranslation } from "../../i18n";
+import { formatDateTime } from "../../i18n/format";
+import { MOODS, type MoodId } from "../../model";
 
-// Persistent (documents) DB path; rusqlite needs a plain filesystem path, so strip file://.
+// The persistent (documents) database path. rusqlite needs a plain file system path, so the code
+// removes the file:// prefix.
 const DB_PATH = new File(Paths.document, "lumi-vault.db").uri.replace(/^file:\/\//, "");
 
-// The 4 real mood ids (inlined to keep the skeleton self-contained; M3 wires src/model MOODS + DS).
-const MOODS = [
-  { id: "energie", label: "Energie" },
-  { id: "napeti", label: "Napětí" },
-  { id: "klid", label: "Klid" },
-  { id: "utlum", label: "Útlum" },
-] as const;
-type MoodId = (typeof MOODS)[number]["id"];
-const moodLabel = (id: string) => MOODS.find((m) => m.id === id)?.label ?? id;
+/** The name of a mood in the active language. An unknown id (old data) stays as it is. */
+const moodName = (id: string): string => MOODS.find((m) => m.id === id)?.name ?? id;
 
 const INTENSITIES = [1, 2, 3, 4, 5] as const;
 
@@ -48,7 +48,8 @@ interface CheckinPayload {
 }
 
 export default function M1CheckinScreen() {
-  const [pin, setPin] = useState("1234"); // dev default for the skeleton
+  const { t } = useTranslation("m1");
+  const [pin, setPin] = useState("1234"); // The development default of the skeleton.
   const [unlocking, setUnlocking] = useState(false);
   const [unlockError, setUnlockError] = useState<string | null>(null);
   const [handle, setHandle] = useState<number | null>(null);
@@ -60,13 +61,13 @@ export default function M1CheckinScreen() {
 
   const [checkins, setCheckins] = useState<Checkin[]>([]);
 
-  // Cleanup-only effect: close (zeroize) the vault when leaving the screen.
+  // The effect only cleans up: it closes (zeroizes) the vault when the person leaves the screen.
   useEffect(() => {
     return () => {
       try {
         LumiVault.close();
       } catch {
-        /* ignore on teardown */
+        /* The teardown ignores errors. */
       }
     };
   }, []);
@@ -78,31 +79,29 @@ export default function M1CheckinScreen() {
   const onUnlock = useCallback(() => {
     setUnlockError(null);
     setUnlocking(true);
-    // Defer one frame so the "Odemykám…" state paints before the sync Argon2id block.
+    // The call waits one frame so that the busy state paints before the synchronous Argon2id block.
     requestAnimationFrame(() => {
       try {
-        LumiVault.open(DB_PATH); // idempotent; opens the persistent vault DB
+        LumiVault.open(DB_PATH); // Idempotent: it opens the persistent vault database.
       } catch (e) {
-        if (__DEV__) console.error("M1CheckinScreen open failed", e); // S12: no error logs in prod
-        setUnlockError(
-          "Trezor se nepodařilo otevřít (soubor databáze je nedostupný nebo poškozený).",
-        );
+        if (__DEV__) console.error("M1CheckinScreen open failed", e); // S12: no error logs in production.
+        setUnlockError(t("errors.open"));
         setUnlocking(false);
         return;
       }
 
       try {
-        const h = LumiVault.unlock(pin); // real Argon2id (creates vault on first run)
+        const h = LumiVault.unlock(pin); // The real Argon2id; the first run creates the vault.
         setHandle(h);
         refresh(h);
       } catch (e) {
-        if (__DEV__) console.error("M1CheckinScreen unlock failed", e); // S12: no error logs in prod
-        setUnlockError("Trezor se nepodařilo odemknout (zkontrolujte PIN).");
+        if (__DEV__) console.error("M1CheckinScreen unlock failed", e); // S12: no error logs in production.
+        setUnlockError(t("errors.unlock"));
       } finally {
         setUnlocking(false);
       }
     });
-  }, [pin, refresh]);
+  }, [pin, refresh, t]);
 
   const onSave = useCallback(() => {
     if (handle == null || mood == null) return;
@@ -115,31 +114,32 @@ export default function M1CheckinScreen() {
       setNote("");
       refresh(handle);
     } catch (e) {
-      if (__DEV__) console.error("Failed to save check-in", e); // S12: no error logs in prod
-      // Surface raw core error text only in dev; production shows the generic message only.
-      const safeDetail = __DEV__ && e instanceof Error && e.message ? ` (${e.message})` : "";
-      setSaveError(`Uložení se nepodařilo.${safeDetail}`);
+      if (__DEV__) console.error("Failed to save check-in", e); // S12: no error logs in production.
+      // Only a development build shows the raw error text of the core; production shows the
+      // generic message.
+      const detail = __DEV__ && e instanceof Error && e.message ? e.message : null;
+      setSaveError(detail ? t("errors.saveDetail", { detail }) : t("errors.save"));
     }
-  }, [handle, mood, intensity, note, refresh]);
+  }, [handle, mood, intensity, note, refresh, t]);
 
-  // --- Locked: PIN entry ---
+  // --- Locked: the PIN entry ---
   if (handle == null) {
     return (
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <Text style={styles.h1} accessibilityRole="header">
-          Lumi — check-in (M1)
+          {t("locked.title")}
         </Text>
-        <Text style={styles.hint}>Odemkni trezor svým PINem.</Text>
+        <Text style={styles.hint}>{t("locked.hint")}</Text>
         <TextInput
           style={styles.input}
           value={pin}
           onChangeText={setPin}
-          placeholder="PIN"
+          placeholder={t("locked.pin.placeholder")}
           keyboardType="number-pad"
           secureTextEntry
           autoFocus
-          accessibilityLabel="PIN k trezoru"
-          accessibilityHint="Zadej PIN a potvrď pro odemčení šifrovaného trezoru."
+          accessibilityLabel={t("locked.pin.a11yLabel")}
+          accessibilityHint={t("locked.pin.a11yHint")}
           returnKeyType="go"
           onSubmitEditing={onUnlock}
         />
@@ -149,15 +149,15 @@ export default function M1CheckinScreen() {
           disabled={unlocking || pin.length === 0}
           accessibilityRole="button"
           accessibilityState={{ disabled: unlocking || pin.length === 0, busy: unlocking }}
-          accessibilityHint="Odemkne šifrovaný trezor (Argon2id)."
+          accessibilityHint={t("locked.unlock.a11yHint")}
         >
           {unlocking ? (
             <View style={styles.row}>
               <ActivityIndicator />
-              <Text style={[styles.ctaText, styles.ctaTextBusy]}>Odemykám…</Text>
+              <Text style={[styles.ctaText, styles.ctaTextBusy]}>{t("locked.unlock.busy")}</Text>
             </View>
           ) : (
-            <Text style={styles.ctaText}>Odemknout</Text>
+            <Text style={styles.ctaText}>{t("locked.unlock.label")}</Text>
           )}
         </Pressable>
         {unlockError ? (
@@ -165,25 +165,25 @@ export default function M1CheckinScreen() {
             {unlockError}
           </Text>
         ) : null}
-        <Text style={styles.debug}>DB: {DB_PATH}</Text>
+        <Text style={styles.debug}>{t("debug.dbPath", { path: DB_PATH })}</Text>
       </ScrollView>
     );
   }
 
-  // --- Unlocked: capture + list ---
+  // --- Unlocked: the capture and the list ---
   const canSave = mood != null;
   return (
     <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       <Text style={styles.h1} accessibilityRole="header">
-        Jak ti je?
+        {t("capture.title")}
       </Text>
 
       <View
         accessibilityRole="radiogroup"
-        accessibilityLabel="Nálada"
-        accessibilityHint="Vyber, jak se právě cítíš."
+        accessibilityLabel={t("capture.mood.label")}
+        accessibilityHint={t("capture.mood.a11yHint")}
       >
-        <Text style={styles.label}>Nálada</Text>
+        <Text style={styles.label}>{t("capture.mood.label")}</Text>
         <View style={styles.wrap}>
           {MOODS.map((m) => {
             const selected = mood === m.id;
@@ -196,8 +196,7 @@ export default function M1CheckinScreen() {
                 accessibilityState={{ checked: selected }}
               >
                 <Text style={[styles.chipText, selected && styles.chipTextOn]}>
-                  {selected ? "✓ " : ""}
-                  {m.label}
+                  {selected ? t("capture.option.selected", { name: m.name }) : m.name}
                 </Text>
               </Pressable>
             );
@@ -207,10 +206,10 @@ export default function M1CheckinScreen() {
 
       <View
         accessibilityRole="radiogroup"
-        accessibilityLabel="Intenzita"
-        accessibilityHint="Vyber intenzitu od 1 (nejméně) do 5 (nejvíce)."
+        accessibilityLabel={t("capture.intensity.label")}
+        accessibilityHint={t("capture.intensity.a11yHint")}
       >
-        <Text style={styles.label}>Intenzita</Text>
+        <Text style={styles.label}>{t("capture.intensity.label")}</Text>
         <View style={styles.wrap}>
           {INTENSITIES.map((n) => {
             const selected = intensity === n;
@@ -229,15 +228,15 @@ export default function M1CheckinScreen() {
         </View>
       </View>
 
-      <Text style={styles.label}>Poznámka (volitelné)</Text>
+      <Text style={styles.label}>{t("capture.note.label")}</Text>
       <TextInput
         style={[styles.input, styles.note]}
         value={note}
         onChangeText={setNote}
-        placeholder="Pár slov…"
+        placeholder={t("capture.note.placeholder")}
         multiline
-        accessibilityLabel="Poznámka, volitelné"
-        accessibilityHint="Nepovinná krátká poznámka k tomuto check-inu."
+        accessibilityLabel={t("capture.note.a11yLabel")}
+        accessibilityHint={t("capture.note.a11yHint")}
       />
 
       <Pressable
@@ -246,9 +245,9 @@ export default function M1CheckinScreen() {
         disabled={!canSave}
         accessibilityRole="button"
         accessibilityState={{ disabled: !canSave }}
-        accessibilityHint={canSave ? "Zašifruje a uloží check-in." : "Nejdřív vyber náladu."}
+        accessibilityHint={canSave ? t("capture.save.a11yHint") : t("capture.save.noMood.a11yHint")}
       >
-        <Text style={styles.ctaText}>Uložit check-in</Text>
+        <Text style={styles.ctaText}>{t("capture.save.label")}</Text>
       </Pressable>
       {saveError ? (
         <Text style={styles.error} accessibilityLiveRegion="polite">
@@ -257,27 +256,26 @@ export default function M1CheckinScreen() {
       ) : null}
 
       <Text style={styles.h2} accessibilityRole="header">
-        Uložené check-iny
+        {t("list.title")}
       </Text>
       {checkins.length === 0 ? (
-        <Text style={styles.hint}>Zatím žádné. Ulož první.</Text>
+        <Text style={styles.hint}>{t("list.empty")}</Text>
       ) : (
         checkins.map((c) => {
           const p = c.payload as CheckinPayload;
-          const when = new Date(c.createdAt).toLocaleString("cs-CZ");
           return (
             <View key={c.recordId} style={styles.item} accessible>
               <Text style={styles.itemTitle}>
-                {moodLabel(p.mood)} · {p.intensity}/5
+                {t("list.item", { mood: moodName(p.mood), intensity: p.intensity })}
               </Text>
               {p.note ? <Text style={styles.itemNote}>{p.note}</Text> : null}
-              <Text style={styles.itemWhen}>{when}</Text>
+              <Text style={styles.itemWhen}>{formatDateTime(new Date(c.createdAt))}</Text>
             </View>
           );
         })
       )}
 
-      <Text style={styles.debug}>DB: {DB_PATH}</Text>
+      <Text style={styles.debug}>{t("debug.dbPath", { path: DB_PATH })}</Text>
     </ScrollView>
   );
 }

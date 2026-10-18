@@ -1,1 +1,111 @@
-{}
+{
+  "about": {
+    "privacy": "Your entries stay only on this phone, encrypted. No accounts, no ads, no tracking.",
+    "title": "About the app",
+    "version": "Lumi {{version}}"
+  },
+  "backup": {
+    "errors": {
+      "invalid-json": "This file cannot be read — it does not look like a Lumi backup.",
+      "not-a-backup": "This file cannot be read — it does not look like a Lumi backup.",
+      "unknown-version": "This file cannot be read — it does not look like a Lumi backup."
+    },
+    "export": {
+      "action": "Export a backup",
+      "done": "The backup is ready. Save the file somewhere safe.",
+      "failed": "The export did not work. Please try again.",
+      "shareTitle": "Save the Lumi backup"
+    },
+    "import": {
+      "action": "Restore from a backup",
+      "done_one": "Done — added {{entries}} and {{count}} measurement.",
+      "done_other": "Done — added {{entries}} and {{count}} measurements.",
+      "nothingNew": "Everything is already on this phone — nothing needed to be added.",
+      "openFailed": "The file could not be opened. Please try again."
+    },
+    "intro": "You can save your entries to a file and move them to another phone. The exported file is no longer encrypted — save it somewhere safe.",
+    "preview": {
+      "empty": "The backup is empty — there is nothing to add.",
+      "found_one": "It holds {{entries}} from {{from}} – {{to}} and {{count}} measurement.",
+      "found_other": "It holds {{entries}} from {{from}} – {{to}} and {{count}} measurements.",
+      "foundNoRange_one": "It holds {{entries}} and {{count}} measurement.",
+      "foundNoRange_other": "It holds {{entries}} and {{count}} measurements.",
+      "merge": "Merge into the app",
+      "mergeNote": "Only what is not on this phone yet will be added."
+    },
+    "title": "Backup"
+  },
+  "haptics": {
+    "title": "Haptics",
+    "toggle": {
+      "description": "Gentle vibrations for breathing, selection and saving.",
+      "label": "Haptic feedback"
+    }
+  },
+  "privacy": {
+    "share": {
+      "description": "Anonymously, and only if you turn it on here. Otherwise your entries stay on the phone.",
+      "label": "Share data for research"
+    },
+    "title": "Privacy"
+  },
+  "profile": {
+    "age": {
+      "a11yLabel": "Age band",
+      "label": "Age"
+    },
+    "name": {
+      "hint": "Optional — only to address you, never sent anywhere.",
+      "label": "What to call you",
+      "placeholder": "For example Alex"
+    },
+    "title": "Profile"
+  },
+  "reminders": {
+    "daily": {
+      "a11yHint": "Schedules a gentle daily invitation to write an entry.",
+      "description": "A gentle invitation to write an entry, once a day.",
+      "label": "Daily reminder"
+    },
+    "denied": {
+      "announce": "This needs notification permission. Allow it in the system settings.",
+      "openSettings": "Open system settings",
+      "text": "This needs notification permission — allow it in the system settings."
+    },
+    "evening": {
+      "a11yHint": "An invitation to calm sleep every evening.",
+      "description": "An invitation to calm sleep.",
+      "label": "Lights out at {{time}}"
+    },
+    "footer": "Just a gentle invitation — no guilt when you skip an entry. The text does not show on the lock screen.",
+    "notification": {
+      "channelName": "Reminders",
+      "dailyHere": "Lumi is here if you need to pause.",
+      "dailyHowAreYou": "How are you today?",
+      "dailyMoment": "A moment for you?",
+      "evening": "Lights out — calm sleep, if it helps.",
+      "weekly": "Your week in review is ready."
+    },
+    "time": {
+      "closeHint": "Closes the reminder time picker.",
+      "label": "Time: {{time}}",
+      "openHint": "Opens the time picker of the daily reminder."
+    },
+    "title": "Reminders",
+    "weekly": {
+      "a11yHint": "Every Sunday at {{time}}, an invitation to look back at the week.",
+      "description": "On Sunday at {{time}}.",
+      "label": "Sunday week in review"
+    }
+  },
+  "tags": {
+    "delete": {
+      "a11yLabel": "Delete tag {{label}}",
+      "announce": "Tag {{label}} deleted.",
+      "message": "Entries that already use it stay unchanged.",
+      "title": "Delete the tag “{{label}}”?"
+    },
+    "empty": "You add custom tags in the check-in, under “What is this related to?”.",
+    "title": "Custom tags"
+  }
+}

@@ -1,5 +1,5 @@
-/* Onboarding stack — tři kroky jako samostatné routes, bez tab baru.
-   Hardware back: krok 2/3 → předchozí krok; z prvního kroku ven z aplikace. */
+/* The onboarding stack: 3 steps as separate routes, without a tab bar. Hardware back: step 2
+   or 3 goes to the previous step; from the first step it leaves the app. */
 import { Stack } from "expo-router";
 import { useTheme } from "../../src/theme";
 

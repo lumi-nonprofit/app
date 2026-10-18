@@ -1,11 +1,12 @@
-/* Check-in · potvrzení — rodově neutrální, s kontextovým tipem podle stavu
-   (jeden zdroj: RECOMMENDATIONS v model.ts). */
+/* Check-in, confirmation: gender-neutral, with a contextual tip by the state (one source:
+   RECOMMENDATIONS in model.ts). */
 import React from "react";
 import { View } from "react-native";
 import { useRouter, type Href } from "expo-router";
 import { Badge, Button, Card, Icon, ListItem, Text } from "../../ds";
 import { SectionLabel } from "../../components/Header";
 import Screen from "../../components/Screen";
+import { useTranslation } from "../../i18n";
 import { lastEntryForDate, recommendationForMood, toISODate } from "../../model";
 import type { MoodId } from "../../model";
 import { useEntries } from "../../db/hooks";
@@ -14,6 +15,7 @@ import { createThemedStyles, useTheme } from "../../theme";
 import { useCheckinDraft } from "./draft";
 
 export default function ConfirmScreen() {
+  const { t } = useTranslation("checkin");
   const router = useRouter();
   const theme = useTheme();
   const styles = useStyles();
@@ -23,8 +25,8 @@ export default function ConfirmScreen() {
   const moodId: MoodId = draft.mood ?? lastEntryForDate(todayEntries, today)?.mood ?? "napeti";
   const tip = recommendationForMood(moodId);
   React.useEffect(() => {
-    announce("Uloženo. Záznam zůstává v telefonu.");
-  }, []);
+    announce(t("confirm.announce"));
+  }, [t]);
 
   const goHome = () => {
     router.dismissAll();
@@ -43,18 +45,18 @@ export default function ConfirmScreen() {
         </View>
         <View>
           <Text accessibilityRole="header" variant="title1" align="center" style={styles.title}>
-            Uloženo.
+            {t("confirm.title")}
           </Text>
           <Text variant="body" align="center">
-            Tohle byla chvilka pro tebe.
+            {t("confirm.moment")}
             {"\n"}
-            Záznam zůstává v telefonu.
+            {t("confirm.stays")}
           </Text>
         </View>
       </View>
 
       <View style={styles.tipBlock}>
-        <SectionLabel>Mohlo by teď sednout</SectionLabel>
+        <SectionLabel>{t("confirm.tipTitle")}</SectionLabel>
         <Card style={styles.tipCard}>
           <ListItem
             icon={tip.icon}
@@ -69,7 +71,7 @@ export default function ConfirmScreen() {
 
       <View style={styles.homeBlock}>
         <Button variant="secondary" size="lg" fullWidth onPress={goHome}>
-          Zpět na Dnes
+          {t("confirm.home")}
         </Button>
       </View>
     </Screen>

@@ -1,7 +1,7 @@
-/* Nastavení (modal z Dnes a Přehledů): seskupený seznam — profil, připomínky,
-   soukromí, haptika, štítky, záloha, o aplikaci. Minimum voleb s rozumnými
-   výchozími hodnotami; vzhled se nenastavuje (sleduje systém) a nic
-   nedubluje systémová nastavení (HIG Settings / Android settings patterns). */
+/* Settings (a modal from Home and from the overviews): a grouped list with the profile, the
+   reminders, privacy, haptics, tags, backup and the about section. A minimum of options with
+   sensible defaults. The appearance is not a setting (it follows the system) and nothing
+   duplicates the system settings (HIG Settings, Android settings patterns). */
 import React from "react";
 import { View } from "react-native";
 import Constants from "expo-constants";
@@ -10,6 +10,7 @@ import { SectionLabel } from "../../components/Header";
 import Screen from "../../components/Screen";
 import { useDb } from "../../db/provider";
 import { useDbWriter } from "../../db/hooks";
+import { useTranslation } from "../../i18n";
 import type { AgeBand } from "../../model";
 import { useAppStore } from "../../store";
 import { createThemedStyles } from "../../theme";
@@ -18,23 +19,31 @@ import { applyHapticsPreference, saveHapticsPreference } from "./preferences";
 import RemindersSection from "./RemindersSection";
 import TagsSection from "./TagsSection";
 
-const AGE_OPTIONS: { id: AgeBand | null; label: string; meta: string }[] = [
-  { id: "u26", label: "do 26 let", meta: "Primární linka: Linka bezpečí 116 111" },
-  {
-    id: "plus27",
-    label: "27 a více",
-    meta: "Primární linka: Linka první psychické pomoci 116 123",
-  },
-  { id: null, label: "Nechci uvádět", meta: "Pomoc nabídne obě linky" },
-];
+interface AgeOption {
+  id: AgeBand | null;
+  label: string;
+  meta: string;
+}
 
 export default function SettingsScreen() {
+  const { t } = useTranslation(["settings", "common"]);
   const { state, patch } = useAppStore();
   const db = useDb();
   const write = useDbWriter();
   const styles = useStyles();
   const [hapticsOn, setHapticsOn] = React.useState<boolean>(() => applyHapticsPreference(db));
   const version = Constants.expoConfig?.version ?? "0.1.0";
+
+  /* The age bands and their texts come from the common catalog (the onboarding reads the same). */
+  const ageOptions: AgeOption[] = [
+    { id: "u26", label: t("common:ageBands.u26.label"), meta: t("common:ageBands.u26.meta") },
+    {
+      id: "plus27",
+      label: t("common:ageBands.plus27.label"),
+      meta: t("common:ageBands.plus27.meta"),
+    },
+    { id: null, label: t("common:ageBands.none.label"), meta: t("common:ageBands.none.meta") },
+  ];
 
   const toggleHaptics = (value: boolean) => {
     setHapticsOn(value);
@@ -43,14 +52,14 @@ export default function SettingsScreen() {
 
   return (
     <Screen keyboard>
-      {/* profil — poprvé editovatelný i po onboardingu */}
+      {/* The profile: the first place where the person can edit it after the onboarding. */}
       <View>
-        <SectionLabel>Profil</SectionLabel>
+        <SectionLabel>{t("profile.title")}</SectionLabel>
         <Card style={styles.card}>
           <Input
-            label="Jak ti říkat"
-            placeholder="Třeba Alex"
-            hint="Nepovinné — jen pro oslovení, nikam se neposílá."
+            label={t("profile.name.label")}
+            placeholder={t("profile.name.placeholder")}
+            hint={t("profile.name.hint")}
             value={state.name}
             onChangeText={(v) => patch({ name: v })}
             autoCapitalize="words"
@@ -59,14 +68,14 @@ export default function SettingsScreen() {
             returnKeyType="done"
           />
           <Text variant="subheadline" weight="semibold" color="textBody">
-            Věk
+            {t("profile.age.label")}
           </Text>
           <View
             accessibilityRole="radiogroup"
-            accessibilityLabel="Věkové pásmo"
+            accessibilityLabel={t("profile.age.a11yLabel")}
             style={styles.radios}
           >
-            {AGE_OPTIONS.map((o) => (
+            {ageOptions.map((o) => (
               <RadioRow
                 key={o.id ?? "none"}
                 label={o.label}
@@ -81,27 +90,27 @@ export default function SettingsScreen() {
 
       <RemindersSection />
 
-      {/* soukromí — label popisuje stav „zapnuto“, stav nese přepínač */}
+      {/* Privacy: the label describes the state "on"; the switch carries the state. */}
       <View>
-        <SectionLabel>Soukromí</SectionLabel>
+        <SectionLabel>{t("privacy.title")}</SectionLabel>
         <Card style={styles.card}>
           <Switch
             checked={state.share}
             onChange={(v) => patch({ share: v })}
-            label="Sdílet data pro výzkum"
-            description="Anonymně a jen pokud to tady zapneš. Záznamy jinak zůstávají v telefonu."
+            label={t("privacy.share.label")}
+            description={t("privacy.share.description")}
           />
         </Card>
       </View>
 
       <View>
-        <SectionLabel>Haptika</SectionLabel>
+        <SectionLabel>{t("haptics.title")}</SectionLabel>
         <Card style={styles.card}>
           <Switch
             checked={hapticsOn}
             onChange={toggleHaptics}
-            label="Haptická odezva"
-            description="Jemné vibrace u dechu, výběru a uložení."
+            label={t("haptics.toggle.label")}
+            description={t("haptics.toggle.description")}
           />
         </Card>
       </View>
@@ -111,14 +120,13 @@ export default function SettingsScreen() {
       <BackupSection />
 
       <View>
-        <SectionLabel>O aplikaci</SectionLabel>
+        <SectionLabel>{t("about.title")}</SectionLabel>
         <Card style={styles.card}>
           <Text variant="body" color="textStrong">
-            Lumi {version}
+            {t("about.version", { version })}
           </Text>
           <Text variant="subheadline" color="textMuted">
-            Záznamy zůstávají jen v tomhle telefonu, šifrované. Žádné účty, žádná reklama, žádné
-            sledování.
+            {t("about.privacy")}
           </Text>
         </Card>
       </View>

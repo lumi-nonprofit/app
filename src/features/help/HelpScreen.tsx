@@ -1,8 +1,9 @@
-/* Pomoc — krizová intervence. Primární linka podle věku z onboardingu,
-   druhá vždy viditelná hned pod ní; tlačítka volají přes tel: odkazy.
-   Krizový register: konkrétně, čísla a akce napřed, žádný alarm. */
+/* Help: crisis intervention. The primary line follows the age band from the onboarding, the
+   second line is always visible under it, and the buttons call through "tel:" links. The crisis
+   register is concrete: numbers and actions first, no alarm. The texts come from the `help`
+   catalog; the lines and the plan sections come from lines.ts and plan.ts. */
 import React from "react";
-import { Alert, View } from "react-native";
+import { View } from "react-native";
 import { useRouter } from "expo-router";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
@@ -11,6 +12,8 @@ import type { IconName } from "../../ds/Icon";
 import type { Tone } from "../../ds";
 import Screen from "../../components/Screen";
 import { LumiHeader, SectionLabel } from "../../components/Header";
+import { useTranslation } from "../../i18n";
+import { notify } from "../../lib/dialogs";
 import { createThemedStyles, useTheme } from "../../theme";
 import { HELP_LINES, type HelpLine } from "../../model";
 import { useAppStore } from "../../store";
@@ -20,7 +23,7 @@ import { crisisCardHtml } from "./crisisCard";
 import { CHAT_LINES, GUIDES } from "./guides";
 import { CONTACT_LINES, EMERGENCY_LINES, telHref } from "./lines";
 
-/* ikona a tón pro sekce krizového plánu (id z plan.ts → vizuál) */
+/* The icon and the tone of each crisis plan section (the id from plan.ts gives the visual). */
 const PLAN_VISUALS: Record<PlanSectionId, { icon: IconName; tone?: Tone }> = {
   signals: { icon: "eye" },
   helps: { icon: "heart", tone: "positive" },
@@ -33,6 +36,7 @@ interface LineRowProps {
 }
 
 function LineRow({ line, primary }: LineRowProps) {
+  const { t } = useTranslation(["help", "common"]);
   const theme = useTheme();
   const styles = useStyles();
   return (
@@ -40,7 +44,7 @@ function LineRow({ line, primary }: LineRowProps) {
       <View>
         <View style={styles.lineHead}>
           <Text variant={primary ? "title3" : "headline"}>{line.name}</Text>
-          {primary ? <Badge tone="danger">tvoje linka</Badge> : null}
+          {primary ? <Badge tone="danger">{t("lines.yourLine")}</Badge> : null}
         </View>
         <Text variant="footnote" color="textMuted" style={styles.lineMeta}>
           {line.meta}
@@ -56,13 +60,14 @@ function LineRow({ line, primary }: LineRowProps) {
           size={17}
           color={primary ? theme.colors.textOnCrisis : theme.colors.textStrong}
         />
-        {`Zavolat ${line.phone}`}
+        {t("lines.call", { phone: line.phone })}
       </Button>
     </View>
   );
 }
 
 export default function HelpScreen() {
+  const { t } = useTranslation(["help", "common"]);
   const { state } = useAppStore();
   const router = useRouter();
   const theme = useTheme();
@@ -73,7 +78,7 @@ export default function HelpScreen() {
   const primary = age === "plus27" ? HELP_LINES.plus27 : HELP_LINES.u26;
   const secondary = age === "plus27" ? HELP_LINES.u26 : HELP_LINES.plus27;
 
-  /* plán se přečte znovu po každém zápisu (návrat z editoru zvýší verzi) */
+  /* The screen reads the plan again after each write (the return from the editor raises the version). */
   const plan = React.useMemo(() => {
     void version;
     return readPlan(db);
@@ -81,28 +86,25 @@ export default function HelpScreen() {
 
   const printCard = async () => {
     if (planIsEmpty(plan)) {
-      Alert.alert(
-        "Nejdřív si plán vyplň",
-        "Kartička se skládá z tvého krizového plánu — vyplň aspoň jednu část.",
-      );
+      void notify({ title: t("plan.print.emptyTitle"), message: t("plan.print.emptyMessage") });
       return;
     }
     try {
       const { uri } = await Print.printToFileAsync({ html: crisisCardHtml(plan) });
       await Sharing.shareAsync(uri, {
         mimeType: "application/pdf",
-        dialogTitle: "Krizová kartička",
+        dialogTitle: t("plan.print.shareTitle"),
       });
     } catch {
-      Alert.alert("Nepovedlo se", "Kartičku se teď nepodařilo vytvořit. Zkus to prosím znovu.");
+      void notify({ title: t("plan.print.failedTitle"), message: t("plan.print.failedMessage") });
     }
   };
   return (
     <Screen>
-      {/* titulek obrazovky „Pomoc“ nese hlavička; lead bez „my“ (HIG Writing) */}
-      <LumiHeader title="Pomoc je blízko" />
+      {/* The native header carries the title of the tab; the lead has no "we" (HIG: the guidance on text). */}
+      <LumiHeader title={t("screen.title")} />
 
-      {/* krizová karta — primární linka podle věku z onboardingu */}
+      {/* The crisis card: the primary line follows the age band from the onboarding. */}
       <View style={styles.crisisCard}>
         <View style={styles.crisisHead}>
           <Icon name="heart-handshake" size={20} color={theme.colors.textDanger} />
@@ -112,12 +114,12 @@ export default function HelpScreen() {
             color="textDanger"
             style={styles.flex1}
           >
-            Potřebuješ si promluvit hned?
+            {t("crisis.title")}
           </Text>
         </View>
         <LineRow line={primary} primary />
         <LineRow line={secondary} />
-        {/* tísňová čísla jako volatelné řádky (ne jen text) */}
+        {/* The emergency numbers are callable rows, not only text. */}
         <View style={styles.emergencyRows}>
           {EMERGENCY_LINES.map((line) => (
             <ListItem
@@ -127,20 +129,20 @@ export default function HelpScreen() {
               title={line.name}
               subtitle={line.meta}
               href={telHref(line.phone)}
-              accessibilityLabel={`Zavolat ${line.phone} · ${line.name}`}
+              accessibilityLabel={t("lines.callWithName", { phone: line.phone, name: line.name })}
             />
           ))}
         </View>
       </View>
 
-      {/* krizový plán — tři sekce + tisk kartičky do peněženky */}
+      {/* The crisis plan: 3 sections and the print of a wallet card. */}
       <Card style={styles.planCard}>
         <View style={styles.planHead}>
           <Text accessibilityRole="header" variant="headline">
-            Můj krizový plán
+            {t("plan.title")}
           </Text>
           <Text variant="footnote" color="textMuted" style={styles.planSub}>
-            Připrav si kroky, dokud je klid.
+            {t("plan.subtitle")}
           </Text>
         </View>
         {PLAN_SECTIONS.map((s) => {
@@ -152,7 +154,7 @@ export default function HelpScreen() {
               icon={visual.icon}
               tone={visual.tone}
               title={s.title}
-              subtitle={filled ? `${s.subtitle} · vyplněno` : s.subtitle}
+              subtitle={filled ? t("plan.sectionFilled", { subtitle: s.subtitle }) : s.subtitle}
               onPress={() =>
                 router.push({ pathname: "/plan/[section]", params: { section: s.id } })
               }
@@ -161,38 +163,38 @@ export default function HelpScreen() {
         })}
         <ListItem
           icon="printer"
-          title="Vytisknout kartičku do peněženky"
-          subtitle="PDF na přeložení a zalaminování"
+          title={t("plan.print.title")}
+          subtitle={t("plan.print.subtitle")}
           onPress={printCard}
         />
       </Card>
 
-      {/* rychlé zklidnění */}
+      {/* Quick calm. */}
       <Card style={styles.slimCard}>
         <ListItem
           icon="wind"
-          title="Rychlé zklidnění"
-          subtitle="Dech a uzemnění na 2 minuty"
-          trailing={<Badge tone="accent">2 min</Badge>}
+          title={t("calm.title")}
+          subtitle={t("calm.subtitle")}
+          trailing={<Badge tone="accent">{t("common:counts.minutes", { count: 2 })}</Badge>}
           onPress={() => router.push("/calm")}
         />
       </Card>
 
-      {/* režim pro třetí osobu — celoobrazovkový, bez osobních dat */}
+      {/* The mode for a third person: full screen, without personal data. */}
       <Card style={styles.slimCard}>
         <ListItem
           icon="heart-handshake"
           tone="info"
-          title="Pomáháš někomu blízkému?"
-          subtitle="Otevři režim pro chvíli, kdy držíš telefon za druhého"
+          title={t("handover.entry.title")}
+          subtitle={t("handover.entry.subtitle")}
           onPress={() => router.push("/handover")}
         />
       </Card>
 
-      {/* rozcestník — jen když má obsah (žádné mrtvé řádky) */}
+      {/* The guides render only when they have content (no dead rows). */}
       {GUIDES.length ? (
         <View>
-          <SectionLabel>Co dělat, když…</SectionLabel>
+          <SectionLabel>{t("guides.title")}</SectionLabel>
           <Card style={styles.sectionCard}>
             {GUIDES.map((g) => (
               <ListItem
@@ -208,16 +210,16 @@ export default function HelpScreen() {
         </View>
       ) : null}
 
-      {/* kontakty — jeden zdroj v lines.ts */}
+      {/* The contacts: one source in lines.ts. */}
       <View>
-        <SectionLabel>Kontakty</SectionLabel>
+        <SectionLabel>{t("contacts.title")}</SectionLabel>
         <Card style={styles.sectionCard}>
           {CONTACT_LINES.map((line) => (
             <ListItem
               key={line.id}
               icon={line.icon}
               tone={line.tone}
-              title={`${line.name} · ${line.phone}`}
+              title={t("lines.nameWithPhone", { name: line.name, phone: line.phone })}
               subtitle={line.meta}
               href={telHref(line.phone)}
             />
@@ -240,7 +242,7 @@ export default function HelpScreen() {
 
 const useStyles = createThemedStyles((t) => ({
   flex1: { flex: 1 },
-  /* karta jedné linky uvnitř krizové sekce */
+  /* The card of one line inside the crisis section. */
   lineRow: {
     backgroundColor: t.colors.surfaceCard,
     borderRadius: t.radius.md,

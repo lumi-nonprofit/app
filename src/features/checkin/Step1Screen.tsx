@@ -1,6 +1,6 @@
-/* Check-in · krok 1 — stav (podstatná jména, barva + tvar) a intenzita.
-   Draft žije v CheckinDraftProvideru checkin stacku, nikdy se nepersistuje.
-   Vybraná dlaždice = obrys selectionBorder (≥ 3:1) + fajfka, nikdy jen barva. */
+/* Check-in, step 1: the state (nouns, colour + shape) and the intensity. The draft lives in the
+   CheckinDraftProvider of the check-in stack; nothing persists it. A selected tile has the
+   selectionBorder outline (at least 3:1) and a check mark, never only a colour. */
 import React from "react";
 import { View, Pressable } from "react-native";
 import Slider from "@react-native-community/slider";
@@ -10,6 +10,7 @@ import { pressFeedback, pressedStyle } from "../../ds/press";
 import { LumiHeader } from "../../components/Header";
 import MoodShape from "../../components/MoodShape";
 import Screen from "../../components/Screen";
+import { useTranslation } from "../../i18n";
 import { MOODS, intensityLabel } from "../../model";
 import type { Intensity } from "../../model";
 import { haptics } from "../../lib/haptics";
@@ -18,24 +19,25 @@ import { createThemedStyles, useTheme } from "../../theme";
 import { isDraftDirty, useCheckinDraft } from "./draft";
 
 export default function Step1Screen() {
+  const { t } = useTranslation(["checkin", "common"]);
   const router = useRouter();
   const theme = useTheme();
   const styles = useStyles();
   const { draft, setDraft, saved } = useCheckinDraft();
-  /* Zrušit, swipe-down i hardware Back se při rozepsaném zápisu nejdřív zeptají */
+  /* "Zrušit", swipe-down and the hardware back button ask first when the entry has content. */
   useDiscardGuard({
     dirty: !saved && isDraftDirty(draft),
-    title: "Zahodit rozepsaný zápis?",
-    message: "Vybraný stav, slova ani poznámka se neuloží.",
+    title: t("discard.title"),
+    message: t("discard.message"),
   });
   return (
     <Screen>
-      <LumiHeader kicker="Check-in · krok 1 ze 2" title="Jak se právě teď cítíš?" />
+      <LumiHeader kicker={t("step1.kicker")} title={t("step1.title")} />
 
       <View
         accessibilityRole="radiogroup"
-        accessibilityLabel="Jak se právě teď cítíš?"
-        accessibilityHint="Vyber stav, který je teď nejblíž."
+        accessibilityLabel={t("step1.moods.a11yLabel")}
+        accessibilityHint={t("step1.moods.a11yHint")}
         style={styles.quadGrid}
       >
         {MOODS.map((m) => {
@@ -66,7 +68,7 @@ export default function Step1Screen() {
               </View>
               <View>
                 <Text variant="headline">{m.name}</Text>
-                {/* na měkké výplni jen silný tón odstínu nebo textStrong/textBody */}
+                {/* On the soft fill only the strong tone of the hue, or textStrong/textBody. */}
                 <Text variant="caption1" weight="regular" style={{ color: moodColors.strong }}>
                   {m.axis}
                 </Text>
@@ -76,11 +78,11 @@ export default function Step1Screen() {
         })}
       </View>
 
-      {/* intenzita */}
+      {/* The intensity. */}
       <Card style={styles.intensityCard}>
         <View style={styles.intensityHead}>
           <Text variant="body" weight="semibold" color="textBody">
-            Jak silné to je?
+            {t("step1.intensity.title")}
           </Text>
           <Text variant="footnote" weight="semibold" color="textAccent">
             {intensityLabel(draft.intensity)}
@@ -91,22 +93,25 @@ export default function Step1Screen() {
           maximumValue={5}
           step={1}
           value={draft.intensity}
-          accessibilityLabel="Intenzita"
-          accessibilityHint="Posunem vybereš sílu pocitu, od jen lehce po hodně silně."
+          accessibilityLabel={t("step1.intensity.a11yLabel")}
+          accessibilityHint={t("step1.intensity.a11yHint", {
+            min: intensityLabel(1),
+            max: intensityLabel(5),
+          })}
           accessibilityValue={{ text: intensityLabel(draft.intensity) }}
           minimumTrackTintColor={theme.colors.accentFill}
           maximumTrackTintColor={theme.colors.borderStrong}
           thumbTintColor={theme.colors.accentFill}
           style={styles.slider}
-          /* slider má step 1 v rozsahu 1–5, hodnota je tedy vždy Intensity */
+          /* The slider has step 1 in the range 1 to 5, so the value is always an Intensity. */
           onValueChange={(v) => setDraft({ intensity: v as Intensity })}
         />
         <View style={styles.intensityScale}>
           <Text variant="caption1" weight="regular">
-            jen lehce
+            {intensityLabel(1)}
           </Text>
           <Text variant="caption1" weight="regular">
-            hodně silně
+            {intensityLabel(5)}
           </Text>
         </View>
       </Card>
@@ -116,16 +121,16 @@ export default function Step1Screen() {
         fullWidth
         disabled={!draft.mood}
         onPress={() => router.push("/checkin/words")}
-        hint="Nejdřív klepni na stav, který je teď nejblíž."
+        hint={t("step1.continueHint")}
       >
-        Pokračovat
+        {t("common:actions.continue")}
       </Button>
     </Screen>
   );
 }
 
 const useStyles = createThemedStyles((t) => ({
-  /* mřížka kvadrantů (web: grid 1fr 1fr, .lumi-quad) */
+  /* The grid of the quadrants (web: grid 1fr 1fr, .lumi-quad). */
   quadGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   quad: {
     flexBasis: "47%",
@@ -142,7 +147,7 @@ const useStyles = createThemedStyles((t) => ({
   quadTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   quadSelected: { borderColor: t.colors.selectionBorder },
 
-  /* intenzita */
+  /* The intensity. */
   intensityCard: { paddingTop: 16, paddingHorizontal: 20, paddingBottom: 12 },
   intensityHead: {
     flexDirection: "row",

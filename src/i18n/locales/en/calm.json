@@ -1,1 +1,100 @@
-{}
+{
+  "actions": {
+    "again": "Once more",
+    "pause": "Pause",
+    "play": "Play",
+    "restart": "Start again",
+    "start": "Start",
+    "stop": "End"
+  },
+  "audio": {
+    "pause": {
+      "a11yHint": "Pauses the audio; your progress stays."
+    },
+    "playDuck": {
+      "a11yHint": "Starts the audio. Music from other apps gets quieter while it plays."
+    },
+    "playMix": {
+      "a11yHint": "Starts the audio. Music from other apps keeps playing."
+    }
+  },
+  "blind": {
+    "countdown": {
+      "announce": "{{seconds}}. Put your phone in your pocket.",
+      "hint": "Put your phone in your pocket"
+    },
+    "done": {
+      "title": "Done. Thanks for the moment."
+    },
+    "duration": {
+      "a11yHint": "Choose how long you want to breathe.",
+      "a11yLabel": "Exercise length",
+      "label": "How long"
+    },
+    "intro": "You can leave your phone in your pocket — vibrations guide the rhythm of your breath. It works even without looking at the screen.",
+    "rhythm": {
+      "a11yHint": "Choose the rhythm the vibrations will guide you in.",
+      "a11yLabel": "Breath rhythm",
+      "label": "Rhythm"
+    },
+    "rhythm44": "4-4 · calm rhythm",
+    "rhythm478": "4-7-8 · for tension",
+    "running": {
+      "a11yHint": "Double-tap to end the exercise.",
+      "a11yLabel": "Blind breathing in progress",
+      "stopAction": "End the exercise",
+      "tapHint": "Tap twice to finish"
+    }
+  },
+  "breath478": {
+    "hint": "4 s in · 7 s hold · 8 s out",
+    "pause": {
+      "a11yHint": "Pauses the exercise; your progress stays."
+    },
+    "restart": {
+      "a11yHint": "Starts the exercise again from the beginning."
+    },
+    "start": {
+      "a11yHint": "Starts the breathing exercise: 4 seconds in, 7 hold, 8 out."
+    }
+  },
+  "circle": {
+    "idle": "Shall we start?"
+  },
+  "comingSoon": {
+    "badge": "coming soon",
+    "play": {
+      "a11yHint": "The audio is not available yet."
+    },
+    "text": "The audio is coming — you will be able to play it here soon."
+  },
+  "launcher": {
+    "activeHint": "4 s in · 4 s out",
+    "idleHint": "Tap and breathe with me",
+    "start": {
+      "a11yHint": "Starts breathing together: 4 s in, 4 s out.",
+      "a11yLabel": "Start breathing"
+    },
+    "stop": {
+      "a11yHint": "Stops the breathing exercise.",
+      "a11yLabel": "Stop breathing"
+    }
+  },
+  "phaseExhale": "Breathe out",
+  "phaseHold": "Hold",
+  "phaseInhale": "Breathe in",
+  "player": {
+    "done": {
+      "announce": "Done. Thanks for a moment of calm.",
+      "text": "Thanks for a moment of calm.",
+      "title": "Done"
+    },
+    "finished": "Exercise finished",
+    "loading": "Loading…",
+    "remaining_one": "{{count}} min left",
+    "remaining_other": "{{count}} min left"
+  },
+  "screen": {
+    "title": "Take a moment to pause"
+  }
+}

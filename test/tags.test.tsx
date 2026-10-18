@@ -129,6 +129,7 @@ describe("Vlastní štítky", () => {
       "Smazat štítek?",
       "Záznamy, kde už je použitý, zůstanou beze změny.",
       expect.any(Array),
+      expect.objectContaining({ cancelable: true }),
     );
 
     // chip zmizel z nabídky i z DB; zbytek výběru v draftu zůstal

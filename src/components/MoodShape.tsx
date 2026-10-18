@@ -1,8 +1,8 @@
-/* MoodShape — tvar stavu (kruh / kosočtverec / čtverec / půlkruh).
-   Stavy se rozlišují barvou A ZÁROVEŇ tvarem — informace nikdy jen barvou.
-   Výplň nese zamčený mood token, obrys silný tón odstínu (≥ 3:1 vůči každé
-   ploše i měkké dlaždici — WCAG 1.4.11), takže je tvar čitelný i tam, kde by
-   samotná výplň splývala. */
+/* MoodShape: the shape of a state (circle / diamond / square / half circle). The states differ
+   by colour and also by shape: the information never sits in colour alone. The fill carries the
+   locked mood token. The outline carries the strong tone of the hue: at least 3:1 against every
+   surface and the soft tile (WCAG 1.4.11). So the shape stays legible where the fill alone
+   blends into the surface. */
 import React from "react";
 import type { StyleProp, ViewStyle } from "react-native";
 import Svg, { Circle, Path, Rect } from "react-native-svg";
@@ -12,7 +12,7 @@ import { useTheme } from "../theme";
 interface Props {
   mood?: Mood | null;
   size?: number;
-  /** Jen obrys bez výplně (prázdný den v přehledu). */
+  /** Only the outline without a fill (an empty day in the overview). */
   outline?: boolean;
   dashed?: boolean;
   style?: StyleProp<ViewStyle>;
@@ -54,18 +54,16 @@ export default function MoodShape({
   } else if (shape === "square") {
     shapeEl = <Rect x={e} y={e} width={s - 2 * e} height={s - 2 * e} rx={s * 0.28} {...common} />;
   } else {
-    /* half — zapadající světlo (dolní půlkruh) */
+    /* half: the lower half circle, a light that sets. */
     const m = s / 2;
-    shapeEl = (
-      <Path
-        d={`M ${e} ${m * 0.82} A ${m - e} ${m - e} 0 0 0 ${s - e} ${m * 0.82} Z`}
-        {...common}
-        strokeLinejoin="round"
-      />
-    );
+    // eslint-disable-next-line i18next/no-literal-string -- SVG path data, not text.
+    const d = `M ${e} ${m * 0.82} A ${m - e} ${m - e} 0 0 0 ${s - e} ${m * 0.82} Z`;
+    shapeEl = <Path d={d} {...common} strokeLinejoin="round" />;
   }
+  // eslint-disable-next-line i18next/no-literal-string -- SVG viewBox, not text.
+  const viewBox = `0 0 ${s} ${s}`;
   return (
-    <Svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} accessible={false} style={style}>
+    <Svg width={s} height={s} viewBox={viewBox} accessible={false} style={style}>
       {shapeEl}
     </Svg>
   );

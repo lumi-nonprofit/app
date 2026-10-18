@@ -1,7 +1,34 @@
 {
+  "checkin": {
+    "body": "A short check-in helps you find what does you good.",
+    "start": "Start check-in",
+    "title": "How do you feel today?"
+  },
+  "crisis": {
+    "body": "Help is always here — you do not have to wait for anything.",
+    "open": "Open Help",
+    "title": "Not feeling well?"
+  },
+  "entry": {
+    "addAnother": "Add another entry",
+    "meta": "at {{time}} · you can find the entry in Overview",
+    "summary": "Logged today: {{mood}}",
+    "summaryWithWords": "Logged today: {{mood}} · {{words}}"
+  },
+  "forYou": {
+    "title": "For you"
+  },
+  "header": {
+    "newCheckin": "New check-in",
+    "settings": "Settings"
+  },
   "wellbeing": {
     "aboveAverage": "WHO-5 for the last 14 days. It stays above your average.",
     "baseline": "WHO-5 for the last 14 days. Your starting point.",
-    "belowAverage": "WHO-5 for the last 14 days. It is a little below your average right now."
+    "belowAverage": "WHO-5 for the last 14 days. It is a little below your average right now.",
+    "emptyBody": "A short questionnaire ({{questions}}) sets your starting point. No grades, no comparisons.",
+    "firstQuestionnaire": "Fill in the first questionnaire",
+    "noScore": "—",
+    "ringLabel": "wellbeing"
   }
 }

@@ -1,4 +1,43 @@
 {
+  "discard": {
+    "confirm": "Ukončit",
+    "message": "Dosavadní odpovědi se neuloží.",
+    "title": "Ukončit dotazník?"
+  },
+  "disclaimer": {
+    "notNow": "Teď ne",
+    "text": "Tohle je orientační screeningový nástroj. Nenahrazuje vyšetření ani rozhovor s odborníkem — pomáhá všímat si, jak se máš. Výsledky zůstávají jen v tvém telefonu.",
+    "title": "Než začneš"
+  },
+  "header": {
+    "close": "Zavřít dotazník",
+    "previousQuestion": "Předchozí otázka"
+  },
+  "question": {
+    "answer": {
+      "a11yHint": "Odpověď na otázku {{number}} z {{total}}."
+    },
+    "progress": "Otázka {{number}} z {{total}}"
+  },
+  "result": {
+    "score_one": "{{count}} bod z {{max}}",
+    "score_few": "{{count}} body z {{max}}",
+    "score_many": "{{count}} bodu z {{max}}",
+    "score_other": "{{count}} bodů z {{max}}",
+    "title": "Hotovo. Díky za chvilku.",
+    "who5": {
+      "first": "Tvůj výchozí bod. Index uvidíš na Dnes i v Přehledech — vždycky jen vůči tvým vlastním datům.",
+      "next": "Index uvidíš na Dnes i v Přehledech — vždycky jen vůči tvým vlastním datům."
+    }
+  },
+  "support": {
+    "announce": "Díky za upřímnost. Pomoc je tu i teď.",
+    "call": "Zavolat {{line}} · {{phone}}",
+    "continueToResult": "Pokračovat k výsledku",
+    "openHelp": "Otevřít Pomoc",
+    "text": "Tahle odpověď je důležitá. Nemusíš v tom zůstávat o samotě — pomoc je tu i teď a možností je víc, než se může zdát.",
+    "title": "Díky za upřímnost."
+  },
   "trend": {
     "byPercent": "O {{value}}",
     "byPoints_one": "O {{count}} bod",

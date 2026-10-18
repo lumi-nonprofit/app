@@ -4,6 +4,7 @@
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+import { runDataMigrations } from "../../src/db/dataMigrations";
 import * as schema from "../../src/db/schema";
 import type { LumiDb } from "../../src/db/types";
 
@@ -11,6 +12,7 @@ export function createTestDb(): LumiDb {
   const sqlite = new Database(":memory:");
   const db = drizzle(sqlite, { schema });
   migrate(db, { migrationsFolder: "drizzle" });
+  runDataMigrations(db as unknown as LumiDb);
   return db as unknown as LumiDb;
 }
 

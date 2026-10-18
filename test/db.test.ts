@@ -28,7 +28,7 @@ describe("repo: záznamy a měření", () => {
   it("INSERT + čtení s rozsahem, řazení podle id (pořadí vzniku)", () => {
     const db = createTestDb();
     const a = entry({ mood: "klid", intensity: 2, date: "2026-06-10" });
-    const b = entry({ mood: "napeti", intensity: 4, date: "2026-06-12", words: ["stres"] });
+    const b = entry({ mood: "napeti", intensity: 4, date: "2026-06-12", words: ["stress"] });
     const c = entry({ mood: "klid", intensity: 3, date: "2026-06-12" });
     insertEntry(db, b);
     insertEntry(db, a);
@@ -89,8 +89,8 @@ describe("záloha", () => {
     const e1 = entry({
       mood: "utlum",
       intensity: 3,
-      words: ["únava"],
-      tags: ["spánek"],
+      words: ["tiredness"],
+      tags: ["sleep"],
       note: "dlouhý den",
     });
     const e2 = entry({ mood: "energie", intensity: 5, date: "2026-06-11" });

@@ -1,70 +1,81 @@
-/* Klid — manifest aktivit. Jediný zdroj pravdy pro seznam na obrazovce Klid
-   i pro přehrávač (app/calm/[id]). Audio soubory zatím v repu nejsou — po
-   dodání stačí doplnit `file` podle assets/audio/README.md, nic dalšího. */
+/* Calm: the list of activities. The single source for the Calm screen and for the player
+   (app/calm/[id]). The text comes from the message catalog (content.json, key
+   `calmActivities.<id>`). The audio files are not in the repository yet: add `file` as
+   assets/audio/README.md describes, nothing else. */
 import type { BadgeTone } from "../../ds/Badge";
+import { contentText } from "../../i18n/content";
+
+export type CalmActivityId = "dech-478" | "ticha-louka" | "vecerka" | "dech-naslepo";
 
 export interface CalmActivity {
-  id: string;
-  title: string;
-  subtitle: string;
-  /** Orientační délka v minutách — zdroj pro „zbývá X min“ v přehrávači. */
+  id: CalmActivityId;
+  readonly title: string;
+  readonly subtitle: string;
+  /** The length in minutes, the source of "X min left" in the player. */
   minutes: number;
-  /** Audio zatím není — soubor doplní Anna:
-      `file: require("../../../assets/audio/<id>.m4a")`. */
+  /** No audio yet. Anna adds the file: `file: require("../../../assets/audio/<id>.m4a")`. */
   file: number | null;
-  /** mixWithOthers pro krátká cvičení (hudba uživatele hraje dál),
-      duckOthers pro vedené meditace (hudbu jen ztiší, nezastaví). */
+  /** mixWithOthers for short exercises (the music of the user plays on),
+      duckOthers for guided meditations (the music gets quieter, it does not stop). */
   audioMode: "mix" | "duck";
   kind: "breath" | "audio" | "blind";
-  /** Stavový pill v seznamu i přehrávači: [tón, text]. */
-  badge?: [BadgeTone, string];
+  /** The status pill in the list and in the player: [tone, text]. */
+  readonly badge?: [BadgeTone, string];
+}
+
+function activity(
+  id: CalmActivityId,
+  data: Omit<CalmActivity, "id" | "title" | "subtitle" | "badge"> & { badgeTone: BadgeTone },
+): CalmActivity {
+  const { badgeTone, ...rest } = data;
+  return {
+    id,
+    ...rest,
+    get title() {
+      return contentText(`calmActivities.${id}.title`);
+    },
+    get subtitle() {
+      return contentText(`calmActivities.${id}.subtitle`);
+    },
+    get badge(): [BadgeTone, string] {
+      return [badgeTone, contentText(`calmActivities.${id}.badge`)];
+    },
+  };
 }
 
 export const CALM_ACTIVITIES: readonly CalmActivity[] = [
-  {
-    id: "dech-478",
-    title: "Dech 4-7-8",
-    subtitle: "Při napětí a úzkosti",
+  activity("dech-478", {
     minutes: 3,
     file: null,
     audioMode: "mix",
     kind: "breath",
-    badge: ["accent", "3 min"],
-  },
-  {
-    id: "ticha-louka",
-    title: "Tichá louka",
-    subtitle: "Vedená meditace · čeština",
+    badgeTone: "accent",
+  }),
+  activity("ticha-louka", {
     minutes: 10,
     file: null,
     audioMode: "duck",
     kind: "audio",
-    badge: ["accent", "10 min"],
-  },
-  {
-    /* lilac je v DS vyhrazený pro spánek/večer */
-    id: "vecerka",
-    title: "Večerka",
-    subtitle: "Zvuky a audio na dobrou noc",
+    badgeTone: "accent",
+  }),
+  /* lilac is reserved in the DS for sleep and evening */
+  activity("vecerka", {
     minutes: 12,
     file: null,
     audioMode: "duck",
     kind: "audio",
-    badge: ["lilac", "večer"],
-  },
-  {
-    /* Dech naslepo — rytmus vedou vibrace, displej netřeba (telefon v kapse). */
-    id: "dech-naslepo",
-    title: "Dech naslepo",
-    subtitle: "Telefon v kapse — vedeme tě vibracemi",
+    badgeTone: "lilac",
+  }),
+  /* Blind breathing: vibrations give the rhythm, no display needed (the phone in a pocket). */
+  activity("dech-naslepo", {
     minutes: 3,
     file: null,
     audioMode: "mix",
     kind: "blind",
-    badge: ["info", "poslepu"],
-  },
+    badgeTone: "info",
+  }),
 ];
 
-/** Aktivita podle id z routy; neznámé id → undefined (přehrávač přesměruje zpět na Klid). */
+/** The activity of a route id; an unknown id gives undefined (the player goes back to Calm). */
 export const byId = (id: string | undefined): CalmActivity | undefined =>
   CALM_ACTIVITIES.find((a) => a.id === id);

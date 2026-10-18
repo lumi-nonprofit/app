@@ -1,0 +1,10 @@
+{
+  "trend": {
+    "byPercent": "{{value}}",
+    "byPoints_one": "{{count}} point",
+    "byPoints_other": "{{count}} points",
+    "less": "{{amount}} less than last time.",
+    "more": "{{amount}} more than last time.",
+    "same": "The same as last time."
+  }
+}

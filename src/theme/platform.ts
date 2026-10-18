@@ -9,6 +9,7 @@ export const platform: ThemePlatform = {
   minTouch: isAndroid ? 48 : 44,
   screenMargin: isAndroid ? 16 : 20,
   listRowMinHeight: isAndroid ? 56 : 44,
+  headerTitleSize: isAndroid ? 22 : 17,
   isIOS,
   isAndroid,
 };

@@ -1,0 +1,12 @@
+{
+  "trend": {
+    "byPercent": "O {{value}}",
+    "byPoints_one": "O {{count}} bod",
+    "byPoints_few": "O {{count}} body",
+    "byPoints_many": "O {{count}} bodu",
+    "byPoints_other": "O {{count}} bodů",
+    "less": "{{amount}} míň než minule.",
+    "more": "{{amount}} víc než minule.",
+    "same": "Stejně jako minule."
+  }
+}

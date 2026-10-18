@@ -29,9 +29,4 @@ export default defineConfig({
     primaryLanguage: "cs",
     secondaryLanguages: ["en"],
   },
-  types: {
-    input: ["src/i18n/locales/cs/*.json"],
-    output: "src/i18n/i18next.d.ts",
-    enableSelector: false,
-  },
 });

@@ -144,7 +144,7 @@ describe("Vlastní štítky", () => {
     const rows = listEntries(getTestDb());
     expect(rows).toHaveLength(2);
     const tagsByWords = Object.fromEntries(rows.map((r) => [r.words.join(","), r.tags]));
-    expect(tagsByWords["stres"]).toEqual(["terapie"]); // starší záznam beze změny
-    expect(tagsByWords["obavy"]).toEqual(["škola"]); // nový bez smazaného štítku
+    expect(tagsByWords["stress"]).toEqual(["terapie"]); // starší záznam beze změny
+    expect(tagsByWords["worry"]).toEqual(["school"]); // nový bez smazaného štítku
   });
 });

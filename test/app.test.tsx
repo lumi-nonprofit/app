@@ -84,8 +84,8 @@ describe("Lumi app", () => {
     expect(rows[0]).toMatchObject({
       mood: "napeti",
       intensity: 3,
-      words: ["stres", "obavy"],
-      tags: ["škola"],
+      words: ["stress", "worry"],
+      tags: ["school"],
     });
   });
 

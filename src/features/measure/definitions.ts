@@ -1,9 +1,11 @@
-/* Dotazníkové nástroje: WHO-5, PHQ-9, GAD-7 — všechny volně použitelné,
-   všechny se ptají na poslední 2 týdny (kadence 14 dní).
-   Znění otázek i škál vychází ze standardních českých verzí nástrojů;
-   validace přesného znění před releasem viz TODO(Anna) níže. Tvar (a)
-   drží rodovou neutralitu způsobem běžným v tištěných verzích. */
+/* The questionnaires: WHO-5, PHQ-9 and GAD-7. All three are free to use and ask about the last
+   2 weeks (cadence 14 days). The text comes from the message catalog (content.json, key
+   `instruments.<type>`). The Czech wording follows the standard Czech versions; the `_meta.todo`
+   of each instrument in the catalog asks for a check of the exact wording before the release
+   (docs/STATUS.md, finding 6). The English catalog holds the original wording of each
+   instrument. The form "(a)" keeps the Czech text gender-neutral, as the printed versions do. */
 import type { MeasurementType } from "../../db/repo";
+import { contentText } from "../../i18n/content";
 
 export interface AnswerOption {
   label: string;
@@ -12,95 +14,58 @@ export interface AnswerOption {
 
 export interface Instrument {
   type: MeasurementType;
-  title: string;
-  /** Rámec otázek — zobrazuje se nad každou kartou otázky. */
-  intro: string;
-  questions: string[];
-  options: AnswerOption[];
+  readonly title: string;
+  /** The frame of the questions, shown above each question card. */
+  readonly intro: string;
+  readonly questions: string[];
+  readonly options: AnswerOption[];
   maxScore: number;
 }
 
-/* škála frekvence pro PHQ-9 i GAD-7 (0–3) */
-// TODO(Anna): ověřit znění proti validované české verzi před releasem
-const FREQUENCY_OPTIONS: AnswerOption[] = [
-  { label: "Vůbec ne", value: 0 },
-  { label: "Několik dní", value: 1 },
-  { label: "Více než polovinu dní", value: 2 },
-  { label: "Téměř každý den", value: 3 },
-];
+/* The frequency scale of PHQ-9 and GAD-7 (0 to 3). */
+const FREQUENCY_VALUES = [0, 1, 2, 3] as const;
 
-/* škála WHO-5 (0–5, od „Nikdy“ po „Po celou dobu“) */
-// TODO(Anna): ověřit znění proti validované české verzi před releasem
-const WHO5_OPTIONS: AnswerOption[] = [
-  { label: "Po celou dobu", value: 5 },
-  { label: "Většinu času", value: 4 },
-  { label: "Více než polovinu času", value: 3 },
-  { label: "Méně než polovinu času", value: 2 },
-  { label: "Občas", value: 1 },
-  { label: "Nikdy", value: 0 },
-];
+/* The WHO-5 scale (5 to 0, from "all of the time" to "at no time"). */
+const WHO5_VALUES = [5, 4, 3, 2, 1, 0] as const;
 
-// TODO(Anna): ověřit znění proti validované české verzi před releasem
-const WHO5_QUESTIONS = [
-  "Cítil(a) jsem se veselý(á) a v dobré náladě.",
-  "Cítil(a) jsem se klidný(á) a uvolněný(á).",
-  "Cítil(a) jsem se aktivní a plný(á) energie.",
-  "Když jsem se probudil(a), cítil(a) jsem se svěží a odpočinutý(á).",
-  "Můj každodenní život byl naplněný věcmi, které mě zajímají.",
-];
+const WHO5_QUESTIONS = ["q1", "q2", "q3", "q4", "q5"] as const;
+const PHQ9_QUESTIONS = ["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9"] as const;
+const GAD7_QUESTIONS = ["q1", "q2", "q3", "q4", "q5", "q6", "q7"] as const;
 
-// TODO(Anna): ověřit znění proti validované české verzi před releasem
-const PHQ9_QUESTIONS = [
-  "Malý zájem nebo potěšení z věcí, které děláš",
-  "Pokleslá nálada, sklíčenost nebo beznaděj",
-  "Problémy s usínáním, přerušovaný spánek, nebo naopak nadměrné spaní",
-  "Pocit únavy nebo nedostatku energie",
-  "Nechutenství nebo přejídání",
-  "Špatné mínění o sobě — pocit, že jsi selhal(a) nebo zklamal(a) sebe či své blízké",
-  "Problémy se soustředěním, třeba při čtení nebo sledování videa",
-  "Zpomalené pohyby či řeč, kterých si všimli ostatní — nebo naopak neklid a přecházení",
-  "Myšlenky na to, že by bylo lepší nežít, nebo na to, že si ublížíš",
-];
-
-/** Index otázky PHQ-9 o myšlenkách na smrt / sebepoškození (od nuly). */
+/** The index (from zero) of the PHQ-9 question about death and self-harm. */
 export const PHQ9_RISK_QUESTION_INDEX = 8;
 
-// TODO(Anna): ověřit znění proti validované české verzi před releasem
-const GAD7_QUESTIONS = [
-  "Pocit nervozity, úzkosti nebo napětí",
-  "Neschopnost zastavit obavy nebo je mít pod kontrolou",
-  "Nadměrné obavy z různých věcí",
-  "Potíže se uvolnit",
-  "Takový neklid, že je těžké vydržet v klidu sedět",
-  "Snadná podrážděnost nebo mrzutost",
-  "Strach, že se stane něco hrozného",
-];
+function instrument<T extends MeasurementType>(
+  type: T,
+  questions: readonly string[],
+  values: readonly number[],
+  maxScore: number,
+): Instrument {
+  return {
+    type,
+    maxScore,
+    get title() {
+      return contentText(`instruments.${type}.title`);
+    },
+    get intro() {
+      return contentText(`instruments.${type}.intro`);
+    },
+    get questions() {
+      return questions.map((q) => contentText(`instruments.${type}.questions.${q}` as never));
+    },
+    get options() {
+      return values.map((value) => ({
+        value,
+        label: contentText(`instruments.${type}.options.${value}` as never),
+      }));
+    },
+  };
+}
 
 export const INSTRUMENTS: Record<MeasurementType, Instrument> = {
-  who5: {
-    type: "who5",
-    title: "Wellbeing index",
-    intro: "Jak ti bylo posledních 14 dní?",
-    questions: WHO5_QUESTIONS,
-    options: WHO5_OPTIONS,
-    maxScore: 100,
-  },
-  phq9: {
-    type: "phq9",
-    title: "Nálada do hloubky",
-    intro: "Jak často tě v posledních 2 týdnech trápilo následující?",
-    questions: PHQ9_QUESTIONS,
-    options: FREQUENCY_OPTIONS,
-    maxScore: 27,
-  },
-  gad7: {
-    type: "gad7",
-    title: "Napětí a obavy do hloubky",
-    intro: "Jak často tě v posledních 2 týdnech trápilo následující?",
-    questions: GAD7_QUESTIONS,
-    options: FREQUENCY_OPTIONS,
-    maxScore: 21,
-  },
+  who5: instrument("who5", WHO5_QUESTIONS, WHO5_VALUES, 100),
+  phq9: instrument("phq9", PHQ9_QUESTIONS, FREQUENCY_VALUES, 27),
+  gad7: instrument("gad7", GAD7_QUESTIONS, FREQUENCY_VALUES, 21),
 };
 
 export const MEASUREMENT_TYPES: MeasurementType[] = ["who5", "phq9", "gad7"];

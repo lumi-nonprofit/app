@@ -6,6 +6,16 @@
    Nativní šifrovaná SQLite se mockuje na better-sqlite3 (stejné schéma,
    stejné migrace) — viz helpers/testDb. */
 import { __resetTestDb as resetTestDb } from "./helpers/testDb";
+import { initI18n } from "../src/i18n";
+
+/* The tests run in the source locale (cs) and assert the visible Czech text: that proves that
+   the catalogs reproduce the user interface. expo-localization has no native module in Jest. */
+jest.mock("expo-localization", () => ({
+  getLocales: () => [
+    { languageCode: "cs", languageTag: "cs-CZ", regionCode: "CZ", textDirection: "ltr" },
+  ],
+}));
+initI18n({ lng: "cs" });
 
 jest.mock(
   "react-native-safe-area-context",

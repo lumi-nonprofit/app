@@ -32,16 +32,16 @@ choice. **Full report + evidence: `spikes/rn-nitro/SPIKE-REPORT.md`.** Summary:
   noted in the RN-handjsi tradeoffs still applies (and remains compatible with keeping
   UniFFI for the deferred desktop/watch targets).
 - **Honest scope:** GO rests on the **live arm64-device** leg plus a **clean x86_64
-  build** (the x86_64-emulator _runtime_ leg was optional and not run). The spike text
+  build** (the x86*64-emulator \_runtime* leg was optional and not run). The spike text
   below also names a **4-ABI** Android build+run; that was narrowed **by design** (RUNBOOK
   Step 7 restricts `reactNativeArchitectures` to `arm64-v8a,x86_64`) to the **2 ABIs** we
-  ship-test — arm64-v8a (built + run) and x86_64 (built only); armeabi-v7a/x86 were out of
+  ship-test — arm64-v8a (built + run) and x86*64 (built only); armeabi-v7a/x86 were out of
   scope. Reached via the **debug dev-loop** — `assembleRelease` compiled the native code
   clean for both ABIs but failed at Java dex-merge (a create-react-native-library packaging
   issue, **deferred** as production hygiene, not a binding blocker). **iOS remains deferred**
   per ADR 0001 (no Mac), so the iOS-xcframework-link clause of the spike text below is
   satisfied by deferral, not by execution — it stays an open risk for the iOS milestone.
-  (Net: the binding _mechanism_ is validated on real arm64 hardware; the iOS and full
+  (Net: the binding \_mechanism* is validated on real arm64 hardware; the iOS and full
   4-ABI clauses are satisfied by narrowed scope, not executed as literally written.)
 
 _The analysis, scoreboard, tradeoffs, and recommendation below are unchanged — kept as the

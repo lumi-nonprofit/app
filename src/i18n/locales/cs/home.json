@@ -1,0 +1,7 @@
+{
+  "wellbeing": {
+    "aboveAverage": "WHO-5 za posledních 14 dní. Drží se nad tvým průměrem.",
+    "baseline": "WHO-5 za posledních 14 dní. Tvůj výchozí bod.",
+    "belowAverage": "WHO-5 za posledních 14 dní. Je teď kousek pod tvým průměrem."
+  }
+}

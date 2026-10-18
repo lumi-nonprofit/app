@@ -1,0 +1,277 @@
+{
+  "moods": {
+    "energie": {
+      "name": "Energy",
+      "nameInSentence": "energy",
+      "axis": "high energy · pleasant"
+    },
+    "napeti": {
+      "name": "Tension",
+      "nameInSentence": "tension",
+      "axis": "high energy · unpleasant"
+    },
+    "klid": {
+      "name": "Calm",
+      "nameInSentence": "calm",
+      "axis": "low energy · pleasant"
+    },
+    "utlum": {
+      "name": "Low",
+      "nameInSentence": "low mood",
+      "axis": "low energy · unpleasant"
+    }
+  },
+  "words": {
+    "enthusiasm": "enthusiasm",
+    "joy": "joy",
+    "playfulness": "playfulness",
+    "determination": "determination",
+    "curiosity": "curiosity",
+    "gratitude": "gratitude",
+    "pride": "pride",
+    "stress": "stress",
+    "nervousness": "nervousness",
+    "overwhelm": "overwhelm",
+    "irritation": "irritation",
+    "anger": "anger",
+    "worry": "worry",
+    "restlessness": "restlessness",
+    "ease": "ease",
+    "contentment": "contentment",
+    "relaxation": "relaxation",
+    "balance": "balance",
+    "safety": "safety",
+    "focus": "focus",
+    "tenderness": "tenderness",
+    "tiredness": "tiredness",
+    "sadness": "sadness",
+    "loneliness": "loneliness",
+    "emptiness": "emptiness",
+    "disappointment": "disappointment",
+    "longing": "longing",
+    "apathy": "apathy"
+  },
+  "tags": {
+    "work": { "label": "work", "instrumental": "with work" },
+    "school": { "label": "school", "instrumental": "with school" },
+    "family": { "label": "family", "instrumental": "with family" },
+    "relationships": { "label": "relationships", "instrumental": "with relationships" },
+    "sleep": { "label": "sleep", "instrumental": "with sleep" },
+    "health": { "label": "health", "instrumental": "with health" },
+    "weather": { "label": "weather", "instrumental": "with the weather" },
+    "custom": { "instrumental": "with the tag “{{tag}}”" }
+  },
+  "intensity": {
+    "1": "just a little",
+    "2": "a little",
+    "3": "moderately",
+    "4": "strongly",
+    "5": "very strongly"
+  },
+  "helpLines": {
+    "linka-bezpeci": {
+      "name": "Linka bezpečí",
+      "nameDative": "Linka bezpečí",
+      "meta": "24/7, free · children and students up to 26"
+    },
+    "lppp": {
+      "name": "Linka první psychické pomoci",
+      "nameDative": "Linka první psychické pomoci",
+      "meta": "24/7, free · adults"
+    },
+    "obetem": {
+      "name": "Linka pomoci obětem",
+      "nameDative": "Linka pomoci obětem",
+      "meta": "24/7, free · for victims of violence and crime"
+    },
+    "rodicovska": {
+      "name": "Rodičovská linka",
+      "nameDative": "Rodičovská linka",
+      "meta": "Mon–Thu 9–21 · Fri 9–17 · parents and people close to children · standard rate"
+    },
+    "zachranka": {
+      "name": "Emergency medical service",
+      "nameDative": "Emergency medical service",
+      "short": "ambulance",
+      "meta": "when a life is in immediate danger"
+    },
+    "tisen": {
+      "name": "Emergency line",
+      "nameDative": "Emergency line",
+      "short": "emergency",
+      "meta": "the single European number, works without a SIM"
+    }
+  },
+  "recommendations": {
+    "dech-478": {
+      "title": "4-7-8 breathing",
+      "subtitle": "Helps with tension",
+      "badge": "3 min"
+    },
+    "denik": {
+      "title": "Journal entry",
+      "subtitle": "What do you not want to forget today?"
+    },
+    "usinani": {
+      "title": "Calm sleep",
+      "subtitle": "Sounds and audio for the night",
+      "badge": "evening"
+    },
+    "prochazka": {
+      "title": "Mindful walk",
+      "subtitle": "Meditation in motion · outdoors",
+      "badge": "outdoors"
+    }
+  },
+  "calmActivities": {
+    "dech-478": {
+      "title": "4-7-8 breathing",
+      "subtitle": "For tension and anxiety",
+      "badge": "3 min"
+    },
+    "ticha-louka": {
+      "title": "Quiet meadow",
+      "subtitle": "Guided meditation · in Czech",
+      "badge": "10 min"
+    },
+    "vecerka": {
+      "title": "Lights out",
+      "subtitle": "Sounds and audio for the night",
+      "badge": "evening"
+    },
+    "dech-naslepo": {
+      "title": "Blind breathing",
+      "subtitle": "Phone in your pocket — we guide you with vibrations",
+      "badge": "eyes closed"
+    }
+  },
+  "planSections": {
+    "signals": {
+      "title": "My warning signs",
+      "subtitle": "How I know things are getting worse",
+      "placeholder": "For example: sleeplessness, pulling away from people, …"
+    },
+    "helps": {
+      "title": "What helps me",
+      "subtitle": "Steps and activities that work",
+      "placeholder": "For example: call a friend, go for a walk, 4-7-8 breathing"
+    },
+    "contacts": {
+      "title": "Who I turn to",
+      "subtitle": "People close to me and contacts",
+      "placeholder": "Name and phone — who is good to reach out to"
+    }
+  },
+  "instruments": {
+    "who5": {
+      "_meta": {
+        "source": "WHO-5 Well-Being Index (1998), original English wording, Psychiatric Research Unit, WHO Collaborating Centre in Mental Health"
+      },
+      "title": "Wellbeing index",
+      "intro": "Over the last two weeks…",
+      "questions": {
+        "q1": "I have felt cheerful and in good spirits.",
+        "q2": "I have felt calm and relaxed.",
+        "q3": "I have felt active and vigorous.",
+        "q4": "I woke up feeling fresh and rested.",
+        "q5": "My daily life has been filled with things that interest me."
+      },
+      "options": {
+        "5": "All of the time",
+        "4": "Most of the time",
+        "3": "More than half of the time",
+        "2": "Less than half of the time",
+        "1": "Some of the time",
+        "0": "At no time"
+      }
+    },
+    "phq9": {
+      "_meta": {
+        "source": "PHQ-9, original English wording, Spitzer, Kroenke, Williams and Pfizer; free for use."
+      },
+      "title": "Mood in depth",
+      "intro": "Over the last 2 weeks, how often have you been bothered by any of the following problems?",
+      "questions": {
+        "q1": "Little interest or pleasure in doing things",
+        "q2": "Feeling down, depressed, or hopeless",
+        "q3": "Trouble falling or staying asleep, or sleeping too much",
+        "q4": "Feeling tired or having little energy",
+        "q5": "Poor appetite or overeating",
+        "q6": "Feeling bad about yourself — or that you are a failure or have let yourself or your family down",
+        "q7": "Trouble concentrating on things, such as reading the newspaper or watching television",
+        "q8": "Moving or speaking so slowly that other people could have noticed? Or the opposite — being so fidgety or restless that you have been moving around a lot more than usual",
+        "q9": "Thoughts that you would be better off dead or of hurting yourself in some way"
+      },
+      "options": {
+        "0": "Not at all",
+        "1": "Several days",
+        "2": "More than half the days",
+        "3": "Nearly every day"
+      }
+    },
+    "gad7": {
+      "_meta": {
+        "source": "GAD-7, original English wording, Spitzer, Kroenke, Williams, Löwe and Pfizer; free for use."
+      },
+      "title": "Tension and worry in depth",
+      "intro": "Over the last 2 weeks, how often have you been bothered by the following problems?",
+      "questions": {
+        "q1": "Feeling nervous, anxious, or on edge",
+        "q2": "Not being able to stop or control worrying",
+        "q3": "Worrying too much about different things",
+        "q4": "Trouble relaxing",
+        "q5": "Being so restless that it is hard to sit still",
+        "q6": "Becoming easily annoyed or irritable",
+        "q7": "Feeling afraid as if something awful might happen"
+      },
+      "options": {
+        "0": "Not at all",
+        "1": "Several days",
+        "2": "More than half the days",
+        "3": "Nearly every day"
+      }
+    }
+  },
+  "bands": {
+    "phq9": {
+      "minimal": {
+        "label": "minimal symptoms",
+        "text": "Your answers fall in the range of minimal symptoms."
+      },
+      "mild": {
+        "label": "mild symptoms",
+        "text": "Your answers fall in the range of mild symptoms."
+      },
+      "moderate": {
+        "label": "moderate symptoms",
+        "text": "Your answers fall in the range of moderate symptoms. It can help to talk it through with someone close or with professional support."
+      },
+      "moderately-severe": {
+        "label": "moderately severe symptoms",
+        "text": "Your answers fall in the range of moderately severe symptoms. It is worth asking for professional support — Help shows you where to start."
+      },
+      "severe": {
+        "label": "severe symptoms",
+        "text": "Your answers fall in the range of severe symptoms. It is worth asking for professional support as soon as you can — Help shows you where to start."
+      }
+    },
+    "gad7": {
+      "minimal": {
+        "label": "minimal symptoms",
+        "text": "Your answers fall in the range of minimal symptoms."
+      },
+      "mild": {
+        "label": "mild symptoms",
+        "text": "Your answers fall in the range of mild symptoms."
+      },
+      "moderate": {
+        "label": "moderate symptoms",
+        "text": "Your answers fall in the range of moderate symptoms. It can help to talk it through with someone close or with professional support."
+      },
+      "severe": {
+        "label": "severe symptoms",
+        "text": "Your answers fall in the range of severe symptoms. It is worth asking for professional support — Help shows you where to start."
+      }
+    }
+  }
+}

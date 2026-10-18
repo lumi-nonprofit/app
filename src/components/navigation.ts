@@ -16,7 +16,11 @@ export function stackScreenOptions(theme: Theme): NativeStackNavigationOptions {
     headerTitleAlign: ios ? "center" : "left",
     headerTitleStyle: ios
       ? { color: theme.colors.textStrong }
-      : { fontFamily: DISPLAY_FONT.semibold, fontSize: 22, color: theme.colors.textStrong },
+      : {
+          fontFamily: DISPLAY_FONT.semibold,
+          fontSize: theme.platform.headerTitleSize,
+          color: theme.colors.textStrong,
+        },
     headerLargeTitleStyle: { fontFamily: DISPLAY_FONT.bold, color: theme.colors.textStrong },
     headerStyle: ios ? undefined : { backgroundColor: theme.colors.surfacePage },
     headerShadowVisible: false,

@@ -134,8 +134,8 @@ describe("trend vůči minulému měření", () => {
     expect(trendText(3, 10)).toBe("O 7 bodů míň než minule.");
   });
   it("WHO-5 se zobrazuje procentem → jednotka %", () => {
-    expect(trendText(80, 76, "percent")).toBe("O 4 % víc než minule.");
-    expect(trendText(60, 80, "percent")).toBe("O 20 % míň než minule.");
+    expect(trendText(80, 76, "percent")).toBe("O 4\u00a0% víc než minule.");
+    expect(trendText(60, 80, "percent")).toBe("O 20\u00a0% míň než minule.");
     expect(trendText(80, 80, "percent")).toBe("Stejně jako minule.");
   });
 });

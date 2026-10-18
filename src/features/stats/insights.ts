@@ -1,7 +1,9 @@
 /* Lokální insights — čisté funkce nad záznamy zvoleného období.
    Formulace VŽDY deskriptivní, nikdy kauzální („pojilo se“, „objevuje
    se“ — ne „protože“ ani „kvůli“). Pod prahem dat se nic nevymýšlí. */
-import { MOOD_BY_ID, type Entry, type MoodId } from "../../model";
+import { MOOD_BY_ID, tagLabel, wordLabel, type Entry, type MoodId } from "../../model";
+import { isTagId } from "../../db/vocab";
+import { contentText } from "../../i18n/content";
 
 export interface Insight {
   id: string;
@@ -21,19 +23,12 @@ const MOOD_VERB: Record<MoodId, string> = {
   utlum: "pojil", // ten útlum
 };
 
-/* instrumentál vestavěných štítků („se školou“); vlastní štítky dostávají
+/* instrumentál vestavěných štítků („se školou“) z katalogu; vlastní štítky dostávají
    obecný tvar „se štítkem „X““ — skloňování neznámých slov negenerujeme */
-const TAG_INSTRUMENTAL: Record<string, string> = {
-  práce: "s prací",
-  škola: "se školou",
-  rodina: "s rodinou",
-  vztahy: "se vztahy",
-  spánek: "se spánkem",
-  zdraví: "se zdravím",
-  počasí: "s počasím",
-};
-
-const tagPhrase = (tag: string): string => TAG_INSTRUMENTAL[tag] ?? `se štítkem „${tag}“`;
+const tagPhrase = (tag: string): string =>
+  isTagId(tag)
+    ? contentText(`tags.${tag}.instrumental`)
+    : contentText("tags.custom.instrumental", { tag: tagLabel(tag) });
 
 const topOf = (counts: Map<string, number>): [string, number] | null => {
   let best: [string, number] | null = null;
@@ -71,7 +66,7 @@ function frequentInsight(entries: Entry[], periodLabel: string): Insight | null 
       (w) => w,
     ),
   );
-  const wordsPart = words ? ` — nejčastěji se slovem „${words[0]}“` : "";
+  const wordsPart = words ? ` — nejčastěji se slovem „${wordLabel(words[0])}“` : "";
   return {
     id: "frequent",
     text: `${periodLabel} se nejčastěji objevuje ${mood.name.toLowerCase()}${wordsPart}.`,

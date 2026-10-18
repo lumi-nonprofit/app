@@ -22,7 +22,8 @@ import {
   setSetting,
   type MeasurementType,
 } from "../../db/repo";
-import { HELP_LINES, toISODate, czPlural } from "../../model";
+import { HELP_LINES, toISODate } from "../../model";
+import i18n from "../../i18n";
 import { useAppStore } from "../../store";
 import { announce } from "../../lib/a11y";
 import { haptics } from "../../lib/haptics";
@@ -371,7 +372,7 @@ function Measure({ type }: { type: MeasurementType }) {
         </Text>
         {type !== "who5" ? (
           <Text variant="footnote" color="textMuted">
-            {`${phase.score} ${czPlural(phase.score, ["bod", "body", "bodů"])} z ${inst.maxScore}`}
+            {`${i18n.t("common:counts.points", { count: phase.score })} z ${inst.maxScore}`}
           </Text>
         ) : null}
         {trend ? (

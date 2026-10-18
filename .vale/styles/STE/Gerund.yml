@@ -43,6 +43,7 @@ exceptions:
   - warning
   - warnings
   - wing
+  - wording
   - autolinking
   - binding
   - bindings

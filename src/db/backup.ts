@@ -13,9 +13,13 @@ import {
   type Measurement,
 } from "./repo";
 import type { LumiDb } from "./types";
+import { normalizeTags, normalizeWords } from "./vocab";
 import type { AgeBand, Entry, Intensity, ISODate, MoodId } from "../model";
 
-export const BACKUP_VERSION = 1 as const;
+/* Version 2 (2026-10-18): the words and the tags of an entry are ids (src/db/vocab.ts).
+   Version 1 stored the Czech text; the import maps it to ids, so old files still import. */
+export const BACKUP_VERSION = 2 as const;
+const READABLE_VERSIONS: readonly number[] = [1, 2];
 
 export interface BackupV1 {
   version: typeof BACKUP_VERSION;
@@ -61,8 +65,12 @@ function asEntry(e: unknown): Entry | null {
     time: typeof x.time === "string" ? x.time : "0:00",
     mood: x.mood as MoodId,
     intensity: Math.min(5, Math.max(1, Math.round(x.intensity))) as Intensity,
-    words: Array.isArray(x.words) ? x.words.filter((w) => typeof w === "string") : [],
-    tags: Array.isArray(x.tags) ? x.tags.filter((t) => typeof t === "string") : [],
+    words: normalizeWords(
+      Array.isArray(x.words) ? x.words.filter((w): w is string => typeof w === "string") : [],
+    ),
+    tags: normalizeTags(
+      Array.isArray(x.tags) ? x.tags.filter((t): t is string => typeof t === "string") : [],
+    ),
     note: typeof x.note === "string" ? x.note : "",
   };
 }
@@ -108,7 +116,8 @@ export function parseBackup(json: string): ParseResult {
   if (!parsed || typeof parsed !== "object" || !("version" in parsed))
     return { ok: false, reason: "not-a-backup" };
   const raw = parsed as Partial<BackupV1>;
-  if (raw.version !== BACKUP_VERSION) return { ok: false, reason: "unknown-version" };
+  if (typeof raw.version !== "number" || !READABLE_VERSIONS.includes(raw.version))
+    return { ok: false, reason: "unknown-version" };
 
   const entries = Array.isArray(raw.entries)
     ? raw.entries.map(asEntry).filter((e): e is Entry => e !== null)

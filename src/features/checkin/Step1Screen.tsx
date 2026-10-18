@@ -10,7 +10,7 @@ import { pressFeedback, pressedStyle } from "../../ds/press";
 import { LumiHeader } from "../../components/Header";
 import MoodShape from "../../components/MoodShape";
 import Screen from "../../components/Screen";
-import { INTENSITY_LABELS, MOODS } from "../../model";
+import { MOODS, intensityLabel } from "../../model";
 import type { Intensity } from "../../model";
 import { haptics } from "../../lib/haptics";
 import { useDiscardGuard } from "../../lib/useDiscardGuard";
@@ -83,7 +83,7 @@ export default function Step1Screen() {
             Jak silné to je?
           </Text>
           <Text variant="footnote" weight="semibold" color="textAccent">
-            {INTENSITY_LABELS[draft.intensity - 1]}
+            {intensityLabel(draft.intensity)}
           </Text>
         </View>
         <Slider
@@ -93,7 +93,7 @@ export default function Step1Screen() {
           value={draft.intensity}
           accessibilityLabel="Intenzita"
           accessibilityHint="Posunem vybereš sílu pocitu, od jen lehce po hodně silně."
-          accessibilityValue={{ text: INTENSITY_LABELS[draft.intensity - 1] }}
+          accessibilityValue={{ text: intensityLabel(draft.intensity) }}
           minimumTrackTintColor={theme.colors.accentFill}
           maximumTrackTintColor={theme.colors.borderStrong}
           thumbTintColor={theme.colors.accentFill}

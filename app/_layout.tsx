@@ -13,6 +13,7 @@ import {
   BricolageGrotesque_700Bold,
 } from "@expo-google-fonts/bricolage-grotesque";
 import * as SystemUI from "expo-system-ui";
+import { initI18n } from "../src/i18n";
 import { AppStateProvider, useAppStore } from "../src/store";
 import { DbProvider, useDb } from "../src/db/provider";
 import { applyHapticsPreference } from "../src/features/settings/preferences";
@@ -26,6 +27,9 @@ import { ThemeProvider, useTheme } from "../src/theme";
 /* Deep link (např. z notifikace) na detail dostane pod sebe taby,
    aby systémové Zpět vedlo do aplikace, ne mimo ni. */
 export const unstable_settings = { anchor: "(tabs)" };
+
+/* The message catalogs are ready before the first render (the language follows the device). */
+initI18n();
 
 SplashScreen.preventAutoHideAsync().catch(() => {
   /* splash už může být skrytý (např. po fast refreshi) */

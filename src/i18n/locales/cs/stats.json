@@ -1,0 +1,14 @@
+{
+  "who5": {
+    "filledAgo_one": "Vyplněno před {{count}} dnem.",
+    "filledAgo_few": "Vyplněno před {{count}} dny.",
+    "filledAgo_many": "Vyplněno před {{count}} dne.",
+    "filledAgo_other": "Vyplněno před {{count}} dny.",
+    "filledToday": "Vyplněno dnes.",
+    "nextIn_one": "Další dotazník tě čeká za {{count}} den.",
+    "nextIn_few": "Další dotazník tě čeká za {{count}} dny.",
+    "nextIn_many": "Další dotazník tě čeká za {{count}} dne.",
+    "nextIn_other": "Další dotazník tě čeká za {{count}} dní.",
+    "nextToday": "Další dotazník tě čeká dnes."
+  }
+}

@@ -13,8 +13,9 @@ import { headerItems } from "../../components/HeaderItems";
 import MoodShape from "../../components/MoodShape";
 import { createThemedStyles, useTheme } from "../../theme";
 import {
-  DAY_NAMES,
-  INTENSITY_LABELS,
+  intensityLabel,
+  weekdayNames,
+  type Intensity,
   MOODS,
   MOOD_BY_ID,
   WHO5_CADENCE_DAYS,
@@ -51,7 +52,7 @@ function DayDot({ day }: DayDotProps) {
   /* `mood` existuje právě tehdy, když `day.entry` — podmínka rozšířena jen kvůli zúžení typů */
   const label =
     day.entry && mood
-      ? `${day.dayName} — ${mood.name}, ${INTENSITY_LABELS[day.entry.intensity - 1]}`
+      ? `${day.dayName} — ${mood.name}, ${intensityLabel(day.entry.intensity)}`
       : `${day.dayName} — bez záznamu`;
   return (
     <View
@@ -123,9 +124,9 @@ function monthCellLabel(
   entry: { mood: keyof typeof MOOD_BY_ID; intensity: number } | null,
 ): string {
   const [, m, d] = iso.split("-");
-  const date = `${DAY_NAMES[dayIndex]} ${Number(d)}. ${Number(m)}.`;
+  const date = `${weekdayNames()[dayIndex]} ${Number(d)}. ${Number(m)}.`;
   return entry
-    ? `${date} — ${MOOD_BY_ID[entry.mood].name}, ${INTENSITY_LABELS[entry.intensity - 1]}`
+    ? `${date} — ${MOOD_BY_ID[entry.mood].name}, ${intensityLabel(entry.intensity as Intensity)}`
     : `${date} — bez záznamu`;
 }
 

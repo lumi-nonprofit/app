@@ -39,10 +39,10 @@ describe("computeInsights", () => {
 
   it("nejčastější stav a slovo — deskriptivně", () => {
     const entries = [
-      entry({ mood: "napeti", intensity: 3, words: ["stres"] }),
-      entry({ mood: "napeti", intensity: 4, words: ["stres", "obavy"] }),
+      entry({ mood: "napeti", intensity: 3, words: ["stress"] }),
+      entry({ mood: "napeti", intensity: 4, words: ["stress", "worry"] }),
       entry({ mood: "klid", intensity: 2, words: ["pohoda"] }),
-      entry({ mood: "napeti", intensity: 2, words: ["stres"] }),
+      entry({ mood: "napeti", intensity: 2, words: ["stress"] }),
     ];
     const insights = computeInsights(entries, "Tenhle měsíc");
     expect(insights[0].text).toBe(
@@ -53,13 +53,13 @@ describe("computeInsights", () => {
 
   it("ko-výskyt štítek×stav až od 3 výskytů, instrumentál pro vestavěné", () => {
     const two = [
-      entry({ mood: "napeti", intensity: 3, tags: ["škola"] }),
-      entry({ mood: "napeti", intensity: 4, tags: ["škola"] }),
+      entry({ mood: "napeti", intensity: 3, tags: ["school"] }),
+      entry({ mood: "napeti", intensity: 4, tags: ["school"] }),
       entry({ mood: "klid", intensity: 2 }),
     ];
     expect(computeInsights(two).find((i) => i.id === "tag-mood")).toBeUndefined();
 
-    const three = [...two, entry({ mood: "napeti", intensity: 3, tags: ["škola"] })];
+    const three = [...two, entry({ mood: "napeti", intensity: 3, tags: ["school"] })];
     const found = computeInsights(three, "Tenhle měsíc").find((i) => i.id === "tag-mood");
     expect(found?.text).toBe("Napětí se ti tenhle měsíc nejčastěji pojilo se školou.");
   });
@@ -87,7 +87,7 @@ describe("computeInsights", () => {
 
   it("maximálně 3 nálezy", () => {
     const entries = Array.from({ length: 6 }, () =>
-      entry({ mood: "napeti", intensity: 3, time: "20:00", words: ["stres"], tags: ["práce"] }),
+      entry({ mood: "napeti", intensity: 3, time: "20:00", words: ["stress"], tags: ["work"] }),
     );
     const insights = computeInsights(entries);
     expect(insights.length).toBeLessThanOrEqual(3);

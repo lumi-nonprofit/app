@@ -1,0 +1,28 @@
+{
+  "tabs": {
+    "home": "Today",
+    "calm": "Calm",
+    "stats": "Overview",
+    "help": "Help"
+  },
+  "titles": {
+    "measure": "Questionnaire",
+    "calm": "Calm",
+    "settings": "Settings",
+    "handover": "Help someone close",
+    "crisis": "Help now",
+    "checkinStep1": "Step 1",
+    "checkin": "Check-in"
+  },
+  "actions": {
+    "close": "Close",
+    "back": "Back",
+    "cancel": "Cancel",
+    "done": "Done"
+  },
+  "notFound": {
+    "title": "Not found",
+    "message": "This screen is not in the app.",
+    "home": "Back to Today"
+  }
+}

@@ -60,6 +60,11 @@ for (const locale of locales) {
 }
 
 const isMeta = (key) => key.split(".").includes("_meta");
+// Plural forms differ by locale (cs: one, few, many, other; en: one, other): the locales are
+// compared on the base key, and the plural forms are checked per locale below.
+const PLURAL_SUFFIX = /_(zero|one|two|few|many|other)$/;
+const baseKey = (key) => key.replace(PLURAL_SUFFIX, "");
+const baseKeys = (keys) => new Set([...keys.keys()].filter((k) => !isMeta(k)).map(baseKey));
 const placeholders = (text) =>
   [...String(text).matchAll(/\{\{\s*([\w.]+)\s*(?:,[^}]*)?\}\}/g)]
     .map((m) => m[1])
@@ -78,18 +83,24 @@ for (const locale of locales) {
   }
   for (const [ns, keys] of catalog) {
     const sourceKeys = source.get(ns) ?? new Map();
+    const sourceBases = baseKeys(sourceKeys);
+    const sourcePlaceholders = new Map();
+    for (const [key, value] of sourceKeys) {
+      sourcePlaceholders.set(baseKey(key), placeholders(value));
+    }
     for (const [key, value] of keys) {
       if (typeof value !== "string" || value.trim() === "") {
         if (!isMeta(key)) findings.push(`${locale}/${ns}: "${key}" is empty`);
-      } else if (value !== value.trim()) {
+      } else if (value !== value.trim() && !key.startsWith("list.")) {
+        // The `list` keys are separators and keep their spaces on purpose.
         findings.push(`${locale}/${ns}: "${key}" has spaces at the start or the end`);
       }
       if (isMeta(key)) continue;
-      if (locale !== SOURCE && !sourceKeys.has(key)) {
+      if (locale !== SOURCE && !sourceBases.has(baseKey(key))) {
         findings.push(`${locale}/${ns}: "${key}" does not exist in ${SOURCE}`);
       }
-      if (locale !== SOURCE && sourceKeys.has(key)) {
-        const a = placeholders(sourceKeys.get(key));
+      if (locale !== SOURCE && sourcePlaceholders.has(baseKey(key))) {
+        const a = sourcePlaceholders.get(baseKey(key));
         const b = placeholders(value);
         if (a !== b)
           findings.push(
@@ -104,8 +115,9 @@ for (const locale of locales) {
       }
     }
     if (locale !== SOURCE) {
-      for (const key of sourceKeys.keys()) {
-        if (!isMeta(key) && !keys.has(key)) findings.push(`${locale}/${ns}: "${key}" is missing`);
+      const bases = baseKeys(keys);
+      for (const base of sourceBases) {
+        if (!bases.has(base)) findings.push(`${locale}/${ns}: "${base}" is missing`);
       }
     }
     // Plural forms: a key with one plural suffix needs every form of the locale.

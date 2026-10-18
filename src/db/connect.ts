@@ -9,6 +9,7 @@ import { openDatabaseSync } from "expo-sqlite";
 import { drizzle } from "drizzle-orm/expo-sqlite";
 import { migrate } from "drizzle-orm/expo-sqlite/migrator";
 import migrations from "../../drizzle/migrations";
+import { runDataMigrations } from "./dataMigrations";
 import { getOrCreateDbKey } from "./key";
 import * as schema from "./schema";
 import type { LumiDb } from "./types";
@@ -25,5 +26,6 @@ export async function connectDb(): Promise<LumiDb> {
   /* na webu SQLCipher není (wasm sqlite) — vývojový režim, viz README */
   const db = drizzle(raw, { schema });
   await migrate(db, migrations);
+  runDataMigrations(db as LumiDb);
   return db as LumiDb;
 }

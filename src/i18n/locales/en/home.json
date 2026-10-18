@@ -1,0 +1,7 @@
+{
+  "wellbeing": {
+    "aboveAverage": "WHO-5 for the last 14 days. It stays above your average.",
+    "baseline": "WHO-5 for the last 14 days. Your starting point.",
+    "belowAverage": "WHO-5 for the last 14 days. It is a little below your average right now."
+  }
+}

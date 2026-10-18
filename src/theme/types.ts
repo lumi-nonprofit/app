@@ -28,6 +28,8 @@ export interface ThemePlatform {
   screenMargin: number;
   /** Minimální výška řádku seznamu: 44 pt / 56 dp. */
   listRowMinHeight: number;
+  /** Velikost titulku v horní liště: 17 pt (HIG, nativní) / 22 sp (M3 titleLarge). */
+  headerTitleSize: number;
   isIOS: boolean;
   isAndroid: boolean;
 }

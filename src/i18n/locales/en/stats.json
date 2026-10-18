@@ -1,0 +1,10 @@
+{
+  "who5": {
+    "filledAgo_one": "Filled in {{count}} day ago.",
+    "filledAgo_other": "Filled in {{count}} days ago.",
+    "filledToday": "Filled in today.",
+    "nextIn_one": "The next questionnaire is ready in {{count}} day.",
+    "nextIn_other": "The next questionnaire is ready in {{count}} days.",
+    "nextToday": "The next questionnaire is ready today."
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "tabs": {
+    "home": "Dnes",
+    "calm": "Klid",
+    "stats": "Přehledy",
+    "help": "Pomoc"
+  },
+  "titles": {
+    "measure": "Dotazník",
+    "calm": "Klid",
+    "settings": "Nastavení",
+    "handover": "Pomoc blízkému",
+    "crisis": "Pomoc hned",
+    "checkinStep1": "Krok 1",
+    "checkin": "Check-in"
+  },
+  "actions": {
+    "close": "Zavřít",
+    "back": "Zpět",
+    "cancel": "Zrušit",
+    "done": "Hotovo"
+  },
+  "notFound": {
+    "title": "Nenalezeno",
+    "message": "Tahle obrazovka v aplikaci není.",
+    "home": "Zpět na Dnes"
+  }
+}

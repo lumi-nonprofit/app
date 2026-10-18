@@ -13,22 +13,23 @@ import { computeInsights, TOO_FEW_DATA_TEXT } from "./insights";
 import { reflectionWeekRange } from "./reflection";
 import { InsightRow } from "./InsightsCard";
 import {
-  DAY_LETTERS,
-  DAY_NAMES,
-  INTENSITY_LABELS,
   MOOD_BY_ID,
   aggregateDay,
-  czPlural,
+  intensityLabel,
   toISODate,
+  weekdayLetters,
+  weekdayNames,
+  wordLabel,
   type Entry,
   type ISODate,
 } from "../../model";
+import i18n from "../../i18n";
 import { createThemedStyles } from "../../theme";
 
 /** 7 ISO dnů reflektovaného týdne od pondělí `from`; poledne kvůli změnám času. */
 function weekDates(from: ISODate): ISODate[] {
   const monday = new Date(`${from}T12:00:00`);
-  return DAY_LETTERS.map((_, i) => {
+  return weekdayLetters().map((_, i) => {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
     return toISODate(d);
@@ -57,10 +58,11 @@ function ReflectionDay({ index, dayEntries }: ReflectionDayProps) {
   const agg = aggregateDay(dayEntries);
   const mood = agg ? MOOD_BY_ID[agg.mood] : null;
   /* `mood` existuje právě tehdy, když `agg` — podmínka rozšířena jen kvůli zúžení typů */
+  const dayName = weekdayNames()[index];
   const label =
     agg && mood
-      ? `${DAY_NAMES[index]} — ${mood.name}, ${INTENSITY_LABELS[agg.intensity - 1]}`
-      : `${DAY_NAMES[index]} — bez záznamu`;
+      ? `${dayName} — ${mood.name}, ${intensityLabel(agg.intensity)}`
+      : `${dayName} — bez záznamu`;
   return (
     <View
       accessible
@@ -77,7 +79,7 @@ function ReflectionDay({ index, dayEntries }: ReflectionDayProps) {
         )}
       </View>
       <Text variant="caption1" maxFontSizeMultiplier={1.6}>
-        {DAY_LETTERS[index]}
+        {weekdayLetters()[index]}
       </Text>
     </View>
   );
@@ -109,7 +111,7 @@ export default function ReflectionScreen() {
           ))}
         </View>
         <Text variant="subheadline" weight="medium" color="textMuted" style={styles.countText}>
-          {`Celkem ${count} ${czPlural(count, ["záznam", "záznamy", "záznamů"])}.`}
+          {`Celkem ${i18n.t("common:counts.entries", { count })}.`}
         </Text>
       </Card>
 
@@ -122,7 +124,7 @@ export default function ReflectionScreen() {
               {words.map((w) => (
                 <View key={w} style={styles.wordPill}>
                   <Text variant="subheadline" weight="medium" color="textOnSunken">
-                    {w}
+                    {wordLabel(w)}
                   </Text>
                 </View>
               ))}

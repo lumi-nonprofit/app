@@ -13,7 +13,8 @@ import { buildBackup, importBackup, parseBackup, type ParseResult } from "../../
 import { useDb } from "../../db/provider";
 import { useDbWriter } from "../../db/hooks";
 import { announce } from "../../lib/a11y";
-import { czPlural, toISODate, type ISODate } from "../../model";
+import { toISODate, type ISODate } from "../../model";
+import i18n from "../../i18n";
 import { createThemedStyles } from "../../theme";
 
 /** "2026-06-12" → "12. 6. 2026" */
@@ -82,7 +83,7 @@ export default function BackupSection() {
     setFlow({
       kind: "done",
       message: total
-        ? `Hotovo — přidáno ${result.addedEntries} ${czPlural(result.addedEntries, ["záznam", "záznamy", "záznamů"])} a ${result.addedMeasurements} měření.`
+        ? `Hotovo — přidáno ${i18n.t("common:counts.entries", { count: result.addedEntries })} a ${result.addedMeasurements} měření.`
         : "Vše už v telefonu je — nic nebylo potřeba přidávat.",
     });
   };
@@ -91,7 +92,7 @@ export default function BackupSection() {
     const { entryCount, measurementCount, from, to } = parsed.preview;
     if (!entryCount && !measurementCount) return "Záloha je prázdná — není co přidat.";
     const range = from && to ? ` z období ${isoToCz(from)} – ${isoToCz(to)}` : "";
-    return `Najdeš tu ${entryCount} ${czPlural(entryCount, ["záznam", "záznamy", "záznamů"])}${range} a ${measurementCount} měření. Přidá se jen to, co v telefonu ještě není.`;
+    return `Najdeš tu ${i18n.t("common:counts.entries", { count: entryCount })}${range} a ${measurementCount} měření. Přidá se jen to, co v telefonu ještě není.`;
   };
 
   return (

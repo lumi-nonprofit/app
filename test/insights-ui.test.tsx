@@ -34,7 +34,7 @@ describe("Co se ukazuje (Přehledy)", () => {
     for (let i = 0; i < 3; i++) {
       insertEntry(
         getTestDb(),
-        entry({ date: today, mood: "napeti", words: ["stres"], tags: ["škola"] }),
+        entry({ date: today, mood: "napeti", words: ["stress"], tags: ["school"] }),
       );
     }
 
@@ -73,7 +73,7 @@ describe("Ohlédnutí za týdnem (/reflection)", () => {
     for (let i = 0; i < 3; i++) {
       insertEntry(
         getTestDb(),
-        entry({ date: range.from, mood: "napeti", words: ["stres"], tags: ["škola"] }),
+        entry({ date: range.from, mood: "napeti", words: ["stress"], tags: ["school"] }),
       );
     }
 

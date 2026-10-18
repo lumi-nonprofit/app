@@ -10,11 +10,13 @@ import MoodShape from "../../components/MoodShape";
 import Screen from "../../components/Screen";
 import {
   CONTEXT_TAGS,
-  INTENSITY_LABELS,
   MOOD_BY_ID,
   MOOD_WORDS,
+  intensityLabel,
   nowTime,
+  tagLabel,
   toISODate,
+  wordLabel,
 } from "../../model";
 import type { Entry, MoodId } from "../../model";
 import { newEntryId } from "../../store";
@@ -135,7 +137,7 @@ export default function Step2Screen() {
           {mood.name}
         </Text>
         <Text variant="subheadline" color="textBody">
-          · {INTENSITY_LABELS[draft.intensity - 1]}
+          · {intensityLabel(draft.intensity)}
         </Text>
       </View>
 
@@ -146,7 +148,7 @@ export default function Step2Screen() {
         <View style={styles.chipWrap}>
           {words.map((w) => (
             <Chip key={w} selected={draft.words.includes(w)} onPress={() => toggleWord(w)}>
-              {w}
+              {wordLabel(w)}
             </Chip>
           ))}
         </View>
@@ -159,7 +161,7 @@ export default function Step2Screen() {
         <View style={styles.chipWrap}>
           {CONTEXT_TAGS.map((t) => (
             <Chip key={t} selected={draft.tags.includes(t)} onPress={() => toggleTag(t)}>
-              {t}
+              {tagLabel(t)}
             </Chip>
           ))}
           {customTags.map((t) => (

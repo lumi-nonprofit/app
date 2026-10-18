@@ -22,7 +22,6 @@
     "check:agents": "bash scripts/check-agents-mirror.sh",
     "check:docs": "npm run format:check && npm run lint:md && npm run spell && npm run lint:docs && npm run check:english && npm run check:agents",
     "i18n:extract": "i18next-cli extract",
-    "i18n:types": "i18next-cli types",
     "i18n:check": "i18next-cli extract --ci && i18next-cli status && node scripts/check-i18n.mjs",
     "check:all": "npm run typecheck && npm run lint && npm test && npm run i18n:check && npm run check:docs"
   },

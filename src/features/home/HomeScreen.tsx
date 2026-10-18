@@ -12,12 +12,13 @@ import Screen from "../../components/Screen";
 import {
   MOOD_BY_ID,
   RECOMMENDATIONS,
-  czGreeting,
-  czToday,
+  greeting,
+  todayHeading,
   lastEntryForDate,
   latestWho5,
   toISODate,
   who5HomeText,
+  wordLabel,
 } from "../../model";
 import { useAppStore } from "../../store";
 import { useEntries, useMeasurements } from "../../db/hooks";
@@ -53,7 +54,7 @@ export default function HomeScreen() {
           ],
         })}
       />
-      <LumiHeader kicker={czToday()} title={czGreeting(name)} />
+      <LumiHeader kicker={todayHeading()} title={greeting(name)} />
 
       {/* Check-in karta (dominantní) */}
       {todayEntry ? (
@@ -64,7 +65,7 @@ export default function HomeScreen() {
               <Text variant="body" weight="semibold" color="textStrong">
                 Dnes zapsáno: {mood!.name}
                 {todayEntry.words && todayEntry.words.length
-                  ? ` · ${todayEntry.words.join(", ")}`
+                  ? ` · ${todayEntry.words.map(wordLabel).join(", ")}`
                   : ""}
               </Text>
               <Text variant="footnote" color="textOnSunken">

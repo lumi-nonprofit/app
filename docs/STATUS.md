@@ -129,16 +129,33 @@ File each finding as an issue. Then delete it from this list.
    and three profile fields. It does not hold the crisis plan, the custom tags or the reminder
    settings. The import adds check-ins and questionnaire results only.
 8. **The dependencies are from 2026-06-15.** 13 Dependabot PRs are open (the oldest is from
-   2026-07-21). `npm audit` reports 83 advisories (1 critical, 63 high, 19 moderate); the comment in
-   `ci.yml` from June says 3. Do not merge the old PRs without a check:
+   2026-07-21). `npm audit` reported 83 advisories (1 critical, 63 high, 19 moderate) on
+   2026-10-09; the comment in `ci.yml` from June said 3. Do not merge the old PRs without a check:
    - #31 (argon2 0.6, chacha20poly1305 0.11, getrandom 0.4) does not compile.
      `core/lumi-vault/src/lib.rs` calls `getrandom::getrandom`, which getrandom 0.4 does not have.
    - #37 moves `react-native-nitro-modules` and `nitrogen` from 0.35.9 to 0.37.1. CI builds the
      Android app without the vault module, so CI cannot verify the vault binding.
-   - #19 (shell-quote 1.10.0), #23 (brace-expansion 1.1.18) and #32 (js-yaml 3.15.2) target
-     versions that are in the vulnerable ranges of `npm audit` on 2026-10-09 (shell-quote
-     `<=1.10.0`, brace-expansion `<=1.1.20`, js-yaml `<=4.3.1`).
+   - #19 (shell-quote 1.10.0), #23 (brace-expansion 1.1.18) and #32 (js-yaml 3.15.2) are
+     superseded: `package-lock.json` now has shell-quote 1.12.0, brace-expansion 1.1.21 / 5.0.12
+     and js-yaml 4.3.2 / 3.15.2 (see below). Dependabot closes such PRs on its next run; close
+     them by hand if it does not.
    - `.github/dependabot.yml` groups all cargo updates, including breaking `0.x` updates.
+
+   Changed on 2026-10-18: `package-lock.json` moved the transitive packages that have a published
+   fix (shell-quote, @xmldom/xmldom, brace-expansion, js-yaml, browserslist,
+   baseline-browser-mapping, compression, form-data, nanoid, postcss, source-map-js);
+   `package.json` is unchanged. `npm audit` now reports 75 advisories (0 critical, 54 high,
+   21 moderate), so the `audit` job in `ci.yml` stays red and report-only. What is left has no fix
+   within the pinned toolchain: `braces` (every published version is flagged,
+   GHSA-vfj7-8cjw-p6xm; it reaches jest, metro, expo and react-native through micromatch and
+   accounts for most of the 54 high), `node-forge` 1.4.0 (the latest release,
+   GHSA-86w9-cpqp-85rv, via @expo/cli), `image-size` 1.2.1 (metro 0.84 pins 1.x; the fix is
+   2.0.3), and the moderate `sprintf-js`, `uuid` 7 (xcode), `decode-uri-component` (query-string
+   in expo-router 56) and `esbuild` (drizzle-kit 0.31). `npm audit fix` cannot run: it fails with
+   `ERESOLVE` because react-native-reanimated `^4.3.1` resolves to 4.7.1, which needs React Native
+   0.86; the packages were updated by name with `npm update`. `design/` has its own lockfile with
+   8 advisories (style-dictionary `^4`, fixed in 5.4.4, a major with a config migration; braces);
+   CI does not audit it.
 9. **One design document is missing.** ADR 0005 and the transport proposal cite the "M2 canonical
    data-model assessment (2026-06-15)". It is not in the repository. ADR 0005 states its conclusion.
 10. **Issue #8 is open** (test gap: crisis scope-tag precedence).

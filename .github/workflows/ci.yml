@@ -109,10 +109,16 @@ jobs:
           name: sbom-cyclonedx
           path: sbom.cyclonedx.json
 
-  # Dependency vulnerability scanning. REPORT-ONLY at M0 (continue-on-error): the
-  # JS tree currently has known advisories (1 high, 2 moderate) to triage, and we
-  # don't want the empty scaffold blocked on them. Tighten to blocking once the
-  # existing advisories are resolved.
+  # Dependency vulnerability scanning. REPORT-ONLY (continue-on-error): the npm step fails on any
+  # advisory of level high or above, and the JS tree carries advisories that have no fix within the
+  # pinned toolchain (checked 2026-10-18: 0 critical, 54 high, 21 moderate). The high ones are
+  # `braces` (every published version is flagged; it reaches jest, metro and expo through
+  # micromatch), `node-forge` (latest release flagged; @expo/cli) and `image-size` (metro 0.84 pins
+  # 1.x). The moderate ones wait on Expo SDK, jest 30 and drizzle-kit majors. Transitive packages
+  # that have a published fix are kept current in package-lock.json (docs/STATUS.md, finding 8).
+  # `npm audit fix` cannot run here (ERESOLVE on react-native-reanimated vs React Native 0.85);
+  # update the packages by name with `npm update`. Tighten to blocking once the Expo SDK upgrade
+  # and the upstream fixes land.
   audit:
     name: Dependency audit (report-only)
     runs-on: ubuntu-latest

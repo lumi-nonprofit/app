@@ -67,7 +67,14 @@
         "core/lumi-core/tests/**",
         "app.json",
         "docs/cz-crisis-data-checklist.md",
-        "docs/device-verification.md"
+        "docs/device-verification.md",
+        "README.md",
+        "CONTRIBUTING.md",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "docs/glossary.md",
+        "docs/writing-rules.md",
+        "docs/STATUS.md"
       ],
       "language": "en,cs",
       "dictionaries": ["cs-cz"]

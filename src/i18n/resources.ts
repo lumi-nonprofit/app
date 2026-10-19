@@ -1,4 +1,4 @@
-/* The bundled message catalogs. Each namespace is one JSON file per locale. The TypeScript type
+/* The message catalogs in the bundle. Each namespace is one JSON file per locale. The TypeScript type
    of the cs catalog gives `t()` its typed keys (src/i18n/i18next.d.ts). */
 import csCalm from "./locales/cs/calm.json";
 import csCheckin from "./locales/cs/checkin.json";

@@ -1,5 +1,5 @@
 /* An unknown path (a deep link to a screen that does not exist). The text names a clear next
-   step (HIG Writing: an empty screen always says what comes next). */
+   step (the HIG guidance on text: an empty screen always says what comes next). */
 import { View } from "react-native";
 import { Link, Stack } from "expo-router";
 import { Text } from "../src/ds";

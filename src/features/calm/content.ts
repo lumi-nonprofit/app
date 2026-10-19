@@ -58,7 +58,7 @@ export const CALM_ACTIVITIES: readonly CalmActivity[] = [
     kind: "audio",
     badgeTone: "accent",
   }),
-  /* lilac is reserved in the DS for sleep and evening */
+  /* the DS reserves lilac for sleep and evening */
   activity("vecerka", {
     minutes: 12,
     file: null,
@@ -66,7 +66,7 @@ export const CALM_ACTIVITIES: readonly CalmActivity[] = [
     kind: "audio",
     badgeTone: "lilac",
   }),
-  /* Blind breathing: vibrations give the rhythm, no display needed (the phone in a pocket). */
+  /* Blind breath: vibrations give the rhythm, no display needed (the phone in a pocket). */
   activity("dech-naslepo", {
     minutes: 3,
     file: null,

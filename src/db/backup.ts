@@ -1,7 +1,7 @@
-/* Záloha: export celé databáze do JSON souboru a zpětný import s náhledem
-   a slučováním podle id (žádné duplicity, nic se nepřepisuje).
-   Pozor: exportovaný soubor už NENÍ šifrovaný — UI na to upozorňuje.
-   Klíč databáze se nikdy neexportuje. */
+/* Backup: the export of the whole database to a JSON file and the import back with a
+   preview and a merge by id (no duplicates, no overwrite).
+   Caution: the exported file has NO encryption any more; the UI warns about it.
+   The database key never goes into an export. */
 import { count } from "drizzle-orm";
 import { entries as entriesTable, measurements as measurementsTable } from "./schema";
 import {
@@ -26,7 +26,7 @@ export interface BackupV1 {
   exportedAt: string;
   entries: Entry[];
   measurements: Measurement[];
-  /* bez `onboarded` (vázané na zařízení) a samozřejmě bez šifrovacího klíče */
+  /* without `onboarded` (bound to the device) and, of course, without the encryption key */
   settings: { name: string; age: AgeBand | null; share: boolean };
 }
 
@@ -156,7 +156,7 @@ export interface ImportResult {
   addedMeasurements: number;
 }
 
-/** Sloučení podle id: existující řádky zůstávají, nic se nepřepisuje. */
+/** A merge by id: the rows that already exist stay, the import overwrites nothing. */
 export function importBackup(db: LumiDb, backup: BackupV1): ImportResult {
   const countAll = () => ({
     e: db.select({ n: count() }).from(entriesTable).get()?.n ?? 0,

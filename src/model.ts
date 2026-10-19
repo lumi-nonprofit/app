@@ -271,7 +271,7 @@ export function greeting(name: string, d: Date = new Date()): string {
   return name ? i18n.t("common:greeting.withName", { greeting: word, name }) : word;
 }
 
-/** The number of days between two ISO dates (b minus a), measured at noon because of the changes of daylight time. */
+/** The number of days between 2 ISO dates (b minus a), measured at noon because of the changes of daylight time. */
 export function daysBetween(aISO: ISODate, bISO: ISODate): number {
   const at = new Date(`${aISO}T12:00:00`).getTime();
   const bt = new Date(`${bISO}T12:00:00`).getTime();

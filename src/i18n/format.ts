@@ -88,7 +88,7 @@ export function formatNumber(value: number): string {
   return new Intl.NumberFormat(currentLocale()).format(value);
 }
 
-/** "a, b a c" / "a, b, and c". Hermes has no Intl.ListFormat, so the fallback joins by hand. */
+/** "a, b a c" / "a, b, and c". Hermes lacks Intl.ListFormat, so the fallback joins by hand. */
 export function formatList(items: string[], separator: string, last: string): string {
   const ListFormat = (Intl as { ListFormat?: typeof Intl.ListFormat }).ListFormat;
   if (ListFormat) {

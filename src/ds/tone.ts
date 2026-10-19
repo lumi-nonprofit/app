@@ -1,18 +1,18 @@
-/* Tóny — pět odstínů DS jako dvojice „měkká výplň + silný text/ikona“
-   (≥ 4,5:1 na své výplni, viz contrastPairs) a neutral na zapuštěné ploše.
-   Sdílí je Badge, ListItem a ikonové dlaždice; obrazovky tak nikdy nesahají
-   na surové palette.* a dark režim dostanou zdarma. */
+/* Tones: the 5 shades of the DS as pairs "soft fill + strong text/icon"
+   (≥ 4.5:1 on their fill, see contrastPairs) and neutral on the sunken surface.
+   Badge, ListItem and the icon tiles share them; thus the screens never touch
+   the raw `palette.*` and get the dark mode for free. */
 import type { Theme } from "../theme";
 import type { TextColor } from "./Text";
 
 export type Tone = "neutral" | "accent" | "positive" | "info" | "danger" | "lilac";
 
 export interface ToneColors {
-  /** Měkká výplň (dlaždice ikony, pill). */
+  /** The soft fill (icon tile, pill). */
   soft: string;
-  /** Barva textu a ikony na měkké výplni. */
+  /** The color of the text and the icon on the soft fill. */
   text: string;
-  /** Totéž jako role tématu — pro ds/Text `color`. */
+  /** The same as a theme role: for the `color` of `ds/Text`. */
   textRole: TextColor;
 }
 

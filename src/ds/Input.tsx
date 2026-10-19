@@ -1,18 +1,18 @@
-/* Input — textové pole (nebo textarea přes `multiline`): zapuštěná plocha,
-   viditelný label + hint, focus ring (≥ 3:1) a chybový stav s textem u pole
-   (HIG Text fields / Writing: chybu ukázat hned u pole, říct co s tím).
-   Písmo pole = varianta body (škáluje s Dynamic Type, výška roste). */
+/* Input: a text field (or a textarea through `multiline`). It has a sunken surface, a visible
+   label + hint, a focus ring (≥ 3:1) and an error state with text next to the field.
+   HIG Text fields and the HIG guidance on text: show the error next to the field, say what to do.
+   The font of the field = the body variant (it scales with Dynamic Type, the height grows). */
 import React from "react";
 import { TextInput, View } from "react-native";
 import type { StyleProp, TextInputProps, ViewStyle } from "react-native";
 import { createThemedStyles, useTheme } from "../theme";
 import Text, { textStyle } from "./Text";
 
-/* `style` patří obalujícímu View, ne TextInputu — proto Omit. */
+/* `style` belongs to the outer `View`, not to the `TextInput`: thus `Omit`. */
 interface Props extends Omit<TextInputProps, "style"> {
   label?: string;
   hint?: string;
-  /** Chybová hláška: bez výčitek, s řešením („Použij jen písmena.“). */
+  /** The error message: no reproach, with a solution ("Použij jen písmena."). */
   error?: string;
   multiline?: boolean;
   rows?: number;

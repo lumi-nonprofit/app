@@ -1,6 +1,6 @@
 /* The vocabulary of a check-in: the words of each mood and the context tags. The database
    stores ids (ASCII, English). The catalogs hold the text (src/i18n/locales/<locale>/content.json,
-   keys `words.<id>` and `tags.<id>.label`). Custom tags of the user are stored as typed.
+   keys `words.<id>` and `tags.<id>.label`). The database stores the custom tags as typed.
 
    Before 2026-10-18 the database stored the Czech display text. `normalizeWords` and
    `normalizeTags` map that text to ids; src/db/dataMigrations.ts runs them once per database,

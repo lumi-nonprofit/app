@@ -1,8 +1,8 @@
-/* The crisis plan: three short sections that a person writes in a calm moment and reads when
-   things are bad. Each section is stored in `settings` (getSetting/setSetting) on its own, not
-   as a whole: each screen handles one section. The content belongs to the user; the app does not
-   send it anywhere and does not rate it. The titles come from the message catalog
-   (content.json, key `planSections.<id>`). */
+/* The crisis plan: 3 short sections that a person writes in a calm moment and reads when
+   things are bad. `settings` holds each section on its own (through the helpers of
+   src/db/repo.ts), not the plan as a whole: each screen handles one section. The content
+   belongs to the user; the app does not send it anywhere and does not rate it. The titles
+   come from the message catalog (content.json, key `planSections.<id>`). */
 import { getSetting } from "../../db/repo";
 import type { LumiDb } from "../../db/types";
 import { contentText } from "../../i18n/content";
@@ -54,7 +54,7 @@ export interface CrisisPlanContent {
   contacts: string;
 }
 
-/** Reads the whole plan from `settings` (a missing section is an empty string). */
+/** Reads the whole plan from `settings` (an absent section is an empty string). */
 export function readPlan(db: LumiDb): CrisisPlanContent {
   return {
     signals: getSetting<string>(db, PLAN_SECTION_KEYS.signals) ?? "",
@@ -63,7 +63,7 @@ export function readPlan(db: LumiDb): CrisisPlanContent {
   };
 }
 
-/** True when the plan is empty (all three sections hold only white space). */
+/** True when the plan is empty (all 3 sections hold only white space). */
 export function planIsEmpty(plan: CrisisPlanContent): boolean {
   return !plan.signals.trim() && !plan.helps.trim() && !plan.contacts.trim();
 }

@@ -1,5 +1,5 @@
-/* Stíny: teplé a měkké ve světlém režimu; v tmavém nejsou vidět, proto karty
-   dostávají hairline (viz Theme.cardBorder) a stín se nekreslí. */
+/* Shadows: warm and soft in the light mode; in the dark mode they are not visible, thus the
+   cards get a hairline (see Theme.cardBorder) and no shadow. */
 import type { ThemeElevation } from "./types";
 
 export const lightElevation: ThemeElevation = {

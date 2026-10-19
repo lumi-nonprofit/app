@@ -91,7 +91,7 @@ const PHASES: readonly { id: BreathPhase; seconds: number }[] = [
 ];
 const CYCLE_SECONDS = 19;
 
-/** The phase and its remaining seconds for the elapsed time. */
+/** The phase and the seconds that remain in it, for the elapsed time. */
 const phaseAt = (elapsed: number): { id: BreathPhase; remaining: number } => {
   let t = elapsed % CYCLE_SECONDS;
   for (const p of PHASES) {
@@ -273,7 +273,7 @@ function AudioPlayer({ activity, file }: { activity: CalmActivity; file: number 
     } catch {
       /* A wrong mode must not block playback. */
     }
-    /* After the end, playback starts again from the beginning. */
+    /* After the end, playback starts again from the start. */
     if (status.duration > 0 && status.currentTime >= status.duration) {
       await player.seekTo(0).catch(() => {});
     }
@@ -292,9 +292,7 @@ function AudioPlayer({ activity, file }: { activity: CalmActivity; file: number 
 
       <ProgressBlock
         text={
-          status.isLoaded
-            ? remainingText(t, duration - status.currentTime)
-            : t("player.loading")
+          status.isLoaded ? remainingText(t, duration - status.currentTime) : t("player.loading")
         }
         fraction={duration > 0 ? status.currentTime / duration : 0}
       />

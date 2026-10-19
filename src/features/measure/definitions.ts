@@ -1,4 +1,4 @@
-/* The questionnaires: WHO-5, PHQ-9 and GAD-7. All three are free to use and ask about the last
+/* The questionnaires: WHO-5, PHQ-9 and GAD-7. All 3 are free to use and ask about the last
    2 weeks (cadence 14 days). The text comes from the message catalog (content.json, key
    `instruments.<type>`). The Czech wording follows the standard Czech versions; the `_meta.todo`
    of each instrument in the catalog asks for a check of the exact wording before the release

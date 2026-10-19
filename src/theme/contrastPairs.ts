@@ -1,13 +1,13 @@
-/* Manifest barevných párů, které musí v obou režimech splnit WCAG 2.2 AA.
-   Každý pár = kde se barva reálně používá (viz komentář). Nový text- nebo border-
-   token bez páru test odmítne — nelze tiše přidat barvu bez kontroly. */
+/* The manifest of the color pairs that must meet WCAG 2.2 AA in both modes.
+   Each pair = where the app really uses the color (see the comment). The test rejects a new
+   text or border token without a pair: nobody can add a color silently without a check. */
 import type { Theme } from "./types";
 
 export interface ContrastPair {
   name: string;
   fg: string;
   bg: string;
-  /** 4.5 = text (1.4.3), 3 = ne-textový prvek / obrys / velký text (1.4.11). */
+  /** 4.5 = text (1.4.3), 3 = a non-text element / an outline / large text (1.4.11). */
   min: 4.5 | 3;
 }
 
@@ -17,7 +17,7 @@ export function contrastPairs(t: Theme): ContrastPair[] {
   const text = (name: string, fg: string, bg: string) => pairs.push({ name, fg, bg, min: 4.5 });
   const ui = (name: string, fg: string, bg: string) => pairs.push({ name, fg, bg, min: 3 });
 
-  /* text na plochách */
+  /* text on surfaces */
   for (const [surf, bg] of [
     ["surfacePage", c.surfacePage],
     ["surfaceCard", c.surfaceCard],
@@ -43,7 +43,7 @@ export function contrastPairs(t: Theme): ContrastPair[] {
   text("textOnPrimary/surfacePrimary (primary button)", c.textOnPrimary, c.surfacePrimary);
   text("textOnCrisis/surfaceCrisis (crisis button)", c.textOnCrisis, c.surfaceCrisis);
 
-  /* text v měkkých výplních (badge, karty tipů, krizová sekce) */
+  /* text in soft fills (badge, tip cards, the crisis section) */
   for (const [name, bg, fg] of [
     ["accent", c.accentSoft, c.textAccent],
     ["positive", c.positiveSoft, c.textPositive],
@@ -54,11 +54,11 @@ export function contrastPairs(t: Theme): ContrastPair[] {
     text(`text${name}/${name}Soft`, fg, bg);
     text(`textStrong/${name}Soft`, c.textStrong, bg);
     text(`textBody/${name}Soft`, c.textBody, bg);
-    /* textOnSunken se na měkkých výplních nepoužívá (nedosáhne 4,5:1);
-       sekundární text tam nese textBody nebo tón odstínu (text${name}) */
+    /* the app does not use textOnSunken on soft fills (it does not reach 4.5:1);
+       there textBody or the tone shade (text${name}) carries the secondary text */
   }
 
-  /* obrysy, výplně ovládacích prvků, výběr */
+  /* outlines, fills of controls, selection */
   for (const [surf, bg] of [
     ["surfacePage", c.surfacePage],
     ["surfaceCard", c.surfaceCard],
@@ -75,8 +75,8 @@ export function contrastPairs(t: Theme): ContrastPair[] {
   ui("surfaceCrisis/surfacePage", c.surfaceCrisis, c.surfacePage);
   ui("surfaceCrisis/dangerSoft (crisis button in crisis card)", c.surfaceCrisis, c.dangerSoft);
 
-  /* stavy: obrys tvaru (strong) musí vymezit tvar na každé ploše, kde se kreslí;
-     text na měkké dlaždici stavu */
+  /* moods: the outline of the shape (strong) must define the shape on every surface where the
+     app draws it; text on the soft tile of a mood */
   for (const id of ["energie", "napeti", "klid", "utlum"] as const) {
     const m = t.mood[id];
     ui(`mood.${id}.strong/surfaceCard`, m.strong, c.surfaceCard);

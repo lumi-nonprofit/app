@@ -1,9 +1,9 @@
-/* Otevření šifrované databáze (expo-sqlite + SQLCipher) a registrace
-   Drizzle migrací. Tenhle modul je jediné místo, které sahá na nativní
-   SQLite — testy ho mockují na better-sqlite3 (stejné schéma i dotazy).
+/* Opens the encrypted database (expo-sqlite + SQLCipher) and registers the Drizzle
+   migrations. This module is the only place that touches the native SQLite: the tests
+   mock it with better-sqlite3 (the same schema and queries).
 
-   SQLCipher nefunguje v Expo Go — je potřeba development build,
-   viz README sekce „Vývoj“. */
+   SQLCipher does not work in Expo Go: a development build is necessary,
+   see the README section "Vývoj". */
 import { Platform } from "react-native";
 import { openDatabaseSync } from "expo-sqlite";
 import { drizzle } from "drizzle-orm/expo-sqlite";
@@ -19,11 +19,11 @@ export const DB_NAME = "lumi.db";
 export async function connectDb(): Promise<LumiDb> {
   const raw = openDatabaseSync(DB_NAME);
   if (Platform.OS !== "web") {
-    // klíč jde ze secure-store rovnou do PRAGMA; nikam ho nelogovat
+    // the key goes from the secure store straight into the PRAGMA; never log it anywhere
     const key = await getOrCreateDbKey();
     raw.execSync(`PRAGMA key = "x'${key}'"`);
   }
-  /* na webu SQLCipher není (wasm sqlite) — vývojový režim, viz README */
+  /* the web has no SQLCipher (wasm sqlite): a development mode, see the README */
   const db = drizzle(raw, { schema });
   await migrate(db, migrations);
   runDataMigrations(db as LumiDb);

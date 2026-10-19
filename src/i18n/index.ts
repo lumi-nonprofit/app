@@ -1,4 +1,4 @@
-/* Internationalisation (i18n) of the user interface. Every user-facing string comes from the
+/* Internationalisation (i18n) of the user interface. Every string that the user sees comes from the
    message catalogs in src/i18n/locales/<locale>/<namespace>.json. The source locale is cs
    (Czech); en (English) is complete, and CI checks that both stay equal
    (scripts/check-i18n.mjs). The language follows the device. */

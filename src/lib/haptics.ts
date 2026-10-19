@@ -1,8 +1,8 @@
-/* Centralizovaná haptika — decentně a vždy přes tenhle modul.
-   HIG Playing haptics: systémové vzory podle dokumentovaného významu,
-   konzistentně, jako doplněk jiné zpětné vazby, a vždy VYPNUTELNÁ (Nastavení).
-   Web nemá haptiku → no-op. Chyby polykáme — haptika nikdy nesmí shodit
-   interakci. */
+/* Centralized haptics: discreet and always through this module.
+   The HIG guidance on haptics: the system patterns with their documented meaning,
+   consistent, as a complement to other feedback, and always with an OFF switch ("Nastavení").
+   The web has no haptics → no-op. The module swallows errors: haptics must never break
+   an interaction. */
 import { Platform } from "react-native";
 import * as Haptics from "expo-haptics";
 
@@ -15,43 +15,43 @@ const swallow = (p: Promise<unknown>) => {
 };
 
 export const haptics = {
-  /** Uživatelská volba z Nastavení (výchozí zapnuto). */
+  /** The user choice from "Nastavení" (the default is on). */
   setEnabled(value: boolean): void {
     enabled = value;
   },
   isEnabled(): boolean {
     return enabled;
   },
-  /** Začátek nádechu (dechový kruh). */
+  /** The start of the inhale (the breath ring). */
   inhale(): void {
     if (active()) swallow(Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light));
   },
-  /** Začátek výdechu (dechový kruh). */
+  /** The start of the exhale (the breath ring). */
   exhale(): void {
     if (active()) swallow(Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium));
   },
-  /** Uložení check-inu a podobné dokončené akce. */
+  /** The save of a check-in and similar completed actions. */
   success(): void {
     if (active()) swallow(Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success));
   },
-  /** Před destruktivním potvrzením (zahození rozepsané práce, smazání). */
+  /** Before a destructive confirmation (discard of unsaved work, delete). */
   warning(): void {
     if (active()) swallow(Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning));
   },
-  /** Akce se nezdařila (export/import zálohy, tisk). */
+  /** The action failed (export or import of a backup, print). */
   error(): void {
     if (active()) swallow(Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error));
   },
-  /** Výběr stavu, slova, štítku, odpovědi. */
+  /** The selection of a mood, a word, a tag, an answer. */
   select(): void {
     if (active()) swallow(Haptics.selectionAsync());
   },
-  /* --- Dech naslepo: vedení dechu poslepu, výraznější vzorce --- */
-  /** Výrazný impulz — začátek nádechu naslepo. */
+  /* --- "Dech naslepo": the breath guide without the screen, stronger patterns --- */
+  /** A strong pulse: the start of the blind inhale. */
   strongPulse(): void {
     if (active()) swallow(Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy));
   },
-  /** Dvojitý impulz — začátek výdechu naslepo. */
+  /** A double pulse: the start of the blind exhale. */
   doublePulse(): void {
     if (!active()) return;
     swallow(Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy));
@@ -59,7 +59,7 @@ export const haptics = {
       if (active()) swallow(Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy));
     }, 140);
   },
-  /** Jemný tik — střed zádrže u 4-7-8. */
+  /** A gentle tick: the middle of the hold in 4-7-8. */
   tick(): void {
     if (active()) swallow(Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light));
   },

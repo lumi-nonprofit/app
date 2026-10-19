@@ -1,4 +1,4 @@
-/* Platformní konstanty rozhraní (HIG vs Android design guidelines). */
+/* The platform constants of the interface (HIG compared with the Android design guidelines). */
 import { Platform } from "react-native";
 import type { ThemePlatform } from "./types";
 

@@ -1,6 +1,6 @@
-/* Chip — pill pro slova a štítky. Výběr = zlatý wash + obrys sun600 (≥ 3:1)
-   + fajfka, nikdy jen barva. Dotykový cíl ≥ 44/48 pt; `accessibilityActions`
-   dávají čtečce negestovou alternativu k dlouhému podržení (smazání štítku). */
+/* Chip: a pill for words and tags. Selected = a gold wash + a sun600 outline (≥ 3:1)
+   + a check mark, never only a color. The touch target is ≥ 44/48 pt; `accessibilityActions`
+   give the screen reader an alternative without a gesture to the long press (delete a tag). */
 import React from "react";
 import { Pressable } from "react-native";
 import type {
@@ -19,7 +19,7 @@ interface Props {
   children: React.ReactNode;
   selected?: boolean;
   onPress?: (event: GestureResponderEvent) => void;
-  /** Dlouhé podržení (např. mazání vlastního štítku) — bez vizuální změny chipu. */
+  /** A long press (for example, delete a custom tag): without a visual change of the chip. */
   onLongPress?: () => void;
   accessibilityLabel?: string;
   accessibilityHint?: string;

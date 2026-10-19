@@ -1,11 +1,11 @@
 /* Blind breath: the vibrations give the rhythm of the breath, so the display is not needed. The
    phone can stay in a pocket: a strong pulse starts the inhale, a double pulse starts the exhale,
    and the 4-7-8 rhythm adds a soft tick in the middle of the hold (the logic is in
-   blindRhythm.ts). The screen has 4 stages:
+   blindRhythm.ts). The screen has 4 stages (the ids are in `Stage`):
 
      `setup`     - the choice of the rhythm and of the length,
      `countdown` - 3, 2, 1, time to hide the phone,
-     `running`   - a full-screen dark surface and only vibrations; a double tap ends it,
+     the run     - a full-screen dark surface and only vibrations; a double tap ends it,
      `done`      - a short confirmation and the offer to repeat.
 
    The timer runs in an interval with a mirror in a ref (the callback handles the end, not an
@@ -203,9 +203,9 @@ function Countdown({ onDone }: { onDone: () => void }) {
   );
 }
 
-/* ---------- `running`: a full-screen dark surface, only vibrations ---------- */
+/* ---------- the run stage: a full-screen dark surface, only vibrations ---------- */
 
-/** Keeps the screen awake only while the run lasts (it mounts inside Running). */
+/** Keeps the screen awake only while the run lasts (the run stage view mounts it). */
 function KeepAwake() {
   useKeepAwake();
   return null;
@@ -267,7 +267,8 @@ function Running({ rhythm, totalSeconds, onFinish, onCancel }: RunningProps) {
         accessibilityRole="button"
         accessibilityLabel={t("blind.running.a11yLabel")}
         accessibilityHint={t("blind.running.a11yHint")}
-        /* VoiceOver and TalkBack: escape (the two-finger Z) and the magic tap replace the double tap. */
+        /* VoiceOver and TalkBack: escape (the 2-finger Z) and the magic tap replace the
+           double tap. */
         accessibilityActions={[
           { name: "escape", label: t("blind.running.stopAction") },
           { name: "magicTap", label: t("blind.running.stopAction") },

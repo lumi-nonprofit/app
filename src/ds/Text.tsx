@@ -1,14 +1,15 @@
-/* Text — jediná textová komponenta Lumi (RN Text je v obrazovkách zakázaný lintem).
+/* Text: the only text component of Lumi (the lint forbids the RN `Text` in screens).
 
-   Varianty mapují iOS text styles (HIG Typography; škálují Dynamic Type přes
-   `dynamicTypeRamp`) a Material 3 type roles (Android, sp). Titulky nese
-   Bricolage Grotesque 600/700, všechno ostatní systémový font (SF Pro / Roboto)
-   se skutečnou váhou — HIG Branding: vlastní font pro headlines, systémový pro
-   tělo textu. Bold Text (iOS) vlastní fonty neumí, proto titulky 600 → 700.
+   The variants map the iOS text styles (HIG Typography; they scale with Dynamic Type through
+   `dynamicTypeRamp`) and the Material 3 type roles (Android, sp). Bricolage Grotesque 600/700
+   carries the titles. The system font (SF Pro / Roboto) with its true weight carries
+   everything else. HIG guidance on the brand: a custom font for the headlines, the system
+   font for the body text. Bold Text (iOS) cannot change custom fonts, thus the titles go
+   from 600 to 700.
 
-   Barva jen přes sémantické role tématu (`color`), výjimky s pevnou barvou na
-   pevné ploše přes `style`. Limity škálování nastavují komponenty
-   (tlačítka 2×, chipy 1,6×, badge 1,5×); kicker má 1,6× v sobě. */
+   The color comes only through the semantic roles of the theme (`color`); an exception with
+   a fixed color on a fixed surface comes through `style`. The components set the limits of
+   the scale factor (buttons 2×, chips 1.6×, badge 1.5×); the kicker has 1.6× built in. */
 import React from "react";
 import { Platform, Text as RNText } from "react-native";
 import type { TextProps as RNTextProps, TextStyle } from "react-native";
@@ -31,7 +32,7 @@ export type TextVariant =
   | "label"
   | "kicker";
 
-/** Role textu z tématu: textStrong, textBody, textMuted, textOnSunken, textOnPrimary… */
+/** The text roles of the theme: textStrong, textBody, textMuted, textOnSunken, textOnPrimary… */
 export type TextColor = Extract<keyof ThemeColors, `text${string}`>;
 export type TextWeight = "regular" | "medium" | "semibold" | "bold";
 export type TextAlign = "left" | "center" | "right";
@@ -50,17 +51,18 @@ interface VariantSpec {
   family: "display" | "system";
   weight: TextWeight;
   color: TextColor;
-  /** Prokládání v em: titulky záporné, kicker kladné. */
+  /** The tracking in em: negative for the titles, positive for the kicker. */
   tracking?: number;
   uppercase?: boolean;
   maxScale?: number;
 }
 
-/* iOS: Large (výchozí) velikosti textových stylů; Android: M3 role
-   (display → displayMedium, largeTitle → headlineLarge, title1–3 → headline
-   Medium/Small + titleLarge, headline → titleMedium, body → bodyLarge,
-   callout/subheadline → bodyMedium, footnote → bodySmall, caption → label
-   Medium/Small, label → labelLarge, kicker → labelSmall povýšený na 12 sp). */
+/* iOS: the Large (default) sizes of the text styles. Android: the M3 roles, that is
+   `display → displayMedium`, `largeTitle → headlineLarge`,
+   `title1–3 → headlineMedium, headlineSmall, titleLarge`, `headline → titleMedium`,
+   `body → bodyLarge`, `callout, subheadline → bodyMedium`, `footnote → bodySmall`,
+   `caption → labelMedium, labelSmall`, `label → labelLarge`, `kicker → labelSmall`
+   raised to 12 sp. */
 const SPECS: Record<TextVariant, VariantSpec> = {
   display: {
     ios: { size: 44, line: 52 },
@@ -163,7 +165,7 @@ const SPECS: Record<TextVariant, VariantSpec> = {
     weight: "medium",
     color: "textMuted",
   },
-  /* popisek ovládacího prvku: iOS body semibold, Android labelLarge */
+  /* the label of a control: iOS body semibold, Android labelLarge */
   label: {
     ios: { size: 17, line: 22 },
     android: { size: 14, line: 20 },
@@ -185,10 +187,9 @@ const SPECS: Record<TextVariant, VariantSpec> = {
   },
 };
 
-/* Bricolage: RN u staticky nahraných fontů nepřepíná řez přes fontWeight,
-   váhu vybírá fontFamily (a fontWeight se proto u titulků nenastavuje —
-   Android by jinak přidal syntetické ztučnění). Lehčí řezy neexistují
-   (HIG: vyhnout se light řezům). */
+/* Bricolage: with statically loaded fonts, RN does not switch the cut through `fontWeight`.
+   `fontFamily` selects the weight; thus the titles do not set `fontWeight`, because Android
+   then adds a synthetic bold. Lighter cuts do not exist (HIG: avoid light cuts). */
 export const DISPLAY_FONT = {
   semibold: "BricolageGrotesque_600SemiBold",
   bold: "BricolageGrotesque_700Bold",
@@ -206,7 +207,7 @@ const metricsFor = (spec: VariantSpec): Metrics =>
 
 const styleCache = new Map<string, TextStyle>();
 
-/** Styl varianty bez barvy — pro TextInput a další prvky mimo ds/Text. */
+/** The variant style without a color: for `TextInput` and other elements outside `ds/Text`. */
 export function textStyle(
   variant: TextVariant,
   weight?: TextWeight,
@@ -238,7 +239,7 @@ export interface TextProps extends RNTextProps {
   color?: TextColor;
   weight?: TextWeight;
   align?: TextAlign;
-  /** Číslice stejné šířky (odpočty, procenta) — text při změně neposkakuje. */
+  /** Digits of equal width (countdowns, percentages): the text does not jump on a change. */
   tabular?: boolean;
 }
 

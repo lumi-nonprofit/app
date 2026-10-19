@@ -87,7 +87,8 @@ export default function HomeScreen() {
         </Card>
       ) : (
         <Card variant="ink">
-          {/* The ink card: text on the primary surface does not inherit, the colour is explicit. */}
+          {/* The ink card: the text on the primary surface has an explicit colour, it takes none
+              from the parent. */}
           <Text variant="title3" color="textOnPrimary" style={styles.inkTitle}>
             {t("checkin.title")}
           </Text>

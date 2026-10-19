@@ -1,7 +1,7 @@
 /* Crisis and support lines: the single data source for Help (the contact list), the emergency
    numbers, the primary line by age, the crisis card and the handover screen. The numbers are
    data; the names and the descriptions come from the message catalog (content.json, key
-   `helpLines.<id>`). The hours and the numbers are checked per release against
+   `helpLines.<id>`). Each release checks the hours and the numbers against
    docs/cz-crisis-data-checklist.md. */
 import type { Tone } from "../../ds";
 import type { IconName } from "../../ds/Icon";

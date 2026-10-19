@@ -84,7 +84,8 @@ export default function Step2Screen() {
     setAddingTag((open) => !open);
     setNewTagLabel("");
   };
-  /* An empty input does nothing. A duplicate label returns the existing tag, which only gets selected. */
+  /* An empty input does nothing. A duplicate label returns the tag that already exists, which
+     only gets selected. */
   const submitNewTag = () => {
     const label = newTagLabel.trim();
     if (!label) return;

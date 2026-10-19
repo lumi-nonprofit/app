@@ -1,6 +1,6 @@
-/* WCAG 2.2 kontrast (1.4.3 text ≥ 4,5:1, 1.4.11 ne-textové prvky ≥ 3:1).
-   Čistá matematika bez závislostí — používá ji test/contrast.test.ts
-   a lze ji volat i za běhu (např. při ladění tmavé palety). */
+/* WCAG 2.2 contrast (1.4.3 text ≥ 4.5:1, 1.4.11 non-text elements ≥ 3:1).
+   Pure mathematics without dependencies: test/contrast.test.ts uses it,
+   and a call at runtime is possible too (for example, to tune the dark palette). */
 
 export interface RGBA {
   r: number;
@@ -18,7 +18,7 @@ export function parseColor(input: string): RGBA {
   if (hex) {
     let h = hex[1];
     if (h.length === 3 || h.length === 4) h = [...h].map((c) => c + c).join("");
-    if (h.length !== 6 && h.length !== 8) throw new Error(`Neplatná barva: ${input}`);
+    if (h.length !== 6 && h.length !== 8) throw new Error(`Invalid color: ${input}`);
     const n = (i: number) => parseInt(h.slice(i, i + 2), 16);
     return { r: n(0), g: n(2), b: n(4), a: h.length === 8 ? n(6) / 255 : 1 };
   }
@@ -26,10 +26,10 @@ export function parseColor(input: string): RGBA {
   if (rgb) {
     return { r: +rgb[1], g: +rgb[2], b: +rgb[3], a: rgb[4] === undefined ? 1 : +rgb[4] };
   }
-  throw new Error(`Neplatná barva: ${input}`);
+  throw new Error(`Invalid color: ${input}`);
 }
 
-/** Průhlednou barvu složí přes neprůhledné pozadí (alpha compositing). */
+/** Composites a transparent color over an opaque background (alpha composite). */
 export function composite(fg: RGBA, bg: RGBA): RGBA {
   if (fg.a >= 1) return fg;
   const a = fg.a;
@@ -49,7 +49,8 @@ export function relativeLuminance({ r, g, b }: RGBA): number {
   return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
 }
 
-/** Kontrastní poměr popředí vůči pozadí (popředí s alfou se nejdřív složí). */
+/** The contrast ratio of the foreground against the background (a foreground with alpha
+    composites over the background first). */
 export function contrastRatio(foreground: string, background: string): number {
   const bg = parseColor(background);
   const fg = composite(parseColor(foreground), bg);

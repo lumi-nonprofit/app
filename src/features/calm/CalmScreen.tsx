@@ -1,6 +1,6 @@
-/* Calm: the breath launcher and the list of activities from the manifest (content.ts). The static
-   "Večerka" section is gone: "vecerka" is now an activity row with its own player. The same
-   information twice (once tappable, once not) would only confuse. */
+/* Calm: the breath launcher and the list of activities from the manifest (content.ts). The
+   static "Večerka" section no longer exists: "vecerka" is now an activity row with its own
+   player. The same information twice (once tappable, once not) would only confuse. */
 import React from "react";
 import { Pressable } from "react-native";
 import { useRouter } from "expo-router";

@@ -112,12 +112,19 @@ function splitCodeAndComments(source) {
 
 const findings = [];
 
+// Files whose code holds Czech data on purpose: the legacy labels that the data migration maps
+// to ids. Their comments are still checked.
+const CZECH_DATA_FILES = new Set(["src/db/vocab.ts"]);
+
 for (const file of listFiles(["app/*", "app/**", "src/**"])) {
   if (!/\.(ts|tsx|js|mjs|cjs)$/.test(file)) continue;
   const { code, comments } = splitCodeAndComments(readFileSync(file, "utf8"));
-  code.forEach((text, index) => {
-    if (CZECH.test(withoutAllowed(text))) findings.push(`${file}:${index + 1}: Czech text in code`);
-  });
+  if (!CZECH_DATA_FILES.has(file)) {
+    code.forEach((text, index) => {
+      if (CZECH.test(withoutAllowed(text)))
+        findings.push(`${file}:${index + 1}: Czech text in code`);
+    });
+  }
   comments.forEach((text, index) => {
     const prose = withoutAllowed(text.replace(QUOTED, ""));
     if (CZECH.test(prose)) findings.push(`${file}:${index + 1}: Czech text in a comment`);

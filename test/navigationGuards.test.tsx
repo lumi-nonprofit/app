@@ -7,7 +7,7 @@ import { Alert } from "react-native";
 import { act, userEvent, waitFor } from "@testing-library/react-native";
 import { router } from "expo-router";
 /* The root `navigationRef`: only to simulate the native swipe-down (a POP on the root stack). */
-import { store } from "expo-router/build/global-state/router-store";
+import { navigationRef } from "expo-router/build/global-state/navigationRef";
 import { renderRouter, screen } from "expo-router/testing-library";
 import { writeProfile } from "../src/db/repo";
 import { getTestDb } from "./helpers/testDb";
@@ -74,10 +74,10 @@ describe("check-in sheet", () => {
 
     // A swipe-down of the sheet: the native stack sends a POP that targets the app stack
     // (expo-router wraps it in `__root`, thus `routes[0].state`).
-    const appStack = store.navigationRef.getRootState().routes[0]?.state;
+    const appStack = navigationRef.getRootState().routes[0]?.state;
     expect(appStack?.key).toBeDefined();
     await act(async () => {
-      store.navigationRef.dispatch({ type: "POP", payload: { count: 1 }, target: appStack?.key });
+      navigationRef.dispatch({ type: "POP", payload: { count: 1 }, target: appStack?.key });
     });
     await waitFor(() => expect(alert).toHaveBeenCalledTimes(1));
     expect(screen.getByText("Které slovo to vystihuje nejlíp?")).toBeOnTheScreen();

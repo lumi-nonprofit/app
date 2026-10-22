@@ -56,7 +56,8 @@ export default function BackupSection() {
       /* The file name is a technical identifier and stays the same in every language. */
       const file = new File(Paths.cache, `lumi-zaloha-${toISODate()}.json`);
       if (!file.exists) file.create();
-      file.write(JSON.stringify(backup, null, 2));
+      /* expo-file-system 58: `write` is asynchronous. The share sheet must get the full file. */
+      await file.write(JSON.stringify(backup, null, 2));
       await Sharing.shareAsync(file.uri, {
         mimeType: "application/json",
         dialogTitle: t("backup.export.shareTitle"),

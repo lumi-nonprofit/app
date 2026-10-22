@@ -5,11 +5,17 @@
 import React from "react";
 import { Pressable, View } from "react-native";
 import type { StyleProp, ViewStyle } from "react-native";
-import RNSegmentedControl from "@react-native-segmented-control/segmented-control";
+import NativeSegmentedControl from "@react-native-segmented-control/segmented-control";
+import type { SegmentedControlProps } from "@react-native-segmented-control/segmented-control";
 import { createThemedStyles, useTheme } from "../theme";
 import Icon from "./Icon";
 import { pressFeedback, pressedStyle } from "./press";
 import Text from "./Text";
+
+/* The library types build the class on `NativeMethods`, and React Native 0.88 no longer exports
+   that type. The cast keeps the check of the props. */
+const RNSegmentedControl =
+  NativeSegmentedControl as unknown as React.ComponentType<SegmentedControlProps>;
 
 export interface SegmentOption<T extends string> {
   value: T;

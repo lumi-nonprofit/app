@@ -2,7 +2,7 @@
    comes after the built-in ones), the entry stores it, and a long press deletes it. The
    entries that already use the tag stay unchanged. */
 import { Alert } from "react-native";
-import { fireEvent, userEvent, waitFor, within } from "@testing-library/react-native";
+import { act, fireEvent, userEvent, waitFor, within } from "@testing-library/react-native";
 import { renderRouter, screen } from "expo-router/testing-library";
 import { listCustomTags, listEntries } from "../src/db/repo";
 import { CONTEXT_TAGS } from "../src/model";
@@ -124,7 +124,11 @@ describe("Custom tags", () => {
     await user.press(screen.getByRole("button", { name: "obavy" }));
     await user.press(screen.getByRole("button", { name: "škola" }));
     await user.press(screen.getByRole("button", { name: "terapie" }));
-    fireEvent(screen.getByRole("button", { name: "terapie" }), "longPress");
+    /* The dialog answers at once, and the deletion runs in a promise. The async act waits for
+       it, so the state update does not overlap the next act of the router queue. */
+    await act(async () => {
+      fireEvent(screen.getByRole("button", { name: "terapie" }), "longPress");
+    });
 
     expect(Alert.alert).toHaveBeenCalledWith(
       "Smazat štítek?",

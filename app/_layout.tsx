@@ -17,6 +17,7 @@ import { initI18n, useTranslation } from "../src/i18n";
 import { AppStateProvider, useAppStore } from "../src/store";
 import { DbProvider, useDb } from "../src/db/provider";
 import { applyHapticsPreference } from "../src/features/settings/preferences";
+import { applyNotificationHandler } from "../src/features/settings/reminders";
 import { M1_VAULT_SKELETON_ENABLED } from "../src/lib/featureFlags";
 import { Button } from "../src/ds";
 import CrisisFallback from "../src/features/help/CrisisFallback";
@@ -30,6 +31,10 @@ export const unstable_settings = { anchor: "(tabs)" };
 
 /* The message catalogs are ready before the first render (the language follows the device). */
 initI18n();
+
+/* A reminder that arrives while the app is open has no sound and no badge. This applies from the
+   start, also before the person opens Settings. */
+applyNotificationHandler();
 
 SplashScreen.preventAutoHideAsync().catch(() => {
   /* The splash screen possibly closed already (for example after a fast refresh). */
@@ -70,10 +75,13 @@ function RootNavigator() {
   React.useEffect(() => {
     SystemUI.setBackgroundColorAsync(theme.colors.surfacePage).catch(() => {});
   }, [theme.colors.surfacePage]);
+  /* expo-router 58 sends a route with a false guard to `redirectTo`. Without it, the router
+     takes the first free route in file order, and before the onboarding that is /crisis. */
+  const startHref = state.onboarded ? "/" : "/onboarding";
   return (
     /* The nested stacks draw their headers; the root turns them on only for modal tasks. */
     <Stack screenOptions={{ ...stackScreenOptions(theme), headerShown: false }}>
-      <Stack.Protected guard={state.onboarded}>
+      <Stack.Protected guard={state.onboarded} redirectTo="/onboarding">
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="checkin" options={{ presentation: "modal" }} />
         <Stack.Screen
@@ -125,8 +133,8 @@ function RootNavigator() {
         }}
       />
       {/* The M1 skeleton over the Rust vault. While the flag is off, the route does not exist,
-          and a deep link to it opens the first available screen. */}
-      <Stack.Protected guard={M1_VAULT_SKELETON_ENABLED}>
+          and a deep link to it opens the start screen: the onboarding or Dnes. */}
+      <Stack.Protected guard={M1_VAULT_SKELETON_ENABLED} redirectTo={startHref}>
         <Stack.Screen name="m1-checkin" />
       </Stack.Protected>
     </Stack>

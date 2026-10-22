@@ -3,6 +3,7 @@
    the platform constants and the hooks for the components. */
 import React from "react";
 import { StyleSheet, useColorScheme } from "react-native";
+import type { ImageStyle, TextStyle, ViewStyle } from "react-native";
 import { useBoldText } from "../lib/a11y";
 import { darkElevation, lightElevation } from "./elevation";
 import { platform } from "./platform";
@@ -90,16 +91,18 @@ export function useBoldTextSetting(): boolean {
   return React.useContext(BoldTextContext);
 }
 
+/* A map of named styles for StyleSheet.create. React Native 0.88 removed StyleSheet.NamedStyles
+   from its default types, so the theme layer keeps its own copy. */
+type NamedStyles<T> = { [P in keyof T]: ViewStyle | TextStyle | ImageStyle };
+
 /** The styles that depend on the theme; the factory runs once per scheme. */
-export function useThemedStyles<T extends StyleSheet.NamedStyles<T>>(
-  factory: (theme: Theme) => T,
-): T {
+export function useThemedStyles<T extends NamedStyles<T>>(factory: (theme: Theme) => T): T {
   const theme = useTheme();
   return React.useMemo(() => StyleSheet.create(factory(theme)), [theme, factory]);
 }
 
 /** The factory variant for modules: const useStyles = createThemedStyles((t) => ({ ... })). */
-export function createThemedStyles<T extends StyleSheet.NamedStyles<T>>(
+export function createThemedStyles<T extends NamedStyles<T>>(
   factory: (theme: Theme) => T,
 ): () => T {
   const cache = new Map<ThemeScheme, T>();

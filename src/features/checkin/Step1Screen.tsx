@@ -14,22 +14,16 @@ import { useTranslation } from "../../i18n";
 import { MOODS, intensityLabel } from "../../model";
 import type { Intensity } from "../../model";
 import { haptics } from "../../lib/haptics";
-import { useDiscardGuard } from "../../lib/useDiscardGuard";
 import { createThemedStyles, useTheme } from "../../theme";
-import { isDraftDirty, useCheckinDraft } from "./draft";
+import { useCheckinDraft } from "./draft";
 
 export default function Step1Screen() {
   const { t } = useTranslation(["checkin", "common"]);
   const router = useRouter();
   const theme = useTheme();
   const styles = useStyles();
-  const { draft, setDraft, saved } = useCheckinDraft();
-  /* "Zrušit", swipe-down and the hardware back button ask first when the entry has content. */
-  useDiscardGuard({
-    dirty: !saved && isDraftDirty(draft),
-    title: t("discard.title"),
-    message: t("discard.message"),
-  });
+  /* The guard of unsaved changes sits in app/checkin/_layout and covers the whole sheet. */
+  const { draft, setDraft } = useCheckinDraft();
   return (
     <Screen>
       <LumiHeader kicker={t("step1.kicker")} title={t("step1.title")} />

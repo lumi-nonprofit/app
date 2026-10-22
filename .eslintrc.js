@@ -12,6 +12,13 @@ module.exports = {
   },
   overrides: [
     {
+      // TypeScript checks the members of a namespace import (`npm run typecheck`). The import
+      // plugin reads a file as a module only when a line starts with `export`. In the Expo SDK 58
+      // build output, a comment comes first on that line, so the plugin sees no exports there.
+      files: ["*.ts", "*.tsx"],
+      rules: { "import/namespace": "off" },
+    },
+    {
       // Screens and components write text only through ds/Text (variants, Dynamic Type, theme
       // colours). The M1 skeleton is outside the design-system refactor.
       files: ["src/features/**/*.tsx", "src/components/**/*.tsx", "app/**/*.tsx"],

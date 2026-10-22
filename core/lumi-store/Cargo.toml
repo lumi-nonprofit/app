@@ -9,7 +9,7 @@
 [package]
 name = "lumi-store"
 version = "0.0.0"
-edition = "2021"
+edition = "2024"
 publish = false
 description = "Lumi at-rest persistence: rusqlite (bundled SQLite) implementation of lumi-vault's VaultStore. Plain SQLite (no SQLCipher); the Rust core owns the connection."
 

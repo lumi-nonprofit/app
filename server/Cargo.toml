@@ -2,5 +2,5 @@
 # dependency-free and locally buildable). CI builds and tests the server on
 # full-toolchain runners. Real persistence + auth + §5 metadata land in M2.
 [workspace]
-resolver = "2"
+resolver = "3"
 members = ["lumi-sync-server"]

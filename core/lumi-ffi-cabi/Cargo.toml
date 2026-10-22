@@ -9,7 +9,7 @@
 [package]
 name = "lumi-ffi-cabi"
 version = "0.0.0"
-edition = "2021"
+edition = "2024"
 publish = false
 description = "Lumi C ABI (cbindgen) over lumi-vault: the unsafe boundary for the Nitro C++ layer. Marshals handles/PIN/plaintext-JSON/record-ids/error-codes only; keys stay in lumi-vault."
 

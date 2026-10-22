@@ -84,7 +84,7 @@
     "@types/jest-axe": "^3.5.9",
     "axe-core": "^4.14.0",
     "babel-plugin-inline-import": "^3.0.0",
-    "better-sqlite3": "^12.10.0",
+    "better-sqlite3": "^13.0.3",
     "cspell": "^10.4.0",
     "drizzle-kit": "^0.31.11",
     "eslint": "^8.57.1",

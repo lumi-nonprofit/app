@@ -185,7 +185,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 // ---------------------------------------------------------------------------
 
 fn fill_random(buf: &mut [u8]) -> Result<()> {
-    getrandom::getrandom(buf).map_err(|_| Error::Crypto)
+    getrandom::fill(buf).map_err(|_| Error::Crypto)
 }
 
 fn random_nonce() -> Result<[u8; NONCE_LEN]> {
@@ -224,19 +224,16 @@ fn vault_aad(fmt: u8) -> Vec<u8> {
 fn aead_seal(key: &[u8; KEY_LEN], nonce: &[u8; NONCE_LEN], plaintext: &[u8], aad: &[u8]) -> Result<Vec<u8>> {
     let cipher = XChaCha20Poly1305::new_from_slice(key).map_err(|_| Error::Crypto)?;
     cipher
-        .encrypt(XNonce::from_slice(nonce), Payload { msg: plaintext, aad })
+        .encrypt(nonce.into(), Payload { msg: plaintext, aad })
         .map_err(|_| Error::Crypto)
 }
 
 /// Neutral open (returns `Err(())` on any failure); callers map to the right [`Error`].
 fn aead_open(key: &[u8; KEY_LEN], nonce: &[u8], ct: &[u8], aad: &[u8]) -> std::result::Result<Vec<u8>, ()> {
-    if nonce.len() != NONCE_LEN {
-        return Err(());
-    }
+    // The conversion checks the length: a nonce that is not 24 bytes fails closed.
+    let nonce = <&XNonce>::try_from(nonce).map_err(|_| ())?;
     let cipher = XChaCha20Poly1305::new_from_slice(key).map_err(|_| ())?;
-    cipher
-        .decrypt(XNonce::from_slice(nonce), Payload { msg: ct, aad })
-        .map_err(|_| ())
+    cipher.decrypt(nonce, Payload { msg: ct, aad }).map_err(|_| ())
 }
 
 /// Open a wrapped 32-byte key into a `Zeroizing` buffer (neutral error).
@@ -573,7 +570,7 @@ mod kat {
     #[test]
     fn kat_xchacha20poly1305_draft03() {
         let key = unhex("808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9f");
-        let nonce = unhex("404142434445464748494a4b4c4d4e4f5051525354555657");
+        let nonce = XNonce::try_from(unhex("404142434445464748494a4b4c4d4e4f5051525354555657").as_slice()).expect("nonce");
         let aad = unhex("50515253c0c1c2c3c4c5c6c7");
         let plaintext = unhex(
             "4c616469657320616e642047656e746c656d656e206f662074686520636c6173\
@@ -592,12 +589,12 @@ mod kat {
 
         let cipher = XChaCha20Poly1305::new_from_slice(&key).expect("key");
         let ct = cipher
-            .encrypt(XNonce::from_slice(&nonce), Payload { msg: &plaintext, aad: &aad })
+            .encrypt(&nonce, Payload { msg: &plaintext, aad: &aad })
             .expect("encrypt");
         assert_eq!(ct, expected_ct_tag, "XChaCha20-Poly1305 draft-03 vector mismatch");
 
         let back = cipher
-            .decrypt(XNonce::from_slice(&nonce), Payload { msg: &ct, aad: &aad })
+            .decrypt(&nonce, Payload { msg: &ct, aad: &aad })
             .expect("decrypt");
         assert_eq!(back, plaintext, "XChaCha20-Poly1305 decrypt round-trip mismatch");
     }

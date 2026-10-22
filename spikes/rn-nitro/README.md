@@ -1,53 +1,60 @@
 # Spike #1b (Nitro) — Rust↔RN binding go/no-go (THROWAWAY)
 
-Go/no-go for **RN-handjsi via Nitro** as the v1 path (ADR 0003). create-react-native-library
-removed the C++ TurboModule template, so instead of hand-owning the JSI glue we use
-**Nitro** (`react-native-nitro-modules` + `nitrogen`): Nitrogen _statically generates_
-the JSI glue from a TS spec (retiring the bus-factor-1 hand-glue risk), and we implement
-the logic in **C++** calling our **Rust C ABI**. Still React Native → ADR 0003's
-accessibility / UI-preservation rationale is untouched; only the native binding changes.
-Android-first; iOS deferred.
+> **Note (2026-10-18):** Rewritten in Simplified Technical English on 2026-10-18; decisions and section numbering unchanged.
+
+This spike is the go/no-go for **`RN-handjsi` through Nitro** as the v1 path (ADR 0003).
+`create-react-native-library` removed the C++ TurboModule template. Thus we do not write the JSI
+glue by hand: we use **Nitro** (`react-native-nitro-modules` + `nitrogen`). Nitrogen _statically
+generates_ the JSI glue from a TS spec, which removes the bus-factor-1 hand-glue risk. We write the
+method logic in **C++**, and the C++ calls our **Rust C ABI**.
+
+The UI stays React Native, so the accessibility and UI-preservation rationale of ADR 0003 stays
+the same. Only the native binding changes. Android first; iOS deferred.
 
 **Start with `RUNBOOK.md`.**
 
 ## Layout
 
-- `rust/lumi-ffi-cabi/` — **reused unchanged**: the Rust C ABI (x25519 + ChaCha20-Poly1305
-  - HKDF + the `SECRETS` handle registry; §1: no secret crosses). Host-tested (Step 0).
+- `rust/lumi-ffi-cabi/` — **reused unchanged**: the Rust C ABI (x25519, ChaCha20-Poly1305, HKDF
+  and the `SECRETS` handle registry; §1: no secret crosses). Tested on the host (Step 0).
 - `nitro/LumiCrypto.nitro.ts` — the pure-C++ Hybrid Object spec.
 - `nitro/nitro.json` — autolinking → C++ `HybridLumiCrypto` (current Nitrogen syntax).
-- `nitro/cpp/HybridLumiCrypto.{hpp,cpp}` — the hand-written C++ impl (method logic +
-  base64 + Rust C ABI calls), subclassing the Nitrogen-generated `HybridLumiCryptoSpec`.
-- `nitro/CMakeLists.additions.cmake` — link the per-ABI Rust staticlib into the
+- `nitro/cpp/HybridLumiCrypto.{hpp,cpp}` — the hand-written C++ implementation (method logic,
+  base64 and the Rust C ABI calls). It is a subclass of the Nitrogen-generated
+  `HybridLumiCryptoSpec`.
+- `nitro/CMakeLists.additions.cmake` — links the per-ABI Rust static library into the
   `lumicrypto` target.
-- `App.tsx` — round-trip via `NitroModules.createHybridObject<LumiCrypto>('LumiCrypto')`.
-- `scripts/build-rust-android.sh` — cargo-ndk (arm64-v8a + x86_64) + cbindgen → lib `cpp/`.
-- `reference/LumiCryptoImpl.{h,cpp}` — the prior hand-JSI TurboModule port source (kept
-  for reference; superseded by `nitro/cpp/HybridLumiCrypto.*`).
+- `App.tsx` — the round-trip through `NitroModules.createHybridObject<LumiCrypto>('LumiCrypto')`.
+- `scripts/build-rust-android.sh` — cargo-ndk (arm64-v8a and x86_64) and cbindgen → lib `cpp/`.
+- `reference/LumiCryptoImpl.{h,cpp}` — the source of the earlier hand-JSI TurboModule port. Kept
+  for reference only; `nitro/cpp/HybridLumiCrypto.*` supersedes it.
 
-## Verified before building (mid-2026)
+## Verified before the build (mid-2026)
 
-- `react-native-nitro-modules@0.35.9`, peers `react-native: *` → **RN 0.81.4 supported**.
-- **Pure-C++ Hybrid Object generates cleanly** with Nitrogen 0.35.9 (ran it; captured the
-  exact `HybridLumiCryptoSpec` / `DeviceKey` / `CheckinDraft` / `+autolinking.cmake` names).
-- Gotcha documented + fixed in the runbook: codegen renamed `nitro-codegen` → `nitrogen`
-  (old one deprecated at 0.29.4; the create-react-native-library template still pins it).
+- `react-native-nitro-modules@0.35.9` has the peer range `react-native: *` → **RN 0.81.4
+  supported**.
+- **A pure-C++ Hybrid Object generates cleanly** with Nitrogen 0.35.9. We ran it and captured the
+  exact `HybridLumiCryptoSpec`, `DeviceKey`, `CheckinDraft` and `+autolinking.cmake` names.
+- Gotcha, documented and fixed in the runbook: the codegen package changed its name from
+  `nitro-codegen` to `nitrogen`. The old package is deprecated at 0.29.4; the
+  `create-react-native-library` template still pins it.
 
 ## GO / NO-GO — **result: GO (2026-06-14)**
 
-**GO.** A live JS→Rust→JS round-trip ran on a real **arm64 device** (Pixel 8a, GrapheneOS)
-on the New Architecture, §1 intact — `LUMI_SPIKE_RESULT
-{"pass":true,"roundtrip":true,"threw":true}`. **RN-via-Nitro is empirically validated as
-the v1 binding path** (proceed to real integration after Anna's review). Full report +
-evidence + the three fixes hit during the run: **`SPIKE-REPORT.md`** (and the inline
-annotations in `RUNBOOK.md`). As predicted, the Rust C ABI + Nitrogen codegen were
-the solid parts; the iteration was in the per-ABI NDK build + Android autolinking/
-registration (three fixes, one round).
+**GO.** A live JS→Rust→JS round-trip ran on a real **arm64 device** (Pixel 8a, GrapheneOS) on the
+New Architecture, with §1 intact. The app emitted `LUMI_SPIKE_RESULT
+{"pass":true,"roundtrip":true,"threw":true}`. **The run empirically validates RN through Nitro as
+the v1 binding path.** The next step is the real integration, after Anna's review.
 
-Honest scope: GO rests on the live arm64-device leg + a clean x86_64 build (the
-x86_64-emulator runtime leg was optional, not run); reached via the **debug dev-loop**
-(release Java packaging is a deferred production-hygiene item, not a blocker); **iOS
-deferred** per ADR 0001.
+The full report, the evidence and the 3 fixes from the run are in **`SPIKE-REPORT.md`** and in the
+inline annotations in `RUNBOOK.md`. As predicted, the Rust C ABI and the Nitrogen codegen were the
+solid parts. The iteration was in the per-ABI NDK build and in the Android autolinking and
+registration (3 fixes, 1 round).
 
-The throwaway scaffold (`~/lumi-crypto-spike`) **can now be deleted**; this `spikes/rn-nitro/`
-kit stays as the reference. No real RN↔core integration built yet; `apps/` stays empty.
+Honest scope: GO rests on the live arm64-device leg and on a clean x86_64 build. The
+x86_64-emulator runtime leg was optional, and we did not run it. We reached GO through the **debug
+dev-loop**; the release Java package step is a deferred production-hygiene item, not a blocker.
+**iOS stays deferred** per ADR 0001.
+
+You **can now delete** the throwaway scaffold (`~/lumi-crypto-spike`); this `spikes/rn-nitro/` kit
+stays as the reference. No real RN↔core integration exists yet; `apps/` stays empty.

@@ -1,34 +1,37 @@
 # Spike #1b runbook (Nitro) — Rust↔RN binding on real Android
 
-> **Result: GO (2026-06-14, Pixel 8a / arm64).** Live JS→Rust→JS round-trip passed on
-> real hardware, §1 intact; full report in `SPIKE-REPORT.md`. The three fixes hit during
-> the run are annotated inline below (Steps 5, 8) so a re-run is clean; two production-
-> hygiene items are recorded at the end (not spike blockers). The throwaway scaffold
-> (`~/lumi-crypto-spike`) can now be deleted — this kit stays as the reference.
+> **Note (2026-10-18):** Rewritten in Simplified Technical English on 2026-10-18; decisions and section numbering unchanged.
 
-**GO criterion (unchanged):** a live JS→Rust→JS round-trip on the **x86_64 emulator
-AND the arm64 Pixel** — `sealCheckin → openCheckin` round-trips, the throwing fn errors
-in JS, §1 intact — emitting `LUMI_SPIKE_RESULT {"pass":true,"roundtrip":true,"threw":true}`.
-**NO-GO** if it can't be made reliable even with the local loop → fall back to
-CMP-uniffi (ADR 0003). Android-first; iOS deferred. Throwaway under `spikes/`; `apps/`
-stays empty. This is a debugging loop: run a step, paste me the error, I fix, repeat.
-(As run: GO was reached on the **arm64 Pixel** via the **debug dev-loop**; the x86_64
-emulator runtime leg was optional and not run, though x86_64 compiled clean.)
+**Result: GO (2026-06-14, Pixel 8a / arm64).** A live JS→Rust→JS round-trip passed on real
+hardware, with §1 intact; the full report is in `SPIKE-REPORT.md`. The 3 fixes from the run have
+inline annotations below (Steps 5, 8), so a re-run is clean. The 2 production-hygiene items are at
+the end (not spike blockers). You can now delete the throwaway scaffold (`~/lumi-crypto-spike`);
+this kit stays as the reference.
 
-Binding = **Nitro** (`react-native-nitro-modules` + `nitrogen`): Nitrogen statically
-generates the JSI glue from a TS spec; we implement the logic in **C++** calling our
-**Rust C ABI**. Files: `nitro/LumiCrypto.nitro.ts`, `nitro/nitro.json`,
-`nitro/cpp/HybridLumiCrypto.{hpp,cpp}`, `nitro/CMakeLists.additions.cmake`, `App.tsx`,
-`rust/lumi-ffi-cabi/`, `scripts/build-rust-android.sh`. (`reference/LumiCryptoImpl.*`
-is the old hand-JSI port source, kept for reference only.)
+**GO criterion (unchanged):** a live JS→Rust→JS round-trip on the **x86_64 emulator AND the arm64
+Pixel**. `sealCheckin → openCheckin` round-trips, the fn that throws gives an error in JS, and §1
+stays intact. The app emits `LUMI_SPIKE_RESULT {"pass":true,"roundtrip":true,"threw":true}`.
+**NO-GO** if the round-trip is not reliable even with the local loop. Then fall back to CMP-uniffi
+(ADR 0003).
 
-> **Verified for you (mid-2026):** `react-native-nitro-modules@0.35.9` peers are
-> `react-native: *` (so RN 0.81.4 is fine), and a **pure-C++ Hybrid Object**
-> (`HybridObject<{ ios:'c++', android:'c++' }>`) generates cleanly with **Nitrogen
-> 0.35.9** — I ran it and captured the exact generated names below. **One gotcha:** the
-> codegen package was renamed `nitro-codegen` → **`nitrogen`**; the old `nitro-codegen`
-> is deprecated (stuck at 0.29.4) and create-react-native-library@0.49.10 still pins it.
-> Step 2 fixes that.
+Android first; iOS deferred. Throwaway under `spikes/`; `apps/` stays empty. This is a debug loop:
+run a step, paste me the error, I fix, repeat. (As run: we reached GO on the **arm64 Pixel**
+through the **debug dev-loop**. The x86_64 emulator runtime leg was optional, and we did not run
+it; x86_64 compiled clean.)
+
+The binding is **Nitro** (`react-native-nitro-modules` + `nitrogen`). Nitrogen statically generates
+the JSI glue from a TS spec. We write the logic in **C++**, and the C++ calls our **Rust C ABI**.
+Files: `nitro/LumiCrypto.nitro.ts`, `nitro/nitro.json`, `nitro/cpp/HybridLumiCrypto.{hpp,cpp}`,
+`nitro/CMakeLists.additions.cmake`, `App.tsx`, `rust/lumi-ffi-cabi/`,
+`scripts/build-rust-android.sh`. (`reference/LumiCryptoImpl.*` is the source of the old hand-JSI
+port; it is in the kit for reference only.)
+
+> **Verified for you (mid-2026):** the peer range of `react-native-nitro-modules@0.35.9` is
+> `react-native: *` (so RN 0.81.4 is fine). A **pure-C++ Hybrid Object**
+> (`HybridObject<{ ios:'c++', android:'c++' }>`) generates cleanly with **Nitrogen 0.35.9**. I ran
+> it and captured the exact generated names below. **One gotcha:** the codegen package changed its
+> name from `nitro-codegen` to **`nitrogen`**; the old `nitro-codegen` is deprecated (stuck at
+> 0.29.4), and `create-react-native-library@0.49.10` still pins it. Step 2 fixes that.
 
 ---
 
@@ -38,14 +41,17 @@ is the old hand-JSI port source, kept for reference only.)
 cd spikes/rn-nitro/rust/lumi-ffi-cabi && cargo test
 ```
 
-Expect `test result: ok` (seal/open round-trip + throwing path + unknown handle).
+Expect `test result: ok` (seal/open round-trip, the throw path and the unknown handle).
 
-## Step 1 — toolchain (assumed already present in your toolbox — just verify)
+## Step 1 — toolchain (already in your toolbox; only verify it)
 
-Your toolbox already has: Temurin **JDK 21** (`JAVA_HOME` set), Android SDK at
-`~/Android/Sdk` (`ANDROID_HOME`/`ANDROID_NDK_HOME` set), platform-tools, android-35,
-build-tools 35.0.0, **ndk 27.1.12297006**, cmake 3.22.1, emulator, **cargo-ndk 4.1.2**,
-**cbindgen 0.29.4**, **Node v24**, rust targets aarch64/x86_64-linux-android.
+Your toolbox already has these tools:
+
+- Temurin **JDK 21** (`JAVA_HOME` set).
+- The Android SDK at `~/Android/Sdk` (`ANDROID_HOME` and `ANDROID_NDK_HOME` set): platform-tools,
+  `android-35`, `build-tools 35.0.0`, **`ndk 27.1.12297006`**, `cmake 3.22.1` and the emulator.
+- **cargo-ndk 4.1.2**, **cbindgen 0.29.4** and **Node v24**.
+- The rust targets `aarch64-linux-android` and `x86_64-linux-android`.
 
 ```bash
 node -v; java -version; adb version; cargo ndk --version; cbindgen --version
@@ -53,16 +59,16 @@ echo "$ANDROID_HOME / $ANDROID_NDK_HOME"
 rustup target list --installed | grep android
 ```
 
-Version notes (flagged): **JDK 21** is fine for RN 0.81.4 + AGP 8.7.2 (the scaffold's
-Gradle plugin). **cargo-ndk 4.1.2** is fine here — we run a plain `build` (no
-`--no-strip`), so ubrn's cargo-ndk break does not apply. **cbindgen 0.29.4** fine.
+Version notes (flagged). **JDK 21** is fine for RN 0.81.4 and AGP 8.7.2 (the scaffold's Gradle
+plugin). **cargo-ndk 4.1.2** is fine here. We run a plain `build` (no `--no-strip`), so the
+cargo-ndk break of ubrn does not apply. **cbindgen 0.29.4** is fine.
 
-> **Confirmed working (2026-06-14 GO run, Fedora 44):** **Temurin JDK 21** — use exactly
-> this; Fedora 44 only ships JDK **25/26**, which are too new for the scaffold's Gradle/AGP.
-> Android SDK **platform-35 / build-tools-35 / cmake 3.22.1 / NDK 27.x**; **cargo-ndk
-> 4.1.2**; rustup targets **`aarch64-linux-android` + `x86_64-linux-android`** — confirm
-> they are actually installed (see Step 5; an earlier `rustup target add` may not have
-> stuck, and `rustup` at `~/.cargo/bin` shadows a system dnf `rust`).
+> **Confirmed in the GO run (2026-06-14, Fedora 44):** **Temurin JDK 21** — use exactly this;
+> Fedora 44 only ships JDK **25/26**, which are too new for the Gradle/AGP of the scaffold. Android
+> SDK **platform-35 / build-tools-35 / cmake 3.22.1 / NDK 27.x**; **cargo-ndk 4.1.2**; the rustup
+> targets **`aarch64-linux-android` + `x86_64-linux-android`**. Confirm that the targets are
+> installed (see Step 5): an earlier `rustup target add` can fail silently, and `rustup` at
+> `~/.cargo/bin` shadows a system dnf `rust`.
 
 ## Step 2 — scaffold the throwaway Nitro module (outside the Lumi repo)
 
@@ -78,8 +84,8 @@ npm_config_yes=true npx create-react-native-library@0.49.10 lumi-crypto-spike \
 cd lumi-crypto-spike
 ```
 
-This generates module **`LumiCrypto`**, spec `src/LumiCrypto.nitro.ts`, `nitro.json`,
-a sample Kotlin/Swift impl, and an `example/` app. **Fix the stale codegen pin:**
+This generates the module **`LumiCrypto`**, the spec `src/LumiCrypto.nitro.ts`, `nitro.json`, a
+sample Kotlin/Swift implementation and an `example/` app. **Fix the stale codegen pin:**
 
 ```bash
 npm pkg delete devDependencies.nitro-codegen
@@ -100,37 +106,36 @@ cp "$SPIKE/nitro/cpp/HybridLumiCrypto.hpp" cpp/
 cp "$SPIKE/nitro/cpp/HybridLumiCrypto.cpp" cpp/
 cp -R "$SPIKE/rust/lumi-ffi-cabi" rust/                          # the Rust C ABI crate
 cp "$SPIKE/App.tsx" example/src/App.tsx                          # adjust the type import if needed
-# remove the sample Kotlin/Swift impls (replaced by the C++ Hybrid Object):
+# remove the sample Kotlin/Swift implementations (the C++ Hybrid Object replaces them):
 rm -f android/src/main/java/com/margelo/nitro/lumicrypto/LumiCrypto.kt
 rm -f ios/LumiCrypto.swift
 # keep android/src/main/cpp/cpp-adapter.cpp (the JNI_OnLoad -> nitro initialize).
-# make the lib export the type so example can import it (src/index.tsx):
+# make the lib export the type so that example can import it (src/index.tsx):
 #   export type { LumiCrypto, DeviceKey, CheckinDraft } from './LumiCrypto.nitro';
 ```
 
-## Step 4 — run Nitrogen (generates the C++ spec + structs + autolinking)
+## Step 4 — run Nitrogen (generates the C++ spec, the structs and the autolinking)
 
 ```bash
 yarn nitrogen   # == npx nitrogen
 ```
 
-Generates (confirmed): `nitrogen/generated/shared/c++/HybridLumiCryptoSpec.{hpp,cpp}`,
-`DeviceKey.hpp`, `CheckinDraft.hpp`, and `nitrogen/generated/android/lumicrypto+autolinking.cmake`
+Nitrogen generates (confirmed): `nitrogen/generated/shared/c++/HybridLumiCryptoSpec.{hpp,cpp}`,
+`DeviceKey.hpp`, `CheckinDraft.hpp`, `nitrogen/generated/android/lumicrypto+autolinking.cmake` and
+`lumicryptoOnLoad.{cpp,hpp,kt}` (the OnLoad auto-registers `HybridLumiCrypto`).
 
-- `lumicryptoOnLoad.{cpp,hpp,kt}` (the OnLoad auto-registers `HybridLumiCrypto`).
-
-## Step 5 — build the Rust C-ABI libs into the lib's cpp/
+## Step 5 — build the Rust C-ABI libs into the `cpp/` of the lib
 
 ```bash
 bash "$SPIKE/scripts/build-rust-android.sh" "$PWD/cpp"
 ```
 
-Writes `cpp/rust-libs/{arm64-v8a,x86_64}/liblumi_ffi_cabi.a` and `cpp/lumi_ffi.h`.
+The script writes `cpp/rust-libs/{arm64-v8a,x86_64}/liblumi_ffi_cabi.a` and `cpp/lumi_ffi.h`.
 
-> **Fix hit during the GO run — Rust std targets not actually installed.** The script
-> failed with `error[E0463]: can't find crate for core` for `aarch64-linux-android`: an
-> earlier `rustup target add` hadn't stuck, and the `rustup` toolchain at `~/.cargo/bin`
-> shadows a system dnf `rust`. **Fix:** install the targets, then re-run:
+> **Fix from the GO run — the Rust std targets were absent.** The script failed with
+> `error[E0463]: can't find crate for core` for `aarch64-linux-android`: an earlier
+> `rustup target add` had no effect, and the `rustup` toolchain at `~/.cargo/bin` shadows a system
+> dnf `rust`. **Fix:** install the targets, then run the script again:
 >
 > ```bash
 > rustup target add aarch64-linux-android x86_64-linux-android
@@ -140,19 +145,19 @@ Writes `cpp/rust-libs/{arm64-v8a,x86_64}/liblumi_ffi_cabi.a` and `cpp/lumi_ffi.h
 
 ## Step 6 — wire CMake
 
-Open `android/CMakeLists.txt` (the template's: `project(lumicrypto)`,
+Open `android/CMakeLists.txt`. The template has: `project(lumicrypto)`,
 `add_library(lumicrypto SHARED src/main/cpp/cpp-adapter.cpp)`,
-`include(.../nitrogen/generated/android/lumicrypto+autolinking.cmake)`,
-`include_directories("src/main/cpp" "../cpp")`). **After the `include(...)` line**,
-append the 3 blocks from `$SPIKE/nitro/CMakeLists.additions.cmake` (add the
-`HybridLumiCrypto.cpp` source + link the per-ABI Rust staticlib). `cpp/` is already on
-the include path, so `HybridLumiCrypto.hpp` and `lumi_ffi.h` resolve.
+`include(.../nitrogen/generated/android/lumicrypto+autolinking.cmake)` and
+`include_directories("src/main/cpp" "../cpp")`. **After the `include(...)` line**, append the 3
+blocks from `$SPIKE/nitro/CMakeLists.additions.cmake`. The blocks add the `HybridLumiCrypto.cpp`
+source and link the per-ABI Rust static library. `cpp/` is already on the include path, so
+`HybridLumiCrypto.hpp` and `lumi_ffi.h` resolve.
 
-## Step 7 — restrict ABIs to what we built
+## Step 7 — restrict the ABIs to the ones we build
 
 `example/android/gradle.properties`:
 
-```
+```properties
 reactNativeArchitectures=arm64-v8a,x86_64
 newArchEnabled=true
 ```
@@ -164,18 +169,19 @@ newArchEnabled=true
 ```bash
 cd example
 npx react-native start          # terminal 1 (Metro)
-npx react-native run-android     # terminal 2: emulator (boot one first) or Pixel via USB
+npx react-native run-android     # terminal 2: emulator (boot one first) or Pixel over USB
 adb logcat -c && adb logcat | grep -i LUMI_SPIKE_RESULT
 ```
 
-> **Two fixes hit during the GO run** (both at `assembleDebug`; apply once, then re-run):
+> **2 fixes from the GO run** (both at `assembleDebug`; apply them once, then run again):
 >
-> 1. **`:app:compileDebugJavaWithJavac` — autolinked Java package path mismatch.** RN
->    autolinking generated `PackageList.java` importing
->    `com.margelo.nitro.lumicrypto.LumiCryptoPackage`, but cra-library generated the class
->    at `com.lumicrypto.LumiCryptoPackage`. With no `react-native.config.js`, autolinking
->    auto-derives the import from the Nitro namespace, which disagreed with the scaffold.
->    **Fix:** move the package class to the autolinked path and fix its `package`:
+> 1. **`:app:compileDebugJavaWithJavac` — autolinked Java package path mismatch.** RN autolinking
+>    generated `PackageList.java` with an import of
+>    `com.margelo.nitro.lumicrypto.LumiCryptoPackage`, but cra-library generated the class at
+>    `com.lumicrypto.LumiCryptoPackage`. With no `react-native.config.js`, autolinking derives the
+>    import from the Nitro namespace, which did not agree with the scaffold. **Fix:** move the
+>    package class to the autolinked path and fix its `package` line:
+>
 >    ```bash
 >    cd "$HOME/lumi-crypto-spike"
 >    mkdir -p android/src/main/java/com/margelo/nitro/lumicrypto
@@ -185,16 +191,18 @@ adb logcat -c && adb logcat | grep -i LUMI_SPIKE_RESULT
 >           android/src/main/java/com/margelo/nitro/lumicrypto/LumiCryptoPackage.kt
 >    # then set its first line to: package com.margelo.nitro.lumicrypto
 >    ```
->    (That class is a no-op `TurboReactPackage` whose real job is
->    `System.loadLibrary("lumicrypto")` in its init block → fires Nitrogen's `OnLoad` →
->    registers the C++ HybridObject. It must exist **and** be findable at the autolinked
->    path — don't just delete it.)
-> 2. **`:app:mergeLibDexDebug` — duplicate class from an unused template dep.**
->    `com.facebook.react.viewmanagers.RNCSafeAreaProviderManagerDelegate` defined twice,
->    from `react-native-safe-area-context` (an example-template dep in `example/package.json`,
->    never imported by the harness). **Fix:** `cd example && yarn remove react-native-safe-area-context`.
+>
+>    That class is a no-op `TurboReactPackage`. Its real job is `System.loadLibrary("lumicrypto")`
+>    in its init block, which fires the `OnLoad` of Nitrogen, which registers the C++ HybridObject.
+>    It must exist **and** be at the autolinked path; do not delete it.
+>
+> 2. **`:app:mergeLibDexDebug` — duplicate class from an unused template dependency.** The dex
+>    merge found `com.facebook.react.viewmanagers.RNCSafeAreaProviderManagerDelegate` twice, from
+>    `react-native-safe-area-context` (an example-template dependency in `example/package.json`;
+>    the harness does not use it). **Fix:**
+>    `cd example && yarn remove react-native-safe-area-context`.
 
-**Offline release (NOT used for GO — release Java packaging is a deferred follow-up):**
+**Offline release (NOT used for GO — the release Java package step is a deferred follow-up):**
 
 ```bash
 # example/android/app/build.gradle: buildTypes { release { signingConfig signingConfigs.debug } }
@@ -205,17 +213,17 @@ adb shell am start -n "$PKG/.MainActivity"
 adb logcat -c && adb logcat | grep -i LUMI_SPIKE_RESULT
 ```
 
-> **As run:** `assembleRelease` **compiled the native code cleanly for both arm64-v8a and
-> x86_64** but failed downstream at `:app:mergeDexRelease` (release dex collisions — see
-> _Production hygiene_ below). GO was therefore reached via the **debug dev-loop on the
-> arm64 Pixel**, not this offline-release APK. The native binding compiles clean in both
-> debug and release; only release Java packaging is unresolved (deferred, not a blocker).
+> **As run:** `assembleRelease` **compiled the native code cleanly for both arm64-v8a and x86_64**,
+> but it failed later at `:app:mergeDexRelease` (release dex collisions; see _Production hygiene_
+> below). Thus we reached GO through the **debug dev-loop on the arm64 Pixel**, not through this
+> offline-release APK. The native binding compiles clean in debug and in release; only the release
+> Java package step is open (deferred, not a blocker).
 
-Run on the **arm64 Pixel** (USB; `adb devices`); the x86_64 emulator runtime leg is an
-optional cross-arch confirmation (x86_64 compiled clean in the release CMake).
+Run on the **arm64 Pixel** (USB; `adb devices`). The x86_64 emulator runtime leg is an optional
+cross-arch confirmation (x86_64 compiled clean in the release CMake).
 
-**Expected (GO):** `LUMI_SPIKE_RESULT {"pass":true,"roundtrip":true,"threw":true}` — seen
-on the Pixel 8a, in both the ReactNativeJS log and the on-screen UI.
+**Expected (GO):** `LUMI_SPIKE_RESULT {"pass":true,"roundtrip":true,"threw":true}`, seen on the
+Pixel 8a in the ReactNativeJS log and in the on-screen UI.
 
 ## Step 9 — §1 verification (no secret crosses)
 
@@ -224,44 +232,44 @@ grep -RniE "secret|private[_-]?key|staticsecret" \
   "$SPIKE/nitro/LumiCrypto.nitro.ts" "$SPIKE/nitro/cpp/HybridLumiCrypto."*
 ```
 
-Expect nothing in any signature — only `handle`, `publicKeyB64`, `peerPublicB64` (a peer
-_public_ key, input-only), `mood`, `intensity`, `note`, `sealedB64` cross; the private key
-stays in the Rust `SECRETS` registry.
+Expect no match in any signature. Only `handle`, `publicKeyB64`, `peerPublicB64` (a peer _public_
+key, input only), `mood`, `intensity`, `note` and `sealedB64` cross; the private key stays in the
+Rust `SECRETS` registry.
 
 ## Production hygiene — deferred, not spike blockers
 
-Two issues were stepped around for the spike (debug dev-loop) and belong to the **real app
-build**, not to the GO/NO-GO. Recorded with cause + fix direction:
+We stepped around 2 issues for the spike (debug dev-loop). They belong to the **real app build**,
+not to the GO/NO-GO. Here is the record, with the cause and the fix direction:
 
 1. **Release-APK dex collisions.** `assembleRelease` fails at `:app:mergeDexRelease` with
-   `com.facebook.fbreact.specs.NativeAccessibilityInfoSpec` (and generally the
-   `com.facebook.fbreact.specs` / `com.facebook.react.viewmanagers` set) **defined twice** —
-   the library module bundles RN-core codegen specs the app's own React Native already
-   provides. A known create-react-native-library + New-Architecture packaging interaction.
-   **Fix direction:** stop the library module from bundling/regenerating the core (and
-   third-party) codegen specs the app already ships.
-2. **16 KB ELF page alignment.** Debug advisory: "This app isn't 16 KB-compatible. ELF
-   alignment check failed." Our own `liblumicrypto.so` reported `LOAD segment not aligned`
-   → **fix with `-Wl,-z,max-page-size=16384`** (or NDK r28+, which defaults to 16 KB-aligned
-   output). The other flagged libs (`libreactnative`, `libhermes`, `libjsi`, `libfbjni`,
-   `libc++_shared`, the Fresco image libs, `libNitroModules`) are prebuilt deps → resolved
-   via 16 KB-aligned upstream versions. **Required for Google Play on Android-15+ targets;**
-   irrelevant to the spike itself.
+   `com.facebook.fbreact.specs.NativeAccessibilityInfoSpec` **defined twice** (and in general the
+   `com.facebook.fbreact.specs` / `com.facebook.react.viewmanagers` set). The library module
+   bundles the RN-core codegen specs that the app's own React Native already has. This is a known
+   interaction between `create-react-native-library` and the New-Architecture package step. **Fix
+   direction:** the library module must not bundle or regenerate the core and third-party codegen
+   specs. The app already ships them.
+2. **16 KB ELF page alignment.** Debug advisory:
+   `This app isn't 16 KB-compatible. ELF alignment check failed.` Our own `liblumicrypto.so`
+   reported `LOAD segment not aligned` → **fix with `-Wl,-z,max-page-size=16384`** (or NDK r28+,
+   which defaults to 16 KB-aligned output). The other flagged libs are prebuilt dependencies:
+   `libreactnative`, `libhermes`, `libjsi`, `libfbjni`, `libc++_shared`, the Fresco image libs and
+   `libNitroModules`. The fix for them is 16 KB-aligned upstream versions. **Required for Google
+   Play on Android-15+ targets;** irrelevant to the spike itself.
 
 ## Likely failure points (we iterate)
 
-- **Nitrogen "0 specs found"** → `react-native-nitro-modules` not installed / spec
-  import unresolved → ensure `yarn` succeeded after the Step-2 codegen fix.
-- **`undefined reference` to `lumi_*`** → CMake additions not applied / wrong target →
-  the target is `lumicrypto`; the staticlib path is `cpp/rust-libs/${ANDROID_ABI}/`.
-- **`undefined reference` to `__android_log_*`/`dl*`/`expf`** → ensure `dl m` linked
-  (the additions add them; `log`/`android` come from the template).
-- **`HybridLumiCrypto is not default-constructible`** (from the generated OnLoad
-  static_assert) → keep the zero-arg `HybridLumiCrypto()` ctor.
-- **`buildCMakeDebug[armeabi-v7a/x86] FAILED`** → Step 7 `reactNativeArchitectures`
-  not applied (only arm64-v8a + x86_64 are built).
-- **Kotlin/Package build error after removing LumiCrypto.kt** → paste it; for a
-  pure-C++ Hybrid Object the registration is the generated OnLoad, but the example's
-  `MainApplication`/Package wiring may need a tweak.
+- **Nitrogen "0 specs found"** → the install of `react-native-nitro-modules` failed, or the spec
+  import does not resolve. Make sure that `yarn` succeeded after the Step-2 codegen fix.
+- **`undefined reference` to `lumi_*`** → the CMake additions are absent, or the target is wrong →
+  the target is `lumicrypto`; the static library path is `cpp/rust-libs/${ANDROID_ABI}/`.
+- **`undefined reference` to `__android_log_*`/`dl*`/`expf`** → make sure that the link line has
+  `dl m` (the additions add them; `log` and `android` come from the template).
+- **`HybridLumiCrypto is not default-constructible`** (from the generated OnLoad `static_assert`)
+  → keep the zero-arg `HybridLumiCrypto()` constructor.
+- **`buildCMakeDebug[armeabi-v7a/x86] FAILED`** → Step 7 (`reactNativeArchitectures`) did not take
+  effect; we build only arm64-v8a and x86_64.
+- **Kotlin/Package build error after the removal of `LumiCrypto.kt`** → paste it. For a pure-C++
+  Hybrid Object, the registration is the generated OnLoad. But the `MainApplication`/Package setup
+  of the example can need a tweak.
 
-Paste whatever breaks (full error + the file/line) and I'll fix it.
+Paste whatever breaks (the full error and the file/line), and I fix it.

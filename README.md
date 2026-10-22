@@ -15,7 +15,7 @@ Interface Guidelines on iOS and the Android design guidelines (Material 3) on An
 and the dark scheme follow the system, and the text scales with Dynamic Type (see
 [Accessibility](#accessibility)).
 
-**Stack:** Expo SDK 56, React Native 0.85, React 19 and TypeScript (strict). The router is
+**Stack:** Expo SDK 58, React Native 0.88, React 19.3 and TypeScript 6 (strict). The router is
 expo-router with typed routes. The database is SQLite with SQLCipher and Drizzle ORM, and the
 texts come from i18next. ESLint (expo, react-native-a11y, i18next) and Prettier check the code.
 The app is local-first, works offline, and has no backend and no telemetry.

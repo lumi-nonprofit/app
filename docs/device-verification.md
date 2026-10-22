@@ -84,6 +84,18 @@ Device: **\_\_** Android **\_\_** Date: **\_\_** By: **\_\_**
 - [ ] "Remove animations" (Android accessibility): the breath circle stops its scale animation,
       the label still changes, and haptics continue.
 
+**After the upgrade to Expo SDK 58 (2026-10-22)**
+
+- [ ] A fresh install opens the onboarding, not the crisis help. `lumi://crisis` still opens
+      before the end of onboarding.
+- [ ] The close of a dirty check-in from step 2 (a swipe-down or Back) shows the dialog 1 time.
+- [ ] "Hotovo", "Zpět na Dnes" and the tip on the confirmation close the sheet. After that, Back
+      on Dnes leaves the app and does not open the check-in again.
+- [ ] A reminder that arrives while the app is open shows a banner without a sound. This is also
+      true after a restart of the app.
+- [ ] The backup export shares a complete JSON file, and the import of that file shows the
+      counts.
+
 ## 2. iOS
 
 Device: **\_\_** iOS **\_\_** Date: **\_\_** By: **\_\_**

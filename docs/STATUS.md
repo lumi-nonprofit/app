@@ -1,7 +1,7 @@
 # Lumi — project status
 
-**Last updated:** 2026-10-22 (tests for the crisis scope precedence, issue #8). The last commit on
-`main` before the review of 2026-10-09 is from 2026-06-15.
+**Last updated:** 2026-10-22 (the upgrade to Expo SDK 58 and to the Rust 2024 edition). The last
+commit on `main` before the review of 2026-10-09 is from 2026-06-15.
 
 This file tells you where the project is and what comes next. Keep it short. Update it when a
 milestone changes state. Record decisions in ADRs (`docs/adr/`). Track work items as GitHub issues,
@@ -105,6 +105,30 @@ rustc 1.97.0, Vale 3.24.0.
 | cbindgen header                                            | Regenerated from the Rust source and committed                                     |
 | `cd design && npm run build`                               | Not run here; the CI job `Design tokens (Style Dictionary)` checks it              |
 | Device                                                     | Not checked; see [`docs/device-verification.md`](device-verification.md)           |
+
+## Checks on 2026-10-22 (Expo SDK 58)
+
+Branch `claude/charming-wozniak-sx8s2l`, after the upgrade to Expo SDK 58 (React Native 0.88,
+React 19.3, jest 30) and to the Rust 2024 edition. Toolchain: Node 22.22.0, rustc 1.97.0, Vale
+3.24.0, cbindgen 0.29.4.
+
+| Command                                                    | Result                                                                                      |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `npm ci`                                                   | OK. On `main` it failed with `ERESOLVE` after PRs #48 to #57 (finding 8)                    |
+| `npm run typecheck`                                        | OK                                                                                          |
+| `npm run lint`                                             | OK, 0 errors and 0 warnings                                                                 |
+| `npm test`                                                 | Android project: 27 suites, 343 tests pass. Web project: 1 suite, 34 tests pass.            |
+| `npm run i18n:check`                                       | OK                                                                                          |
+| `npm run check:docs`                                       | OK; Vale reports 0 errors                                                                   |
+| `cargo test --manifest-path core/Cargo.toml --workspace`   | 71 tests pass                                                                               |
+| `cargo test --manifest-path server/Cargo.toml --workspace` | 2 tests pass                                                                                |
+| musl cross-build of the core (CI command)                  | OK                                                                                          |
+| cbindgen header                                            | The output of cbindgen 0.29.4 is equal to the committed header                              |
+| `npx expo prebuild --platform android --no-install`        | OK                                                                                          |
+| `npx expo install --check`                                 | OK (offline mode)                                                                           |
+| `npx expo-doctor`                                          | 18 of 20 checks pass. The 2 other checks need the Expo API; the sandbox could not reach it. |
+| Android APK build                                          | Not run here (no Android SDK). The CI job `Android APK` checks it.                          |
+| Device                                                     | Not checked; see [`docs/device-verification.md`](device-verification.md)                    |
 
 Open for the owner after the merge:
 
@@ -214,6 +238,23 @@ File each finding as an issue. Then delete it from this list.
      except the report-only audit.
    - `.github/dependabot.yml` ignores 6 more native modules that Expo SDK 56 pins. Thus the group
      PRs keep the SDK versions.
+
+   Changed on 2026-10-22, with the upgrade to Expo SDK 58:
+
+   - PRs #48 to #57 moved 9 Expo packages to SDK 58. The packages `expo` and `expo-router`
+     stayed on the old SDK, so `npm ci` failed on `main` with `ERESOLVE`, and 4 CI jobs failed.
+   - The app now uses Expo SDK 58, React Native 0.88, React 19.3 and jest 30. Reanimated is on
+     4.7, worklets on 0.13 and the gesture handler on 3.3.
+   - Dependabot now also ignores `expo`, `expo-*`, `@expo/*`, `jest-expo`, `eslint-config-expo`
+     and `react-native-web` (`.github/dependabot.yml`).
+   - TypeScript stays on 6.0, because typescript-eslint supports only TypeScript below 6.1.
+   - ESLint stays on 8, because eslint-plugin-react-native-a11y supports only ESLint 8 and lower.
+   - SDK 58 changes the behaviour of the router, the notifications and the file system. The code
+     follows the changes; `docs/device-verification.md` lists the checks on a device.
+   - `npm audit` reports 61 advisories (0 critical, 35 high, 23 moderate, 3 low). The high ones
+     are `braces`, `node-forge` and `markdown-it` (markdownlint-cli2 0.23; 0.24 has the fix).
+   - The Rust crates use the 2024 edition. Their dependencies were already at the latest
+     versions.
 
 9. **One design document is absent.** ADR 0005 and the transport proposal cite the "M2 canonical
    data-model assessment (2026-06-15)". It is not in the repository. ADR 0005 states its conclusion.

@@ -1,6 +1,6 @@
 # Lumi — project status
 
-**Last updated:** 2026-10-22 (standards refactor, PR #43). The last commit on `main` before the
+**Last updated:** 2026-10-22 (Dependabot PR cleanup, PR #47). The last commit on `main` before the
 review of 2026-10-09 is from 2026-06-15.
 
 This file tells you where the project is and what comes next. Keep it short. Update it when a
@@ -193,6 +193,27 @@ File each finding as an issue. Then delete it from this list.
      by name.
    - `design/` has its own lockfile with 8 advisories (style-dictionary `^4`, fixed in 5.4.4, a
      major with a config migration; braces). CI does not audit it.
+
+   Changed on 2026-10-22:
+
+   - A cleanup closed the 9 obsolete Dependabot PRs (#17, #19, #23, #29, #32, #33, #34, #35 and
+     #36). `main` has the same or a newer version of each package that they move.
+   - #45 replaces #31. A second commit moves `lumi-vault` to `getrandom::fill` and to the
+     `TryFrom` conversions of `hybrid-array` 0.4. The core compiles. The Argon2id and
+     XChaCha20-Poly1305 test vectors pass, so the vaults that exist stay readable.
+   - #46 replaces #37. It keeps 4 packages on the Expo SDK 56 versions:
+     `react-native-reanimated`, `react-native-worklets`, the date picker and the slider.
+     Reanimated 4.7 and worklets 0.13 need React Native 0.86. `jest.config.js` now maps
+     `lucide-react-native` 1.59 to its CommonJS build on Android too. The PR still moves
+     `react-native-nitro-modules` and `nitrogen` to 0.37.1, so the check of the vault binding
+     stays open.
+   - #44 replaces #20. `style-dictionary` 5.4.4 builds the same `src/theme/tokens.generated.ts`
+     with the current config, so the major needs no migration. `npm audit` in `design/` reports 0
+     advisories.
+   - #24 moves `actions/checkout` and `actions/setup-node` to v7. CI and the APK build pass,
+     except the report-only audit.
+   - `.github/dependabot.yml` ignores 6 more native modules that Expo SDK 56 pins. Thus the group
+     PRs keep the SDK versions.
 
 9. **One design document is absent.** ADR 0005 and the transport proposal cite the "M2 canonical
    data-model assessment (2026-06-15)". It is not in the repository. ADR 0005 states its conclusion.

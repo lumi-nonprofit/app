@@ -1,12 +1,12 @@
-/* Guardy neuložených změn (HIG: varovat před nečekanou ztrátou rozpracovaného
-   obsahu): rozepsaný check-in se nezavře bez dotazu, krok 2 → krok 1 draft
-   nezahazuje, po uložení odchod bez dotazu; dotazník s odpověďmi a editor
-   krizového plánu stejně. Pod Android presetem je dialog Alert.alert —
-   test v něm vybere „Zrušit“ nebo destruktivní „Zahodit“. */
+/* The guards for unsaved changes (HIG: warn before an unexpected loss of content in
+   progress). A check-in in progress does not close without a question. The step from step 2
+   back to step 1 keeps the draft. The exit after the save asks nothing. A questionnaire with
+   answers and the crisis plan editor behave the same. Under the Android preset the dialog
+   is `Alert.alert`; the test selects "Zrušit" or the destructive "Zahodit" in it. */
 import { Alert } from "react-native";
 import { act, userEvent, waitFor } from "@testing-library/react-native";
 import { router } from "expo-router";
-/* kořenový navigationRef: jen pro simulaci nativního swipe-down (POP na kořenový stack) */
+/* The root `navigationRef`: only to simulate the native swipe-down (a POP on the root stack). */
 import { store } from "expo-router/build/global-state/router-store";
 import { renderRouter, screen } from "expo-router/testing-library";
 import { writeProfile } from "../src/db/repo";
@@ -33,7 +33,7 @@ async function openCheckin(): Promise<User> {
 }
 
 describe("check-in sheet", () => {
-  it("prázdný zápis se zavře bez dotazu", async () => {
+  it("closes an empty entry without a question", async () => {
     const alert = mockAlert("cancel");
     const user = await openCheckin();
     await user.press(screen.getByRole("button", { name: "Zrušit" }));
@@ -41,7 +41,7 @@ describe("check-in sheet", () => {
     expect(alert).not.toHaveBeenCalled();
   });
 
-  it("rozepsaný zápis: Zrušit se zeptá a „Zrušit“ v dialogu nechá sheet otevřený", async () => {
+  it("asks on cancel of an entry in progress, and the dialog cancel keeps the sheet open", async () => {
     const alert = mockAlert("cancel");
     const user = await openCheckin();
     await user.press(screen.getByRole("radio", { name: /Napětí/ }));
@@ -56,7 +56,7 @@ describe("check-in sheet", () => {
     expect(screen.getByRole("radio", { name: /Napětí/ })).toBeChecked();
   });
 
-  it("rozepsaný zápis: „Zahodit“ zavře sheet", async () => {
+  it("closes the sheet when the user discards an entry in progress", async () => {
     const alert = mockAlert("confirm");
     const user = await openCheckin();
     await user.press(screen.getByRole("radio", { name: /Napětí/ }));
@@ -65,15 +65,15 @@ describe("check-in sheet", () => {
     expect(await screen.findByText("Jak se dnes cítíš?")).toBeOnTheScreen();
   });
 
-  it("zavření sheetu z kroku 2 se zeptá; Zpět na krok 1 ne", async () => {
+  it("asks on close of the sheet from step 2, but not on the step back to step 1", async () => {
     const alert = mockAlert("cancel");
     const user = await openCheckin();
     await user.press(screen.getByRole("radio", { name: /Napětí/ }));
     await user.press(screen.getByRole("button", { name: "Pokračovat" }));
     expect(await screen.findByText("Které slovo to vystihuje nejlíp?")).toBeOnTheScreen();
 
-    // swipe-down sheetu = nativní stack pošle POP cílený na stack aplikace
-    // (expo-router má nad ním ještě obal __root, proto routes[0].state)
+    // A swipe-down of the sheet: the native stack sends a POP that targets the app stack
+    // (expo-router wraps it in `__root`, thus `routes[0].state`).
     const appStack = store.navigationRef.getRootState().routes[0]?.state;
     expect(appStack?.key).toBeDefined();
     await act(async () => {
@@ -82,7 +82,7 @@ describe("check-in sheet", () => {
     await waitFor(() => expect(alert).toHaveBeenCalledTimes(1));
     expect(screen.getByText("Které slovo to vystihuje nejlíp?")).toBeOnTheScreen();
 
-    // systémové Zpět v sheetu jen vrací na krok 1 — draft zůstává, bez dotazu
+    // The system back in the sheet only returns to step 1: the draft stays, no question.
     await act(async () => {
       router.back();
     });
@@ -91,7 +91,7 @@ describe("check-in sheet", () => {
     expect(alert).toHaveBeenCalledTimes(1);
   });
 
-  it("po uložení zavře Hotovo sheet bez dotazu", async () => {
+  it("closes the sheet with the done button after the save, without a question", async () => {
     const alert = mockAlert("cancel");
     const user = await openCheckin();
     await user.press(screen.getByRole("radio", { name: /Klid/ }));
@@ -105,8 +105,8 @@ describe("check-in sheet", () => {
   });
 });
 
-describe("dotazník", () => {
-  it("s odpovědí se zavření zeptá; „Zrušit“ nechá otázku otevřenou", async () => {
+describe("questionnaire", () => {
+  it("asks on close when an answer exists, and the cancel button keeps the question open", async () => {
     const alert = mockAlert("cancel");
     const user = userEvent.setup();
     writeProfile(getTestDb(), { onboarded: true, name: "Janko", age: "u26", share: false });
@@ -131,8 +131,8 @@ describe("dotazník", () => {
   });
 });
 
-describe("krizový plán", () => {
-  it("změněný text + Zpět se zeptá; Uložit odchází bez dotazu", async () => {
+describe("crisis plan", () => {
+  it("asks on back after a text change, and the save button leaves without a question", async () => {
     const alert = mockAlert("cancel");
     const user = userEvent.setup();
     writeProfile(getTestDb(), { onboarded: true, name: "Janko", age: "u26", share: false });

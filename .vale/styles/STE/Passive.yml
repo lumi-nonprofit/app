@@ -1,0 +1,63 @@
+extends: existence
+message: "'%s' looks like the passive voice. STE: write who or what does the action."
+link: https://www.asd-ste100.org/
+level: warning
+ignorecase: true
+raw:
+  - \b(am|are|were|being|is|been|was|be)\b\s+
+tokens:
+  - '[\w]+ed'
+  - awoken
+  - begun
+  - broken
+  - built
+  - chosen
+  - done
+  - drawn
+  - driven
+  - given
+  - gone
+  - hidden
+  - kept
+  - known
+  - made
+  - met
+  - put
+  - read
+  - run
+  - seen
+  - sent
+  - set
+  - shown
+  - split
+  - taken
+  - told
+  - thought
+  - understood
+  - written
+exceptions:
+  - allowed
+  - based
+  - bounded
+  - committed
+  - deprecated
+  - disabled
+  - enabled
+  - encrypted
+  - excluded
+  - expected
+  - included
+  - installed
+  - limited
+  - listed
+  - locked
+  - marked
+  - named
+  - needed
+  - pinned
+  - related
+  - required
+  - signed
+  - supported
+  - unchanged
+  - unrelated

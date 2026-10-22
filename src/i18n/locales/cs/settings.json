@@ -1,0 +1,117 @@
+{
+  "about": {
+    "privacy": "Záznamy zůstávají jen v tomhle telefonu, šifrované. Žádné účty, žádná reklama, žádné sledování.",
+    "title": "O aplikaci",
+    "version": "Lumi {{version}}"
+  },
+  "backup": {
+    "errors": {
+      "invalid-json": "Tenhle soubor nejde načíst — vypadá to, že není záloha z Lumi.",
+      "not-a-backup": "Tenhle soubor nejde načíst — vypadá to, že není záloha z Lumi.",
+      "unknown-version": "Tenhle soubor nejde načíst — vypadá to, že není záloha z Lumi."
+    },
+    "export": {
+      "action": "Exportovat zálohu",
+      "done": "Záloha je vytvořená. Ulož si soubor někam bezpečně.",
+      "failed": "Export se nepovedl. Zkus to prosím znovu.",
+      "shareTitle": "Uložit zálohu Lumi"
+    },
+    "import": {
+      "action": "Obnovit ze zálohy",
+      "done_one": "Hotovo — přidáno {{entries}} a {{count}} měření.",
+      "done_few": "Hotovo — přidáno {{entries}} a {{count}} měření.",
+      "done_many": "Hotovo — přidáno {{entries}} a {{count}} měření.",
+      "done_other": "Hotovo — přidáno {{entries}} a {{count}} měření.",
+      "nothingNew": "Vše už v telefonu je — nic nebylo potřeba přidávat.",
+      "openFailed": "Soubor se nepodařilo otevřít. Zkus to prosím znovu."
+    },
+    "intro": "Záznamy si můžeš uložit do souboru a přenést do jiného telefonu. Exportovaný soubor už není šifrovaný — ulož si ho někam bezpečně.",
+    "preview": {
+      "empty": "Záloha je prázdná — není co přidat.",
+      "found_one": "Najdeš tu {{entries}} z období {{from}} – {{to}} a {{count}} měření.",
+      "found_few": "Najdeš tu {{entries}} z období {{from}} – {{to}} a {{count}} měření.",
+      "found_many": "Najdeš tu {{entries}} z období {{from}} – {{to}} a {{count}} měření.",
+      "found_other": "Najdeš tu {{entries}} z období {{from}} – {{to}} a {{count}} měření.",
+      "foundNoRange_one": "Najdeš tu {{entries}} a {{count}} měření.",
+      "foundNoRange_few": "Najdeš tu {{entries}} a {{count}} měření.",
+      "foundNoRange_many": "Najdeš tu {{entries}} a {{count}} měření.",
+      "foundNoRange_other": "Najdeš tu {{entries}} a {{count}} měření.",
+      "merge": "Sloučit do aplikace",
+      "mergeNote": "Přidá se jen to, co v telefonu ještě není."
+    },
+    "title": "Záloha"
+  },
+  "haptics": {
+    "title": "Haptika",
+    "toggle": {
+      "description": "Jemné vibrace u dechu, výběru a uložení.",
+      "label": "Haptická odezva"
+    }
+  },
+  "privacy": {
+    "share": {
+      "description": "Anonymně a jen pokud to tady zapneš. Záznamy jinak zůstávají v telefonu.",
+      "label": "Sdílet data pro výzkum"
+    },
+    "title": "Soukromí"
+  },
+  "profile": {
+    "age": {
+      "a11yLabel": "Věkové pásmo",
+      "label": "Věk"
+    },
+    "name": {
+      "hint": "Nepovinné — jen pro oslovení, nikam se neposílá.",
+      "label": "Jak ti říkat",
+      "placeholder": "Třeba Alex"
+    },
+    "title": "Profil"
+  },
+  "reminders": {
+    "daily": {
+      "a11yHint": "Naplánuje každodenní jemné pozvání k zápisu.",
+      "description": "Jemné pozvání k zápisu, jednou denně.",
+      "label": "Denní připomínka"
+    },
+    "denied": {
+      "announce": "Bez povolení notifikací to nepůjde. Povol je v nastavení systému.",
+      "openSettings": "Otevřít nastavení systému",
+      "text": "Bez povolení notifikací to nepůjde — povol je v nastavení systému."
+    },
+    "evening": {
+      "a11yHint": "Každý večer pozvání ke klidnému usínání.",
+      "description": "Pozvání ke klidnému usínání.",
+      "label": "Večerka ve {{time}}"
+    },
+    "footer": "Jen jemné pozvání — žádné výčitky, když zápis vynecháš. Na zamčené obrazovce se text nezobrazuje.",
+    "notification": {
+      "channelName": "Připomínky",
+      "dailyHere": "Lumi je tu, kdyby bylo potřeba se zastavit.",
+      "dailyHowAreYou": "Jak je ti dnes?",
+      "dailyMoment": "Chvilka pro tebe?",
+      "evening": "Večerka — klidné usínání, kdyby se hodilo.",
+      "weekly": "Ohlédnutí za týdnem je připravené."
+    },
+    "time": {
+      "closeHint": "Zavře výběr času připomínky.",
+      "label": "Čas: {{time}}",
+      "openHint": "Otevře výběr času denní připomínky."
+    },
+    "title": "Připomínky",
+    "weekly": {
+      "a11yHint": "Každou neděli v {{time}} pozvání k ohlédnutí za týdnem.",
+      "description": "V neděli v {{time}}.",
+      "label": "Nedělní ohlédnutí za týdnem"
+    }
+  },
+  "tags": {
+    "delete": {
+      "a11yLabel": "Smazat štítek {{label}}",
+      "announce": "Štítek {{label}} smazán.",
+      "message": "Záznamy, kde už je použitý, zůstanou beze změny.",
+      "title": "Smazat štítek „{{label}}“?"
+    },
+    "empty": "Vlastní štítky přidáš v check-inu u otázky „Co s tím souvisí?“.",
+    "title": "Vlastní štítky"
+  }
+}

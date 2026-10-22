@@ -1,0 +1,35 @@
+{
+  "actions": {
+    "back": "Back",
+    "cancel": "Cancel",
+    "close": "Close",
+    "done": "Done"
+  },
+  "notFound": {
+    "heading": "This page is not in Lumi",
+    "home": "Back to Today",
+    "message": "The link is probably invalid or out of date.",
+    "title": "Not found"
+  },
+  "tabs": {
+    "calm": "Calm",
+    "help": "Help",
+    "home": "Today",
+    "stats": "Overview"
+  },
+  "titles": {
+    "calm": "Calm",
+    "checkin": "Check-in",
+    "checkinSaved": "Saved",
+    "checkinStep1": "Step 1",
+    "crisis": "Help now",
+    "handover": "Help someone close",
+    "help": "Help",
+    "home": "Today",
+    "measure": "Questionnaire",
+    "plan": "Crisis plan",
+    "reflection": "Reflection",
+    "settings": "Settings",
+    "stats": "Overview"
+  }
+}

@@ -1,6 +1,6 @@
-/* Lumi — vrstva tématu. Jeden zdroj tokenů (design/tokens → tokens.generated.ts),
-   světlé i tmavé schéma podle systému (HIG Dark Mode: žádný vlastní přepínač),
-   platformní konstanty a hooky pro komponenty. */
+/* Lumi: the theme layer. One source of tokens (design/tokens → tokens.generated.ts),
+   the light and the dark scheme follow the system (HIG Dark Mode: no own switch),
+   the platform constants and the hooks for the components. */
 import React from "react";
 import { StyleSheet, useColorScheme } from "react-native";
 import { useBoldText } from "../lib/a11y";
@@ -14,12 +14,12 @@ export type { Theme, ThemeColors, ThemeScheme, MoodColors, MoodId };
 export { contrastRatio } from "./contrast";
 export { contrastPairs } from "./contrastPairs";
 
-/* dark musí mít přesně stejné role jako light — typová kontrola generovaného souboru */
+/* dark must have exactly the same roles as light: a type check of the generated file */
 const DARK: ThemeColors = darkColors satisfies Record<keyof typeof lightColors, string>;
 const LIGHT: ThemeColors = lightColors;
 
-/* Barvy stavů: výplň tvaru je v obou režimech stejná (zamčené mood tokeny),
-   měkká dlaždice a silný tón pro obrys/text se přepínají. */
+/* The mood colors: the fill of the shape is the same in both modes (locked mood tokens),
+   the soft tile and the strong tone for the outline and the text switch. */
 const MOOD_LIGHT: Record<MoodId, MoodColors> = {
   energie: { fill: mood.energie, soft: palette.sun100, strong: palette.sun700 },
   napeti: { fill: mood.napeti, soft: palette.lake100, strong: palette.lake700 },
@@ -57,15 +57,15 @@ export const lightTheme: Theme = buildTheme("light");
 export const darkTheme: Theme = buildTheme("dark");
 
 const ThemeContext = React.createContext<Theme>(lightTheme);
-/* iOS „Bold Text“: systémový font ztuční sám, Bricolage (titulky) zvedá
-   ds/Text o řez výš — jeden listener v provideru místo jednoho na každý Text. */
+/* iOS "Bold Text": the system font gets bold on its own, ds/Text raises Bricolage (the
+   titles) one cut up: one listener in the provider instead of one for every Text. */
 const BoldTextContext = React.createContext(false);
 
 interface ProviderProps {
   children: React.ReactNode;
-  /** Jen pro testy a náhledy; běžně se schéma bere ze systému. */
+  /** Only for tests and previews; normally the scheme comes from the system. */
   scheme?: ThemeScheme;
-  /** Jen pro testy; běžně podle nastavení Bold Text. */
+  /** Only for tests; normally it follows the Bold Text setting. */
   boldText?: boolean;
 }
 
@@ -85,12 +85,12 @@ export function useTheme(): Theme {
   return React.useContext(ThemeContext);
 }
 
-/** Je zapnutý tučný text (iOS Bold Text)? Čte ds/Text pro titulky. */
+/** Is the bold text (iOS Bold Text) on? ds/Text reads it for the titles. */
 export function useBoldTextSetting(): boolean {
   return React.useContext(BoldTextContext);
 }
 
-/** Styly závislé na tématu; factory se vyhodnotí jednou na schéma. */
+/** The styles that depend on the theme; the factory runs once per scheme. */
 export function useThemedStyles<T extends StyleSheet.NamedStyles<T>>(
   factory: (theme: Theme) => T,
 ): T {
@@ -98,7 +98,7 @@ export function useThemedStyles<T extends StyleSheet.NamedStyles<T>>(
   return React.useMemo(() => StyleSheet.create(factory(theme)), [theme, factory]);
 }
 
-/** Tovární varianta pro moduly: const useStyles = createThemedStyles((t) => ({ ... })). */
+/** The factory variant for modules: const useStyles = createThemedStyles((t) => ({ ... })). */
 export function createThemedStyles<T extends StyleSheet.NamedStyles<T>>(
   factory: (theme: Theme) => T,
 ): () => T {

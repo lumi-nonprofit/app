@@ -1,5 +1,5 @@
-/* Badge — malý stavový pill pro metadata (5 MIN, VEČER); jemné tóny, nikdy syté výplně.
-   Text v tónu odstínu drží ≥ 4,5:1 na své měkké výplni (viz contrastPairs). */
+/* Badge: a small status pill for metadata ("5 MIN", "VEČER"); gentle tones, never saturated
+   fills. The text in the tone shade keeps ≥ 4.5:1 on its soft fill (see contrastPairs). */
 import React from "react";
 import { View } from "react-native";
 import type { StyleProp, ViewStyle } from "react-native";

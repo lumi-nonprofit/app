@@ -21,4 +21,4 @@ sha2 = "0.10"
 getrandom = "0.2"
 
 [profile.release]
-panic = "abort"  # a panic must never unwind across the C ABI (UB); abort instead.
+panic = "abort"  # a panic that unwinds across the C ABI is UB; abort instead.

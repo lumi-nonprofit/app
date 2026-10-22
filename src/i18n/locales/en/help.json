@@ -1,0 +1,73 @@
+{
+  "calm": {
+    "subtitle": "Breath and grounding in 2 minutes",
+    "title": "Quick calm"
+  },
+  "card": {
+    "back": "Back side",
+    "front": "Front side",
+    "line": "{{phone}} — {{name}}",
+    "lineWithAge": "{{phone}} — {{name}} ({{age}})",
+    "note": "Print it, fold it, laminate it — and carry it with you."
+  },
+  "contacts": {
+    "title": "Contacts"
+  },
+  "crisis": {
+    "lead": "The lines are free and open 24/7. You do not need to know what to say — just call.",
+    "title": "Need to talk right now?"
+  },
+  "guides": {
+    "title": "What to do when…"
+  },
+  "handover": {
+    "callAdults": "Call {{phone}} — adults",
+    "callYouth": "Call {{phone}} — children and students",
+    "emergency": "When a life is in danger: {{ambulance}} emergency medical service · {{emergency}} emergency line",
+    "entry": {
+      "subtitle": "Open the mode for when you hold the phone for someone else",
+      "title": "Helping someone close to you?"
+    },
+    "principles": {
+      "listen": "Listen, above all.",
+      "noAdvice": "Do not advise and do not play it down.",
+      "stayClose": "Stay close.",
+      "stayWith": "When there is danger, do not leave them alone.",
+      "takeSeriously": "Take it seriously."
+    },
+    "return": "Return the phone",
+    "title": "You are here for someone — that is what matters most."
+  },
+  "lines": {
+    "call": "Call {{phone}}",
+    "callWithName": "Call {{phone}} · {{name}}",
+    "emergencyIntro": "When a life is in immediate danger:",
+    "emergencyShort": "{{phone}} · {{short}}",
+    "nameWithPhone": "{{name}} · {{phone}}",
+    "yourLine": "your line"
+  },
+  "plan": {
+    "discard": {
+      "message": "The text in this section will not be saved.",
+      "title": "Discard the changes to the plan?"
+    },
+    "editor": {
+      "a11yHint": "The text stays only on your phone."
+    },
+    "print": {
+      "emptyMessage": "The card is made from your crisis plan — fill in at least one section.",
+      "emptyTitle": "Fill in your plan first",
+      "failedMessage": "The card could not be created right now. Please try again.",
+      "failedTitle": "That did not work",
+      "shareTitle": "Crisis card",
+      "subtitle": "A PDF to fold and laminate",
+      "title": "Print a wallet card"
+    },
+    "sectionFilled": "{{subtitle}} · filled in",
+    "subtitle": "Prepare your steps while things are calm.",
+    "title": "My crisis plan"
+  },
+  "screen": {
+    "title": "Help is close"
+  }
+}

@@ -1,7 +1,8 @@
-/* Krátké návody „Co dělat, když…“ a chat Linky bezpečí. Obsah zatím není
-   hotový — sekce se v Pomoci vykreslí, až tu něco bude (žádné mrtvé řádky
-   s chevronem). Chat Linky bezpečí přibude jako `url`, až bude ověřená
-   adresa a hodiny (docs/cz-crisis-data-checklist.md). */
+/* Short guides ("Co dělat, když…") and the chat of Linka bezpečí. The content is not ready yet:
+   Help renders the section only when it has items (no dead rows with a chevron). The chat of
+   Linka bezpečí comes as a `url` once someone checks the address and the hours
+   (docs/cz-crisis-data-checklist.md). When the content arrives, its text belongs in the message
+   catalog (the `content` namespace, read through getters like the lines), not in this module. */
 import type { IconName } from "../../ds/Icon";
 
 export interface Guide {
@@ -9,7 +10,7 @@ export interface Guide {
   icon: IconName;
   title: string;
   subtitle: string;
-  /** Krátké kroky zobrazené po otevření; prázdné = návod se nenabízí. */
+  /** Short steps that the guide shows after it opens; an empty list hides the guide. */
   steps: readonly string[];
 }
 
@@ -21,5 +22,5 @@ export interface ChatLine {
   meta: string;
 }
 
-/** Chat Linky bezpečí: doplnit ověřenou adresu a hodiny; do té doby se nenabízí. */
+/** The chat of Linka bezpečí: add the checked address and hours; until then Help does not offer it. */
 export const CHAT_LINES: readonly ChatLine[] = [];

@@ -1,20 +1,20 @@
-/* Typový přístup k datům: zápis = INSERT (žádné přepisování celku),
-   čtení = dotazy s volitelným rozsahem dat. Funkce berou `db` jako
-   parametr — aplikace dodává expo-sqlite instanci, testy better-sqlite3. */
+/* Typed access to the data: a write = INSERT (no rewrite of the whole), a read = queries
+   with an optional date range. The functions take `db` as a parameter: the app supplies an
+   expo-sqlite instance, the tests better-sqlite3. */
 import { and, asc, count, eq, gte, inArray, lte } from "drizzle-orm";
 import { entries, measurements, settings, tags } from "./schema";
 import type { LumiDb } from "./types";
 import type { AgeBand, Entry, Intensity, ISODate, MoodId } from "../model";
 
-/* ---------- záznamy ---------- */
+/* ---------- entries ---------- */
 
 export interface DateRange {
   from?: ISODate;
   to?: ISODate;
 }
 
-/* id začíná timestampem (Date.now()), takže řazení podle id = pořadí vzniku
-   (lastEntryForDate spoléhá na to, že pozdější zápis je v poli později) */
+/* The id starts with a timestamp (Date.now()), so the order by id = the order of creation
+   (lastEntryForDate relies on it: a later write is later in the array) */
 export function listEntries(db: LumiDb, range?: DateRange): Entry[] {
   const conds = [
     ...(range?.from ? [gte(entries.date, range.from)] : []),
@@ -26,7 +26,7 @@ export function listEntries(db: LumiDb, range?: DateRange): Entry[] {
     .where(conds.length ? and(...conds) : undefined)
     .orderBy(asc(entries.id))
     .all();
-  // hranice DB → doména: mood/intensity se validují při zápisu
+  // the boundary DB → domain: the write path validates mood and intensity
   return rows.map((r) => ({ ...r, mood: r.mood as MoodId, intensity: r.intensity as Intensity }));
 }
 
@@ -40,7 +40,7 @@ export function countEntriesByIds(db: LumiDb, ids: string[]): number {
   return row?.n ?? 0;
 }
 
-/* ---------- měření (WHO-5, PHQ-9, GAD-7) ---------- */
+/* ---------- measurements (WHO-5, PHQ-9, GAD-7) ---------- */
 
 export type MeasurementType = "who5" | "phq9" | "gad7";
 
@@ -76,13 +76,13 @@ export function countMeasurementsByIds(db: LumiDb, ids: string[]): number {
   return row?.n ?? 0;
 }
 
-/* ---------- profil a preference (settings tabulka) ---------- */
+/* ---------- the profile and the preferences (the settings table) ---------- */
 
 export interface ProfileSettings {
   onboarded: boolean;
   name: string;
-  age: AgeBand | null; // určuje primární krizovou linku
-  share: boolean; // anonymní sdílení pro výzkum, výhradně opt-in
+  age: AgeBand | null; // selects the primary crisis line
+  share: boolean; // an anonymous share for research, strictly opt-in
 }
 
 export const DEFAULT_PROFILE: ProfileSettings = {
@@ -99,7 +99,7 @@ export function readProfile(db: LumiDb): ProfileSettings {
     try {
       raw[row.key] = JSON.parse(row.value);
     } catch {
-      /* poškozená hodnota → výchozí */
+      /* a damaged value → the default */
     }
   }
   return {
@@ -120,7 +120,7 @@ export function writeProfile(db: LumiDb, patch: Partial<ProfileSettings>): void 
   }
 }
 
-/* ---------- vlastní štítky ---------- */
+/* ---------- custom tags ---------- */
 
 export interface Tag {
   id: string;
@@ -128,12 +128,12 @@ export interface Tag {
   builtin: boolean;
 }
 
-/** Vlastní štítky v pořadí vzniku — v UI se řadí za vestavěné CONTEXT_TAGS. */
+/** The custom tags in the order of creation; the UI lists them after the built-in CONTEXT_TAGS. */
 export function listCustomTags(db: LumiDb): Tag[] {
   return db.select().from(tags).where(eq(tags.builtin, false)).orderBy(asc(tags.id)).all();
 }
 
-/** Přidá vlastní štítek; existující label vrátí beze změny (unikátní sloupec). */
+/** Adds a custom tag; a label that already exists comes back without a change (a unique column). */
 export function addCustomTag(db: LumiDb, label: string): Tag | null {
   const trimmed = label.trim();
   if (!trimmed) return null;
@@ -148,12 +148,12 @@ export function addCustomTag(db: LumiDb, label: string): Tag | null {
   return db.select().from(tags).where(eq(tags.label, trimmed)).get() ?? null;
 }
 
-/** Smaže štítek z nabídky; záznamy, které ho použily, zůstávají beze změny. */
+/** Deletes the tag from the offer; the entries that used it stay as they are. */
 export function deleteCustomTag(db: LumiDb, id: string): void {
   db.delete(tags).where(eq(tags.id, id)).run();
 }
 
-/* ---------- obecné preference (settings mimo profil) ---------- */
+/* ---------- general preferences (settings outside the profile) ---------- */
 
 export function getSetting<T>(db: LumiDb, key: string): T | null {
   const row = db.select().from(settings).where(eq(settings.key, key)).get();
@@ -177,7 +177,7 @@ export function newMeasurementId(type: MeasurementType): string {
   return `${type}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-/** Které profilové klíče už v settings existují (kvůli idempotentní migraci). */
+/** Which profile keys already exist in settings (for an idempotent migration). */
 export function existingProfileKeys(db: LumiDb): Set<string> {
   return new Set(
     db

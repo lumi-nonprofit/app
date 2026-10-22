@@ -1,15 +1,17 @@
-/* Check-in stack (modálně nad taby): krok 1 → krok 2 → potvrzení.
-   Draft žije jen v provideru tohoto stacku — každé otevření začíná čistě
-   a nic z rozpracovaného zápisu se nepersistuje. Hlavička podle HIG Sheets:
-   Zrušit vlevo na prvním kroku, systémové Zpět na druhém, Hotovo vpravo na
-   potvrzení (bez Zpět — zápis už je uložený). */
+/* The check-in stack (modal over the tabs): step 1, step 2, confirmation. The draft lives only
+   in the provider of this stack: each open starts empty, and nothing of the unsaved entry
+   persists. The header follows HIG Sheets. Step 1 has "Zrušit" on the left, step 2 the system
+   back button. The confirmation has "Hotovo" on the right and no back button: the entry is
+   already in the database. */
 import { Stack, useRouter } from "expo-router";
 import { CheckinDraftProvider } from "../../src/features/checkin/draft";
 import { closeItem, headerItems } from "../../src/components/HeaderItems";
 import { stackScreenOptions } from "../../src/components/navigation";
+import { useTranslation } from "../../src/i18n";
 import { useTheme } from "../../src/theme";
 
 export default function CheckinLayout() {
+  const { t } = useTranslation("navigation");
   const theme = useTheme();
   const router = useRouter();
   const finish = () => {
@@ -22,25 +24,28 @@ export default function CheckinLayout() {
         <Stack.Screen
           name="index"
           options={{
-            title: "Check-in",
+            title: t("titles.checkin"),
             ...headerItems(theme, {
               left: [
                 theme.platform.isIOS
-                  ? { label: "Zrušit", onPress: () => router.dismiss() }
-                  : closeItem(() => router.dismiss(), "Zrušit"),
+                  ? { label: t("actions.cancel"), onPress: () => router.dismiss() }
+                  : closeItem(() => router.dismiss(), t("actions.cancel")),
               ],
             }),
           }}
         />
-        <Stack.Screen name="words" options={{ title: "Check-in", headerBackTitle: "Krok 1" }} />
+        <Stack.Screen
+          name="words"
+          options={{ title: t("titles.checkin"), headerBackTitle: t("titles.checkinStep1") }}
+        />
         <Stack.Screen
           name="confirm"
           options={{
-            title: "Uloženo",
+            title: t("titles.checkinSaved"),
             headerBackVisible: false,
             gestureEnabled: false,
             ...headerItems(theme, {
-              right: [{ label: "Hotovo", prominent: true, onPress: finish }],
+              right: [{ label: t("actions.done"), prominent: true, onPress: finish }],
             }),
           }}
         />

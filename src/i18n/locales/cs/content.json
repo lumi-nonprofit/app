@@ -1,0 +1,280 @@
+{
+  "moods": {
+    "energie": {
+      "name": "Energie",
+      "nameInSentence": "energie",
+      "axis": "vysoká energie · příjemné"
+    },
+    "napeti": {
+      "name": "Napětí",
+      "nameInSentence": "napětí",
+      "axis": "vysoká energie · nepříjemné"
+    },
+    "klid": {
+      "name": "Klid",
+      "nameInSentence": "klid",
+      "axis": "nízká energie · příjemné"
+    },
+    "utlum": {
+      "name": "Útlum",
+      "nameInSentence": "útlum",
+      "axis": "nízká energie · nepříjemné"
+    }
+  },
+  "words": {
+    "enthusiasm": "nadšení",
+    "joy": "radost",
+    "playfulness": "hravost",
+    "determination": "odhodlání",
+    "curiosity": "zvědavost",
+    "gratitude": "vděčnost",
+    "pride": "hrdost",
+    "stress": "stres",
+    "nervousness": "nervozita",
+    "overwhelm": "zahlcení",
+    "irritation": "podráždění",
+    "anger": "vztek",
+    "worry": "obavy",
+    "restlessness": "neklid",
+    "ease": "pohoda",
+    "contentment": "spokojenost",
+    "relaxation": "uvolnění",
+    "balance": "vyrovnanost",
+    "safety": "bezpečí",
+    "focus": "soustředění",
+    "tenderness": "něha",
+    "tiredness": "únava",
+    "sadness": "smutek",
+    "loneliness": "osamělost",
+    "emptiness": "prázdnota",
+    "disappointment": "zklamání",
+    "longing": "stesk",
+    "apathy": "apatie"
+  },
+  "tags": {
+    "work": { "label": "práce", "instrumental": "s prací" },
+    "school": { "label": "škola", "instrumental": "se školou" },
+    "family": { "label": "rodina", "instrumental": "s rodinou" },
+    "relationships": { "label": "vztahy", "instrumental": "se vztahy" },
+    "sleep": { "label": "spánek", "instrumental": "se spánkem" },
+    "health": { "label": "zdraví", "instrumental": "se zdravím" },
+    "weather": { "label": "počasí", "instrumental": "s počasím" },
+    "custom": { "instrumental": "se štítkem „{{tag}}“" }
+  },
+  "intensity": {
+    "1": "jen lehce",
+    "2": "lehce",
+    "3": "středně",
+    "4": "silně",
+    "5": "hodně silně"
+  },
+  "helpLines": {
+    "linka-bezpeci": {
+      "name": "Linka bezpečí",
+      "nameDative": "Lince bezpečí",
+      "meta": "nonstop, zdarma · děti a studenti do 26 let"
+    },
+    "lppp": {
+      "name": "Linka první psychické pomoci",
+      "nameDative": "Lince první psychické pomoci",
+      "meta": "nonstop, zdarma · dospělí"
+    },
+    "obetem": {
+      "name": "Linka pomoci obětem",
+      "nameDative": "Lince pomoci obětem",
+      "meta": "nonstop, zdarma · pro oběti násilí a trestných činů"
+    },
+    "rodicovska": {
+      "name": "Rodičovská linka",
+      "nameDative": "Rodičovské lince",
+      "meta": "Po–Čt 9–21 · Pá 9–17 · rodiče a blízcí dětí · běžný tarif"
+    },
+    "zachranka": {
+      "name": "Záchranná služba",
+      "nameDative": "Záchranné službě",
+      "short": "záchranka",
+      "meta": "při bezprostředním ohrožení života"
+    },
+    "tisen": {
+      "name": "Tísňová linka",
+      "nameDative": "Tísňové lince",
+      "short": "tíseň",
+      "meta": "jednotné evropské číslo, i bez SIM"
+    }
+  },
+  "recommendations": {
+    "dech-478": {
+      "title": "Dech 4-7-8",
+      "subtitle": "Pomáhá při napětí",
+      "badge": "3 min"
+    },
+    "denik": {
+      "title": "Zápis do deníku",
+      "subtitle": "Na co dnes nechceš zapomenout?"
+    },
+    "usinani": {
+      "title": "Klidné usínání",
+      "subtitle": "Zvuky a audio na dobrou noc",
+      "badge": "večer"
+    },
+    "prochazka": {
+      "title": "Všímavá procházka",
+      "subtitle": "Meditace v pohybu · venku",
+      "badge": "venku"
+    }
+  },
+  "calmActivities": {
+    "dech-478": {
+      "title": "Dech 4-7-8",
+      "subtitle": "Při napětí a úzkosti",
+      "badge": "3 min"
+    },
+    "ticha-louka": {
+      "title": "Tichá louka",
+      "subtitle": "Vedená meditace · čeština",
+      "badge": "10 min"
+    },
+    "vecerka": {
+      "title": "Večerka",
+      "subtitle": "Zvuky a audio na dobrou noc",
+      "badge": "večer"
+    },
+    "dech-naslepo": {
+      "title": "Dech naslepo",
+      "subtitle": "Telefon v kapse — vedeme tě vibracemi",
+      "badge": "poslepu"
+    }
+  },
+  "planSections": {
+    "signals": {
+      "title": "Moje varovné signály",
+      "subtitle": "Podle čeho poznám, že se to horší",
+      "placeholder": "Třeba: nespavost, stažení se od lidí, …"
+    },
+    "helps": {
+      "title": "Co mi pomáhá",
+      "subtitle": "Ověřené kroky a činnosti",
+      "placeholder": "Třeba: zavolat kamarádce, projít se, dýchání 4-7-8"
+    },
+    "contacts": {
+      "title": "Na koho se obrátím",
+      "subtitle": "Blízcí lidé a kontakty",
+      "placeholder": "Jméno a telefon — na koho je fajn se obrátit"
+    }
+  },
+  "instruments": {
+    "who5": {
+      "_meta": {
+        "source": "WHO-5 Well-Being Index (1998), Psychiatric Research Unit, WHO Collaborating Centre in Mental Health",
+        "todo": "Verify the Czech wording against the validated Czech version before release (docs/STATUS.md, finding 6)."
+      },
+      "title": "Wellbeing index",
+      "intro": "Jak ti bylo posledních 14 dní?",
+      "questions": {
+        "q1": "Cítil(a) jsem se veselý(á) a v dobré náladě.",
+        "q2": "Cítil(a) jsem se klidný(á) a uvolněný(á).",
+        "q3": "Cítil(a) jsem se aktivní a plný(á) energie.",
+        "q4": "Když jsem se probudil(a), cítil(a) jsem se svěží a odpočinutý(á).",
+        "q5": "Můj každodenní život byl naplněný věcmi, které mě zajímají."
+      },
+      "options": {
+        "5": "Po celou dobu",
+        "4": "Většinu času",
+        "3": "Více než polovinu času",
+        "2": "Méně než polovinu času",
+        "1": "Občas",
+        "0": "Nikdy"
+      }
+    },
+    "phq9": {
+      "_meta": {
+        "source": "PHQ-9, Spitzer, Kroenke, Williams and Pfizer; free for use.",
+        "todo": "Verify the Czech wording against the validated Czech version before release (docs/STATUS.md, finding 6)."
+      },
+      "title": "Nálada do hloubky",
+      "intro": "Jak často tě v posledních 2 týdnech trápilo následující?",
+      "questions": {
+        "q1": "Malý zájem nebo potěšení z věcí, které děláš",
+        "q2": "Pokleslá nálada, sklíčenost nebo beznaděj",
+        "q3": "Problémy s usínáním, přerušovaný spánek, nebo naopak nadměrné spaní",
+        "q4": "Pocit únavy nebo nedostatku energie",
+        "q5": "Nechutenství nebo přejídání",
+        "q6": "Špatné mínění o sobě — pocit, že jsi selhal(a) nebo zklamal(a) sebe či své blízké",
+        "q7": "Problémy se soustředěním, třeba při čtení nebo sledování videa",
+        "q8": "Zpomalené pohyby či řeč, kterých si všimli ostatní — nebo naopak neklid a přecházení",
+        "q9": "Myšlenky na to, že by bylo lepší nežít, nebo na to, že si ublížíš"
+      },
+      "options": {
+        "0": "Vůbec ne",
+        "1": "Několik dní",
+        "2": "Více než polovinu dní",
+        "3": "Téměř každý den"
+      }
+    },
+    "gad7": {
+      "_meta": {
+        "source": "GAD-7, Spitzer, Kroenke, Williams, Löwe and Pfizer; free for use.",
+        "todo": "Verify the Czech wording against the validated Czech version before release (docs/STATUS.md, finding 6)."
+      },
+      "title": "Napětí a obavy do hloubky",
+      "intro": "Jak často tě v posledních 2 týdnech trápilo následující?",
+      "questions": {
+        "q1": "Pocit nervozity, úzkosti nebo napětí",
+        "q2": "Neschopnost zastavit obavy nebo je mít pod kontrolou",
+        "q3": "Nadměrné obavy z různých věcí",
+        "q4": "Potíže se uvolnit",
+        "q5": "Takový neklid, že je těžké vydržet v klidu sedět",
+        "q6": "Snadná podrážděnost nebo mrzutost",
+        "q7": "Strach, že se stane něco hrozného"
+      },
+      "options": {
+        "0": "Vůbec ne",
+        "1": "Několik dní",
+        "2": "Více než polovinu dní",
+        "3": "Téměř každý den"
+      }
+    }
+  },
+  "bands": {
+    "phq9": {
+      "minimal": {
+        "label": "minimální příznaky",
+        "text": "Odpovědi odpovídají pásmu minimálních příznaků."
+      },
+      "mild": {
+        "label": "mírné příznaky",
+        "text": "Odpovědi odpovídají pásmu mírných příznaků."
+      },
+      "moderate": {
+        "label": "středně závažné příznaky",
+        "text": "Odpovědi odpovídají pásmu středně závažných příznaků. Může pomoct probrat to s někým blízkým nebo s odbornou podporou."
+      },
+      "moderately-severe": {
+        "label": "závažnější příznaky",
+        "text": "Odpovědi odpovídají pásmu závažnějších příznaků. Stojí za to říct si o odbornou podporu — v Pomoci najdeš, kde začít."
+      },
+      "severe": {
+        "label": "výrazné příznaky",
+        "text": "Odpovědi odpovídají pásmu výrazných příznaků. Stojí za to říct si o odbornou podporu co nejdřív — v Pomoci najdeš, kde začít."
+      }
+    },
+    "gad7": {
+      "minimal": {
+        "label": "minimální příznaky",
+        "text": "Odpovědi odpovídají pásmu minimálních příznaků."
+      },
+      "mild": {
+        "label": "mírné příznaky",
+        "text": "Odpovědi odpovídají pásmu mírných příznaků."
+      },
+      "moderate": {
+        "label": "střední příznaky",
+        "text": "Odpovědi odpovídají pásmu středních příznaků. Může pomoct probrat to s někým blízkým nebo s odbornou podporou."
+      },
+      "severe": {
+        "label": "výrazné příznaky",
+        "text": "Odpovědi odpovídají pásmu výrazných příznaků. Stojí za to říct si o odbornou podporu — v Pomoci najdeš, kde začít."
+      }
+    }
+  }
+}

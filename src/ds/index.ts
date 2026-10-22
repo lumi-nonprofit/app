@@ -1,4 +1,4 @@
-/* Lumi design system — komponenty (převzato z DS bundle jako zdrojové moduly). */
+/* The Lumi design system: the components (taken from the DS bundle as source modules). */
 export { default as Badge } from "./Badge";
 export { default as Button } from "./Button";
 export { default as Card } from "./Card";

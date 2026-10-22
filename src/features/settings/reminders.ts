@@ -1,15 +1,17 @@
-/* Lokální připomínky (expo-notifications; nastavení v Nastavení) — jen plánované lokální
-   notifikace, žádný push token, žádná zmínka o zmeškání. Texty gentle
-   a rodově neutrální, rotují podle dne v týdnu. O povolení se žádá až
-   při zapnutí přepínače, nikdy při startu aplikace.
+/* Local reminders (expo-notifications; the options live in Settings): only scheduled local
+   notifications, no push token, no mention of a missed entry. The texts are gentle and gender
+   neutral and rotate by the day of the week; the module reads them from the catalog at schedule
+   time, in the active language. The app asks for the permission when the person turns the switch
+   on, never at the start.
 
-   Pozn.: expo-notifications NEbylo zrušeno — v SDK 53+ jen zmizela
-   vzdálená push notifikace z Expo Go (Android). Lokální plánované
-   notifikace (tohle) fungují v development buildu, který appka stejně
-   potřebuje kvůli SQLCipheru. V Expo Go se objeví varování a notifikace
-   se nenaplánuje — proto vždy testovat na dev buildu. */
+   Note: expo-notifications is not deprecated. In SDK 53 and later only the remote push
+   notification left Expo Go (Android). Local scheduled notifications (this module) work in the
+   development build, which the app needs anyway because of SQLCipher. In Expo Go a warning
+   appears and the module does not schedule the notification, so always test on a development
+   build. */
 import { Linking, Platform } from "react-native";
 import * as Notifications from "expo-notifications";
+import i18n from "../../i18n";
 
 export const REMINDER_ENABLED_KEY = "reminder-enabled";
 export const REMINDER_TIME_KEY = "reminder-time"; // { hour, minute }
@@ -22,17 +24,24 @@ export interface ReminderTime {
 }
 
 export const DEFAULT_REMINDER_TIME: ReminderTime = { hour: 19, minute: 0 };
+/** The fixed time of the optional evening reminder. */
+export const EVENING_TIME: ReminderTime = { hour: 21, minute: 0 };
+/** The weekly reflection runs on Sunday (expo-notifications WEEKLY: 1 = Sunday, 7 = Saturday). */
+export const WEEKLY_REFLECTION_WEEKDAY = 1;
+export const WEEKLY_REFLECTION_TIME: ReminderTime = { hour: 17, minute: 0 };
 
-/* rotace přes dny v týdnu — žádná vina, žádné zmeškání */
-export const REMINDER_TEXTS = [
-  "Chvilka pro tebe?",
-  "Jak je ti dnes?",
-  "Lumi je tu, kdyby bylo potřeba se zastavit.",
-];
+/* The rotation over the days of the week: no blame, no missed entry. */
+function dailyTexts(): string[] {
+  return [
+    i18n.t("settings:reminders.notification.dailyMoment"),
+    i18n.t("settings:reminders.notification.dailyHowAreYou"),
+    i18n.t("settings:reminders.notification.dailyHere"),
+  ];
+}
 
-/* Android: vlastní kanál „Připomínky“ s běžnou důležitostí a soukromým
-   zobrazením na zamčené obrazovce — obsah o duševním zdraví nikdy na zámku
-   (Android guides: notifications → lock-screen visibility private). */
+/* Android: an own channel with the default importance and a private view on the lock screen.
+   Content about mental health never shows on the lock screen (Android guides: notifications,
+   lock-screen visibility private). */
 export const REMINDER_CHANNEL_ID = "reminders";
 let channelReady = false;
 async function ensureChannel(): Promise<void> {
@@ -40,7 +49,7 @@ async function ensureChannel(): Promise<void> {
   channelReady = true;
   try {
     await Notifications.setNotificationChannelAsync(REMINDER_CHANNEL_ID, {
-      name: "Připomínky",
+      name: i18n.t("settings:reminders.notification.channelName"),
       importance: Notifications.AndroidImportance.DEFAULT,
       lockscreenVisibility: Notifications.AndroidNotificationVisibility.PRIVATE,
       enableVibrate: false,
@@ -52,7 +61,7 @@ async function ensureChannel(): Promise<void> {
 }
 const channelId = Platform.OS === "android" ? REMINDER_CHANNEL_ID : undefined;
 
-/** Když je povolení zamítnuté, jediná cesta vede přes systémové nastavení. */
+/** After a refusal of the permission, the only path leads through the system settings. */
 export function openSystemNotificationSettings(): void {
   Linking.openSettings().catch(() => {});
 }
@@ -75,7 +84,7 @@ function ensureHandler(): void {
   });
 }
 
-/** Požádá o povolení (volat výhradně při zapnutí togglu). */
+/** Asks for the permission (call it only when the person turns the switch on). */
 export async function requestReminderPermission(): Promise<boolean> {
   if (Platform.OS === "web") return false;
   ensureHandler();
@@ -95,17 +104,20 @@ async function cancelByIds(ids: string[]): Promise<void> {
   );
 }
 
-/** Naplánuje denní připomínku: 7 týdenních notifikací s rotujícími texty. */
+/** Schedules the daily reminder: 7 weekly notifications with the texts in rotation. */
 export async function scheduleDailyReminder(time: ReminderTime): Promise<void> {
   await cancelDailyReminder();
   await ensureChannel();
+  const texts = dailyTexts();
+  const title = i18n.t("common:appName");
   for (let weekday = 1; weekday <= 7; weekday++) {
     await Notifications.scheduleNotificationAsync({
       identifier: `${DAILY_ID_PREFIX}${weekday}`,
-      content: { title: "Lumi", body: REMINDER_TEXTS[(weekday - 1) % REMINDER_TEXTS.length] },
+      content: { title, body: texts[(weekday - 1) % texts.length] },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
-        weekday, // expo-notifications WEEKLY: 1 = neděle … 7 = sobota (na rozdíl od JS Date.getDay(): 0 = neděle … 6 = sobota)
+        /* expo-notifications WEEKLY: 1 = Sunday, 7 = Saturday (JS Date.getDay(): 0 = Sunday, 6 = Saturday). */
+        weekday,
         hour: time.hour,
         minute: time.minute,
         channelId,
@@ -118,17 +130,20 @@ export async function cancelDailyReminder(): Promise<void> {
   await cancelByIds(Array.from({ length: 7 }, (_, i) => `${DAILY_ID_PREFIX}${i + 1}`));
 }
 
-/** Volitelná Večerka ve 21:00 — pozvání ke klidnému usínání. */
+/** The optional evening reminder (EVENING_TIME): an invitation to calm sleep. */
 export async function scheduleEveningReminder(): Promise<void> {
   await cancelEveningReminder();
   await ensureChannel();
   await Notifications.scheduleNotificationAsync({
     identifier: EVENING_ID,
-    content: { title: "Lumi", body: "Večerka — klidné usínání, kdyby se hodilo." },
+    content: {
+      title: i18n.t("common:appName"),
+      body: i18n.t("settings:reminders.notification.evening"),
+    },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,
-      hour: 21,
-      minute: 0,
+      hour: EVENING_TIME.hour,
+      minute: EVENING_TIME.minute,
       channelId,
     },
   });
@@ -138,18 +153,21 @@ export async function cancelEveningReminder(): Promise<void> {
   await cancelByIds([EVENING_ID]);
 }
 
-/** Volitelné nedělní ohlédnutí za týdnem (17:00). */
+/** The optional Sunday reflection on the week (WEEKLY_REFLECTION_TIME). */
 export async function scheduleWeeklyReflection(): Promise<void> {
   await cancelWeeklyReflection();
   await ensureChannel();
   await Notifications.scheduleNotificationAsync({
     identifier: WEEKLY_ID,
-    content: { title: "Lumi", body: "Ohlédnutí za týdnem je připravené." },
+    content: {
+      title: i18n.t("common:appName"),
+      body: i18n.t("settings:reminders.notification.weekly"),
+    },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
-      weekday: 1, // neděle
-      hour: 17,
-      minute: 0,
+      weekday: WEEKLY_REFLECTION_WEEKDAY,
+      hour: WEEKLY_REFLECTION_TIME.hour,
+      minute: WEEKLY_REFLECTION_TIME.minute,
       channelId,
     },
   });

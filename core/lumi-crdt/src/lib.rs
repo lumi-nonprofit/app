@@ -1,9 +1,9 @@
 //! Lumi merge primitives (ADR 0001 §4).
 //!
-//! Two-track design: append-only **op-log** for immutable records
+//! A 2-track design: append-only **op-log** for immutable records
 //! (entries/measurements), and **CRDT registers/sets** for the mutable
-//! tags/settings. All ordering rides a **Hybrid Logical Clock** so offline writes
-//! converge deterministically without trusting the server.
+//! tags/settings. All order rides a **Hybrid Logical Clock**, so offline writes
+//! converge deterministically with no trust in the server.
 //!
 //! M0 status: real, dependency-free implementations of HLC + op-log + LWW
 //! register + LWW-element set, with tests. The `automerge-rs` integration for the
@@ -12,7 +12,7 @@
 use std::collections::BTreeMap;
 
 /// Opaque, content-independent device identifier (16 random bytes). Never derived
-/// from anything user-identifying (metadata minimisation, ADR 0001 §5).
+/// from anything that identifies the user (metadata minimisation, ADR 0001 §5).
 pub type DeviceId = [u8; 16];
 
 /// A Hybrid Logical Clock timestamp. Total order is (wall_ms, counter, device).
@@ -57,7 +57,7 @@ impl HlcClock {
         self.last
     }
 
-    /// Observe a remote timestamp (on receive), advancing our clock past it.
+    /// Observe a remote timestamp (on receive) and advance our clock past it.
     pub fn observe(&mut self, remote: Hlc, physical_ms: u64) -> Hlc {
         let wall = physical_ms.max(self.last.wall_ms).max(remote.wall_ms);
         let counter = if wall == self.last.wall_ms && wall == remote.wall_ms {
@@ -96,7 +96,7 @@ impl<T: Clone> OpLog<T> {
         }
     }
 
-    /// Append an op. Append-only: an existing stamp is never overwritten.
+    /// Append an op. Append-only: a stamp that is already present never changes.
     pub fn append(&mut self, id: Hlc, op: T) {
         self.ops.entry(id).or_insert(op);
     }
@@ -143,7 +143,7 @@ impl<T: Clone> Lww<T> {
 }
 
 /// LWW-element set (Track 2: the tags set). An element is present iff its latest
-/// add stamp is strictly greater than its latest remove stamp. Keying on the
+/// add stamp is strictly greater than its latest remove stamp. A key on the
 /// normalised element resolves the concurrent duplicate-add problem (ADR 0001 §4:
 /// the `tags_label_unique` constraint) — same key collapses on merge.
 #[derive(Clone, Debug, Default)]
@@ -170,7 +170,7 @@ impl<E: Ord + Clone> LwwSet<E> {
 
     pub fn contains(&self, element: &E) -> bool {
         match (self.adds.get(element), self.removes.get(element)) {
-            (Some(a), Some(r)) => a > r, // add-wins on exact tie is avoided: ties impossible (unique HLC)
+            (Some(a), Some(r)) => a > r, // no add-wins rule for an exact tie: ties are impossible (unique HLC)
             (Some(_), None) => true,
             _ => false,
         }

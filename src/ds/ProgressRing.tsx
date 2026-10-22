@@ -1,14 +1,14 @@
-/* ProgressRing — kruhový ukazatel se zaobleným koncem; kanonické zobrazení WHO-5
-   indexu. Statický (bez animace). Pro čtečku je to progressbar s hodnotou;
-   popisek v kruhu škáluje s průměrem i se systémovou velikostí písma (max 1,3×,
-   jinak by se číslo nevešlo do kruhu — proto allowFontScaling vypnuté). */
+/* ProgressRing: a circular indicator with a round end; the canonical view of the WHO-5
+   index. Static (no animation). For the screen reader it is a progressbar with a value.
+   The label in the ring scales with the diameter and with the system font size (max 1.3×).
+   Otherwise the number does not fit in the ring: thus `allowFontScaling` is off. */
 import { PixelRatio, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import { createThemedStyles, useTheme } from "../theme";
 import Text from "./Text";
 
 interface Props {
-  /** 0–1; mimo rozsah se ořízne */
+  /** 0–1; the component clamps a value outside the range */
   value?: number;
   size?: number;
   stroke?: number;
@@ -18,7 +18,8 @@ interface Props {
   sublabel?: string;
   labelColor?: string;
   sublabelColor?: string;
-  /** Popis pro čtečku, např. „Wellbeing index“ (hodnota se doplní automaticky). */
+  /** The label for the screen reader, for example "Wellbeing index" (the component adds the
+      value). */
   accessibilityLabel?: string;
 }
 
@@ -40,8 +41,8 @@ export default function ProgressRing({
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const off = c * (1 - clamped);
-  /* Záměrně mimo typografickou škálu: velikosti popisků se odvozují z průměru
-     kruhu; při větším systémovém písmu roste i kruh (max 1,3×). */
+  /* Intentionally outside the typographic scale: the label sizes derive from the diameter
+     of the ring; with a larger system font the ring grows too (max 1.3×). */
   const scale = Math.min(1.3, PixelRatio.getFontScale());
   const dim = Math.round(size * scale);
   const labelSize = dim / 4.2;
@@ -53,6 +54,9 @@ export default function ProgressRing({
       accessibilityRole="progressbar"
       accessibilityLabel={accessibilityLabel ?? sublabel ?? label}
       accessibilityValue={{ min: 0, max: 100, now: percent }}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={percent}
     >
       <Svg width={dim} height={dim} style={styles.svg}>
         <Circle

@@ -1,5 +1,8 @@
 name: CI
 
+# Every job is a gate. README.md, section "Standards", says which standard each gate enforces.
+# The owner makes the jobs required checks in the ruleset of the branch main.
+
 on:
   push:
     branches: [main]
@@ -9,6 +12,20 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # Vale checks the Simplified Technical English rules (.vale.ini). The docs job downloads
+  # this release and checks its SHA-256 before it runs.
+  VALE_VERSION: "3.24.0"
+  VALE_SHA256: "867534ddb678abca7f214bc4706ead0922bd5252ffe8035fc227013f66c8b214"
+
 jobs:
   rust:
     name: Rust (${{ matrix.os }})
@@ -17,6 +34,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
@@ -25,26 +43,27 @@ jobs:
           workspaces: |
             core
             server
-      # --workspace covers every core member on the host runner, including the M1 crates added in
-      # this milestone: lumi-vault (17 tests), lumi-store (9), lumi-ffi-cabi (4). The runner's C
-      # compiler (gcc on ubuntu, clang on macos, MSVC on windows) builds rusqlite's bundled SQLite.
-      - name: Build + test the shared core workspace (incl. lumi-vault / lumi-store / lumi-ffi-cabi)
+      # --workspace covers every crate of core on the host runner, with the M1 crates:
+      # lumi-vault, lumi-store and lumi-ffi-cabi. The C compiler of the runner (gcc on Ubuntu,
+      # clang on macOS, MSVC on Windows) builds the bundled SQLite of rusqlite.
+      - name: Build and test the shared core workspace
         run: cargo test --manifest-path core/Cargo.toml --workspace --verbose
-      - name: Build + test sync server (stub)
+      - name: Build and test the sync server (stub)
         run: cargo test --manifest-path server/Cargo.toml --workspace --verbose
 
-  # Cross-compile guard: the shared core must stay buildable for a constrained (musl) target.
-  # ONLY the musl-clean crates are covered:
-  #   - lumi-core / lumi-crdt / lumi-sync-client / lumi-ffi / lumi-wasm: pure-Rust, truly toolchain-free.
-  #   - lumi-vault: musl-GREEN but NOT toolchain-free — it cross-compiles to musl, yet its
-  #     argon2/generic-array/libc build scripts invoke a HOST `cc` (present on the runner). It is a
-  #     lib crate, so this is a compile-check (rlibs, no final link => no musl C toolchain needed).
-  # EXCLUDED ON PURPOSE — do NOT re-add: lumi-store + lumi-ffi-cabi bundle SQLite, whose C sources
-  # would need an x86_64-linux-musl C cross-compiler we deliberately don't depend on in CI. They are
-  # host-only and are already fully tested by the `rust` job above. (Mirrors core/Cargo.toml's note.)
+  # Cross-compile guard: the shared core stays buildable for a constrained (musl) target.
+  # Only the musl-clean crates are in the build:
+  #   - lumi-core, lumi-crdt, lumi-sync-client, lumi-ffi, lumi-wasm: pure Rust, no toolchain.
+  #   - lumi-vault: musl-clean, but its argon2, generic-array and libc build scripts call a host
+  #     `cc` (present on the runner). It is a lib crate, so this is a compile check (rlibs, no
+  #     final link, no musl C toolchain).
+  # lumi-store and lumi-ffi-cabi stay out on purpose. Do not add them: they bundle SQLite, whose C
+  # sources need an x86_64-linux-musl C cross-compiler that CI does not have. They are host-only
+  # and the `rust` job above tests them. core/Cargo.toml has the same note.
   musl:
     name: Rust musl cross-build (core portability guard)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
@@ -53,53 +72,148 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: core
-      - name: Cross-build the musl-clean core crates (exclude the bundled-SQLite crates)
+      - name: Cross-build the musl-clean core crates (without the bundled-SQLite crates)
         run: >
           cargo build --manifest-path core/Cargo.toml
           --target x86_64-unknown-linux-musl
           --workspace --exclude lumi-store --exclude lumi-ffi-cabi --verbose
 
-  # NOTE — deliberately NOT a job here: the Android native build (cargo-ndk cross-compile of
-  # lumi-ffi-cabi -> .a per ABI, nitrogen codegen, gradle assembleRelease of the Nitro module + app).
-  # It is a separate, heavier later lane that needs Android SDK + NDK runners. M1's CI proves the Rust
-  # slice (host test + musl portability) and the JS/TS; the on-device Android build is verified
-  # locally for now and gets its own workflow when the mobile CI lane is set up. Not silently omitted.
+  # The C header of lumi-ffi-cabi is committed. cbindgen copies the Rust documentation into
+  # it, so the header must match the source.
+  ffi-header:
+    name: FFI header (cbindgen)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cbindgen
+      - name: Regenerate the header and compare
+        working-directory: core/lumi-ffi-cabi
+        run: |
+          cbindgen --config cbindgen.toml --crate lumi-ffi-cabi --output include/lumi_ffi_cabi.h
+          git diff --exit-code -- include/lumi_ffi_cabi.h
+
+  # The Android native build (cargo-ndk cross-compile of lumi-ffi-cabi, nitrogen codegen, Gradle
+  # assembleRelease of the Nitro module and the app) is not a job here on purpose. It needs
+  # Android SDK and NDK runners and gets its own workflow when the mobile CI lane exists.
+  # .github/workflows/android-apk.yml builds the app without the vault module.
 
   js:
     name: JS app (RN/Expo)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npm run typecheck
       - run: npm run lint
+      # Both Jest projects: the Android preset (unit, router and accessibility audit tests) and
+      # the web preset (axe-core on the design-system components).
       - run: npm test
 
-  tokens:
-    name: Design tokens (Style Dictionary)
+  # Documentation and comments: Prettier format, Markdown structure, spelling, the STE rules
+  # (Vale), English-only source code and the AGENTS.md = CLAUDE.md mirror.
+  docs:
+    name: Docs and comments (STE)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Install Vale
+        run: |
+          curl -sSL -o vale.tar.gz "https://github.com/errata-ai/vale/releases/download/v${VALE_VERSION}/vale_${VALE_VERSION}_Linux_64-bit.tar.gz"
+          echo "${VALE_SHA256}  vale.tar.gz" | sha256sum -c -
+          mkdir -p "$HOME/.local/bin"
+          tar -xzf vale.tar.gz -C "$HOME/.local/bin" vale
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - run: npm run format:check
+      - run: npm run lint:md
+      - run: npm run spell
+      - run: npm run lint:docs
+      - run: npm run check:english
+      - run: npm run check:agents
+
+  # Message catalogs: every key that the code uses exists, cs and en are complete and equal.
+  i18n:
+    name: i18n catalogs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run i18n:check
+
+  # Commit messages of a pull request: Conventional Commits (commitlint) and the STE rules for
+  # the body (Vale). Merge commits and Dependabot commits are not checked.
+  commits:
+    name: Commit messages
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Install Vale
+        run: |
+          curl -sSL -o vale.tar.gz "https://github.com/errata-ai/vale/releases/download/v${VALE_VERSION}/vale_${VALE_VERSION}_Linux_64-bit.tar.gz"
+          echo "${VALE_SHA256}  vale.tar.gz" | sha256sum -c -
+          mkdir -p "$HOME/.local/bin"
+          tar -xzf vale.tar.gz -C "$HOME/.local/bin" vale
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Check the commit messages
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          base="$(git merge-base "$BASE_SHA" "$HEAD_SHA")"
+          npx commitlint --from "$base" --to "$HEAD_SHA" --verbose
+          bash scripts/lint-commit-bodies.sh "$base" "$HEAD_SHA"
+
+  tokens:
+    name: Design tokens (Style Dictionary)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
       - run: npm install
         working-directory: design
       - run: npm run build
         working-directory: design
-      # src/theme/tokens.generated.ts is committed; it must match design/tokens (no drift)
+      # src/theme/tokens.generated.ts is committed. It must match design/tokens (no drift).
       - run: git diff --exit-code -- src/theme/tokens.generated.ts
 
   sbom:
     name: SBOM (CycloneDX)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
-      - name: Generate CycloneDX SBOM (npm + cargo via syft)
+      - name: Generate the CycloneDX SBOM (npm and cargo, with syft)
         uses: anchore/sbom-action@v0
         with:
           format: cyclonedx-json
@@ -109,19 +223,20 @@ jobs:
           name: sbom-cyclonedx
           path: sbom.cyclonedx.json
 
-  # Dependency vulnerability scanning. REPORT-ONLY (continue-on-error): the npm step fails on any
-  # advisory of level high or above, and the JS tree carries advisories that have no fix within the
-  # pinned toolchain (checked 2026-10-18: 0 critical, 54 high, 21 moderate). The high ones are
-  # `braces` (every published version is flagged; it reaches jest, metro and expo through
-  # micromatch), `node-forge` (latest release flagged; @expo/cli) and `image-size` (metro 0.84 pins
-  # 1.x). The moderate ones wait on Expo SDK, jest 30 and drizzle-kit majors. Transitive packages
-  # that have a published fix are kept current in package-lock.json (docs/STATUS.md, finding 8).
-  # `npm audit fix` cannot run here (ERESOLVE on react-native-reanimated vs React Native 0.85);
-  # update the packages by name with `npm update`. Tighten to blocking once the Expo SDK upgrade
-  # and the upstream fixes land.
+  # Dependency vulnerability scan. REPORT-ONLY (continue-on-error): the npm step fails on each
+  # advisory of level high or above, and the JS tree has advisories without a fix in the pinned
+  # toolchain (checked 2026-10-18: 0 critical, 54 high, 21 moderate). The high ones are
+  # `braces` (the advisory covers every published version; it reaches jest, metro and expo through
+  # micromatch), `node-forge` (latest release flagged; @expo/cli) and `image-size` (metro 0.84
+  # pins 1.x). The moderate ones wait on the Expo SDK, jest 30 and the drizzle-kit majors.
+  # Transitive packages with a published fix are current in package-lock.json (docs/STATUS.md,
+  # finding 8). `npm audit fix` cannot run here (ERESOLVE on react-native-reanimated and React
+  # Native 0.85); update the packages by name with `npm update`. Make the job block the merge when
+  # the Expo SDK upgrade and the upstream fixes land.
   audit:
     name: Dependency audit (report-only)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     continue-on-error: true
     steps:
       - uses: actions/checkout@v6
@@ -137,7 +252,7 @@ jobs:
           cargo audit --file server/Cargo.lock
       - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - name: npm audit

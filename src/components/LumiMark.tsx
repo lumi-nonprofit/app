@@ -1,4 +1,4 @@
-/* LumiMark — logo „světlo“ (tři soustředné kruhy); zdroj assets/lumi-mark.svg. */
+/* LumiMark: the "light" logo (3 concentric circles); the source is assets/lumi-mark.svg. */
 import React from "react";
 import type { StyleProp, ViewStyle } from "react-native";
 import Svg, { Circle } from "react-native-svg";

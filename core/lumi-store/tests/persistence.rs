@@ -1,4 +1,4 @@
-//! lumi-store tests (host, full toolchain). Two halves:
+//! lumi-store tests (host, full toolchain). 2 halves:
 //!  1. lumi-vault's behaviours run against the rusqlite store over a real temp DB FILE.
 //!  2. real-persistence proofs: data + shred survive a connection close/reopen, faithful column
 //!     round-trips, and secure_delete actually scrubs a shredded wrapped key from the file.
@@ -64,7 +64,7 @@ fn behaviours_over_sqlite_file() {
     let id2 = m.put_checkin(h, &p2, 200).unwrap();
     assert_ne!(id1, id2);
 
-    // round-trip + ordering
+    // round-trip + order
     let list = m.list_checkins(h).unwrap();
     assert_eq!(list.len(), 2);
     assert_eq!(list[0].record_id, id1);
@@ -131,7 +131,7 @@ fn records_persist_across_connection_close_and_reopen() {
         let h = m.unlock_vault("pin-A").unwrap();
         id_a = m.put_checkin(h, &checkin_json("klid", 2, "first"), 10).unwrap();
         id_b = m.put_checkin(h, &checkin_json("napeti", 4, "second"), 20).unwrap();
-        // m (and its SqliteStore connection) is dropped here -> file closed
+        // m (and its SqliteStore connection) drops here -> file closed
     }
 
     // brand-new connection on the same FILE
@@ -198,7 +198,7 @@ fn vault_and_record_rows_round_trip_faithfully() {
     store.insert_record(&rec).unwrap();
     assert_eq!(store.get_record(&rec.record_id).unwrap().unwrap(), rec, "record row must round-trip every field");
 
-    // save_vault is INSERT OR REPLACE -> updating the singleton works
+    // save_vault is INSERT OR REPLACE -> an update of the singleton works
     let mut vault2 = vault.clone();
     vault2.wrapped_vault_key = vec![0x99; 48];
     store.save_vault(&vault2).unwrap();
@@ -208,7 +208,7 @@ fn vault_and_record_rows_round_trip_faithfully() {
 #[test]
 fn secure_delete_overwrites_wrapped_key_on_shred() {
     let tmp = TempDb::new();
-    // a distinctive, unique blob so a file scan is meaningful (won't collide with SQLite internals)
+    // a distinctive, unique blob so a file scan is meaningful (it will not collide with SQLite internals)
     let canary = b"LUMI-secure-delete-canary-DO-NOT-FIND-AFTER-SHRED".to_vec();
     let id: RecordId = [0x5A; 16];
     let row = RecordRow {
@@ -245,9 +245,9 @@ fn secure_delete_overwrites_wrapped_key_on_shred() {
     );
 }
 
-/// Corrupt / adversarial DB content must fail closed as StoreError, never panic (the docstring's
-/// promise). Rows are attacker-influenceable if the DB file is tampered with at rest, so the
-/// checked DB->Rust conversions must hold. Injects malformed rows via a raw connection.
+/// Corrupt / adversarial DB content must fail closed as StoreError, never panic (the promise in
+/// the crate docs). An attacker who changes the DB file at rest can influence the rows, so the
+/// checked DB->Rust conversions must hold. Injects malformed rows through a raw connection.
 #[test]
 fn corrupt_db_content_fails_closed_without_panic() {
     // (1) a too-short record_id blob -> to_record_id length check -> StoreError

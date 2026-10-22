@@ -3,15 +3,16 @@
 #
 # Policy (hardened after the PR #4 grouped-major bump broke CI — eslint 10 / jest 30 / RN 0.86):
 #  - Security stays enabled (Dependabot is NOT disabled; the npm-audit visibility is the point).
-#  - npm: minor + patch are grouped for convenience; MAJORS are NOT grouped, so each major arrives
+#  - npm: minor + patch arrive in one group, for convenience; MAJORS do NOT: each major arrives
 #    as its own reviewable PR you can decline.
-#  - Expo-SDK-managed packages are ignored entirely (all update types): their versions are dictated
-#    by the Expo SDK and move only via `expo install` on a deliberate Expo upgrade, never
-#    independently — a standalone bump breaks the Expo/RN pairing and the verified Nitro module ABI.
-#    (Their security fixes arrive through an Expo SDK upgrade.)
+#  - Expo-SDK-managed packages: Dependabot ignores them entirely (all update types). The Expo SDK
+#    dictates their versions, and they move only through `expo install` on a deliberate Expo
+#    upgrade, never independently — a standalone bump breaks the Expo/RN pairing and the verified
+#    Nitro module ABI. (Their security fixes arrive through an Expo SDK upgrade.)
 #  - eslint and jest/@types/jest: MAJORS ignored (peer-coupled — eslint-plugin-react-native-a11y
-#    peers eslint <=8; jest 30 is coupled to the RN jest-preset). Patches/minors within the current
-#    major still flow. esbuild/uuid/drizzle-kit etc. are NOT ignored, so their advisories stay visible.
+#    peers eslint <=8; jest 30 depends on the RN jest-preset). Patches/minors within the current
+#    major still flow. Dependabot does NOT ignore esbuild/uuid/drizzle-kit and the other packages,
+#    so their advisories stay visible.
 version: 2
 updates:
   - package-ecosystem: "npm"
@@ -28,7 +29,7 @@ updates:
           - "minor"
           - "patch"
     ignore:
-      # Expo-SDK-managed — pinned to the SDK; only move via `expo install` on an SDK upgrade.
+      # Expo-SDK-managed — pinned to the SDK; only move through `expo install` on an SDK upgrade.
       - dependency-name: "react-native"
       - dependency-name: "react"
       - dependency-name: "react-dom"

@@ -1,4 +1,9 @@
-# ADR 0007 — The MVP is a pilot Android build of the existing app
+# ADR 0007 — The MVP is a pilot Android build of the current app
+
+> **Note (2026-10-18):** Rewritten in Simplified Technical English on 2026-10-18; decisions and section numbering unchanged.
+
+<!-- cspell:locale en,cs -->
+<!-- cspell:ignore appky -->
 
 - **Status:** **Decided (2026-10-10)** by Anna. The decision is the one sentence in _Decision_.
 - **Date:** 2026-10-10
@@ -29,25 +34,25 @@
 >
 > — Anna, 2026-10-10
 
-In English: the MVP is a pilot Android build of the existing app.
+In English: the MVP is a pilot Android build of the current app.
 
-Only this sentence is the decision. The sections below are a reading of the sentence. They explain
-the sentence and state its limits. If the reading and the sentence differ, the sentence is
-correct.
+Only this sentence is the decision. The sections below are an interpretation of the sentence.
+They explain the sentence and state its limits. If the interpretation and the sentence differ,
+the sentence is correct.
 
 ## Terms
 
-- **Existing app:** the React Native (Expo) app at the root of this repository, as it is on
-  2026-10-10 (version 0.1.0 in `app.json`).
-- **Android build:** a build of the existing app for Android. An iOS build and a web build are
-  not part of the MVP.
+- **Current app:** the React Native (Expo) app at the root of this repository, as it is on
+  2026-10-10. Its version is 0.1.0 in `app.json`.
+- **Android build:** a build of the current app for Android. An iOS build and a web build are not
+  part of the MVP.
 - **Pilot:** a test with a limited group of testers. A pilot is not a public release.
 
 ## What follows from the decision
 
 1. The MVP is not v1. In ADR 0001, v1 is this app at M3, on the Rust core.
-2. The MVP does not need M2. The existing app has no sync. The points in `docs/STATUS.md`,
-   "What blocks M2", do not block the MVP.
+2. The MVP does not need M2. The current app has no sync. The points in `docs/STATUS.md`, "What
+   blocks M2", do not block the MVP.
 3. The MVP does not need M3. The screens that a user sees do not use the Rust core.
 4. The Rust vault is the part of the Rust core that M1 built. Only the screen `/m1-checkin` uses
    the vault, and every build has this screen. The vault module also links into every Android
@@ -56,8 +61,8 @@ correct.
 5. The screens that a user sees write to the SQLCipher database, not to the Rust vault. Real data
    that a pilot tester enters on these screens is in that database. ADR 0001 §6 describes the
    migration of that database to the Rust core.
-6. The existing app does not meet some security requirements of ADR 0001 §9. ADR 0001 plans these
-   requirements for the new design. Three examples from the code on 2026-10-10:
+6. The current app does not meet some security requirements of ADR 0001 §9. ADR 0001 plans these
+   requirements for the new design. 3 examples from the code on 2026-10-10:
    - S1: the app gets the database key without a PIN or a biometric check (`src/db/key.ts`,
      `requireAuthentication: false`).
    - S2: the backup export is plain JSON (`src/db/backup.ts`).
@@ -73,14 +78,13 @@ decision.
 - When work on M2 starts again.
 - Whether the pilot build links the Rust vault module, and whether it exposes the screen
   `/m1-checkin`.
-- Whether real user data can go into the Rust vault before ADR 0005 is accepted. ADR 0004 (e)
-  already requires a hardening of the vault store before any real user. That hardening is not
-  built.
+- Whether real user data can go into the Rust vault before Anna accepts ADR 0005. ADR 0004 (e)
+  already requires a hardened vault store before any real user. That work is not done.
 - Who the pilot testers are, how many testers there are, and how long the pilot runs.
 - Whether pilot testers enter real data, and what happens to pilot data after the pilot.
-- How the build is made, signed and distributed.
-- Which findings of `docs/STATUS.md` and which gaps against ADR 0001 §9 must be closed before
-  testers get the build.
+- How the team makes, signs and distributes the build.
+- Which findings of `docs/STATUS.md` and which gaps against ADR 0001 §9 the team must close
+  before testers get the build.
 
 ## References
 

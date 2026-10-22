@@ -1,13 +1,15 @@
-/* Krizový plán — tři krátké sekce, které si člověk sepíše v klidu a sáhne
-   po nich, když je zle. Ukládá se do `settings` (getSetting/setSetting) po
-   jednotlivých sekcích, ne jako celek — každá obrazovka řeší jen svou sekci.
-   Obsah je čistě uživatelův; aplikace ho nikam neposílá ani nehodnotí. */
+/* The crisis plan: 3 short sections that a person writes in a calm moment and reads when
+   things are bad. `settings` holds each section on its own (through the helpers of
+   src/db/repo.ts), not the plan as a whole: each screen handles one section. The content
+   belongs to the user; the app does not send it anywhere and does not rate it. The titles
+   come from the message catalog (content.json, key `planSections.<id>`). */
 import { getSetting } from "../../db/repo";
 import type { LumiDb } from "../../db/types";
+import { contentText } from "../../i18n/content";
 
 export type PlanSectionId = "signals" | "helps" | "contacts";
 
-/** Klíče v `settings` pro jednotlivé sekce plánu. */
+/** The `settings` keys of the sections. */
 export const PLAN_SECTION_KEYS: Record<PlanSectionId, string> = {
   signals: "crisis-plan-signals",
   helps: "crisis-plan-helps",
@@ -16,31 +18,31 @@ export const PLAN_SECTION_KEYS: Record<PlanSectionId, string> = {
 
 export interface PlanSectionMeta {
   id: PlanSectionId;
-  title: string;
-  subtitle: string;
-  placeholder: string;
+  readonly title: string;
+  readonly subtitle: string;
+  readonly placeholder: string;
 }
 
-/* Pořadí = pořadí na kartě i v rozcestníku Pomoci. */
+function section(id: PlanSectionId): PlanSectionMeta {
+  return {
+    id,
+    get title() {
+      return contentText(`planSections.${id}.title`);
+    },
+    get subtitle() {
+      return contentText(`planSections.${id}.subtitle`);
+    },
+    get placeholder() {
+      return contentText(`planSections.${id}.placeholder`);
+    },
+  };
+}
+
+/* The order is the order on the card and in the Help list. */
 export const PLAN_SECTIONS: PlanSectionMeta[] = [
-  {
-    id: "signals",
-    title: "Moje varovné signály",
-    subtitle: "Podle čeho poznám, že se to horší",
-    placeholder: "Třeba: nespavost, stažení se od lidí, …",
-  },
-  {
-    id: "helps",
-    title: "Co mi pomáhá",
-    subtitle: "Ověřené kroky a činnosti",
-    placeholder: "Třeba: zavolat kamarádce, projít se, dýchání 4-7-8",
-  },
-  {
-    id: "contacts",
-    title: "Na koho se obrátím",
-    subtitle: "Blízcí lidé a kontakty",
-    placeholder: "Jméno a telefon — na koho je fajn se obrátit",
-  },
+  section("signals"),
+  section("helps"),
+  section("contacts"),
 ];
 
 export const isPlanSectionId = (v: string | undefined): v is PlanSectionId =>
@@ -52,7 +54,7 @@ export interface CrisisPlanContent {
   contacts: string;
 }
 
-/** Přečte celý plán z `settings` (chybějící sekce = prázdný řetězec). */
+/** Reads the whole plan from `settings` (an absent section is an empty string). */
 export function readPlan(db: LumiDb): CrisisPlanContent {
   return {
     signals: getSetting<string>(db, PLAN_SECTION_KEYS.signals) ?? "",
@@ -61,7 +63,7 @@ export function readPlan(db: LumiDb): CrisisPlanContent {
   };
 }
 
-/** True, když je plán úplně prázdný (všechny tři sekce jen bílé znaky). */
+/** True when the plan is empty (all 3 sections hold only white space). */
 export function planIsEmpty(plan: CrisisPlanContent): boolean {
   return !plan.signals.trim() && !plan.helps.trim() && !plan.contacts.trim();
 }

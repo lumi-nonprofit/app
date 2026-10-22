@@ -3,8 +3,9 @@
 # Dependency-free crates build/test under the musl + rust-lld target (see rust-build-env memory):
 #   cargo test --workspace --exclude lumi-store --exclude lumi-ffi-cabi --target x86_64-unknown-linux-musl
 # NOTE: lumi-store (rusqlite `bundled`) and lumi-ffi-cabi (depends on lumi-store) need a musl C
-# cross-compiler (x86_64-linux-musl-gcc, not installed) -> build/test them on the host/NDK toolchain:
+# cross-compiler (x86_64-linux-musl-gcc, absent here) -> build/test them on the host/NDK toolchain:
 #   cargo test -p lumi-store -p lumi-ffi-cabi
+# The musl job in .github/workflows/ci.yml has the same note and the same exclusions.
 [workspace]
 resolver = "2"
 members = ["lumi-core", "lumi-crdt", "lumi-sync-client", "lumi-ffi", "lumi-wasm", "lumi-vault", "lumi-store", "lumi-ffi-cabi"]

@@ -1,0 +1,35 @@
+{
+  "actions": {
+    "back": "Zpět",
+    "cancel": "Zrušit",
+    "close": "Zavřít",
+    "done": "Hotovo"
+  },
+  "notFound": {
+    "heading": "Tahle stránka v Lumi není",
+    "home": "Zpět na Dnes",
+    "message": "Odkaz je asi neplatný nebo zastaralý.",
+    "title": "Nenalezeno"
+  },
+  "tabs": {
+    "calm": "Klid",
+    "help": "Pomoc",
+    "home": "Dnes",
+    "stats": "Přehledy"
+  },
+  "titles": {
+    "calm": "Klid",
+    "checkin": "Check-in",
+    "checkinSaved": "Uloženo",
+    "checkinStep1": "Krok 1",
+    "crisis": "Pomoc hned",
+    "handover": "Pomoc blízkému",
+    "help": "Pomoc",
+    "home": "Dnes",
+    "measure": "Dotazník",
+    "plan": "Krizový plán",
+    "reflection": "Ohlédnutí",
+    "settings": "Nastavení",
+    "stats": "Přehledy"
+  }
+}

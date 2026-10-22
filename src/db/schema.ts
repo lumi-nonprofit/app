@@ -1,19 +1,19 @@
-/* Lumi — schéma šifrované SQLite databáze (Drizzle ORM).
-   Emoční záznamy jsou zvláštní kategorie osobních údajů (čl. 9 GDPR) —
-   databáze je šifrovaná SQLCipherem, klíč drží expo-secure-store.
+/* Lumi: the schema of the encrypted SQLite database (Drizzle ORM).
+   Emotional entries are a special category of personal data (Article 9 GDPR):
+   SQLCipher encrypts the database, expo-secure-store holds the key.
 
-   `words` a `tags` jsou JSON sloupce, ne M:N tabulky: vážou se vždy jen
-   na jeden záznam, čtou se po celých záznamech a objemy jsou lokální
-   (jednotky zápisů denně) — relační rozpad by přidal jen JOINy. Vlastní
-   štítky mají vlastní tabulku `tags` kvůli správě (mazání, builtin flag),
-   vazba na záznam ale zůstává hodnotou v JSON sloupci. */
+   `words` and `tags` are JSON columns, not M:N tables: they always belong to one entry
+   only, the app reads them with the whole entry, and the volumes are local (a few writes
+   per day): a relational split would add only JOINs. The custom tags have their own table
+   `tags` for the management (delete, the builtin flag), but the link to an entry stays a
+   value in the JSON column. */
 import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const entries = sqliteTable(
   "entries",
   {
     id: text("id").primaryKey(),
-    date: text("date").notNull(), // "YYYY-MM-DD" (lokální den v telefonu)
+    date: text("date").notNull(), // "YYYY-MM-DD" (the local day on the phone)
     time: text("time").notNull(), // "H:MM"
     mood: text("mood").notNull(), // MoodId
     intensity: integer("intensity").notNull(), // 1–5
@@ -43,8 +43,8 @@ export const tags = sqliteTable("tags", {
 });
 
 export const settings = sqliteTable("settings", {
-  key: text("key").primaryKey(), // profil (name, age, share, onboarded) a preference
-  value: text("value").notNull(), // JSON-encoded hodnota
+  key: text("key").primaryKey(), // the profile (name, age, share, onboarded) and the preferences
+  value: text("value").notNull(), // a JSON-encoded value
 });
 
 export type EntryRow = typeof entries.$inferSelect;

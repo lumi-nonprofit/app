@@ -33,7 +33,7 @@ pub const LUMI_OK: c_int = 0;
 pub const LUMI_ERR_NULL: c_int = -1;
 pub const LUMI_ERR_BADARG: c_int = -2;
 pub const LUMI_ERR_UNKNOWN_HANDLE: c_int = -3;
-pub const LUMI_ERR_CRYPTO: c_int = -4; // decrypt/auth failure -> the JS "throwing" path
+pub const LUMI_ERR_CRYPTO: c_int = -4; // decrypt/auth failure -> the JS "throw" path
 pub const LUMI_ERR_RNG: c_int = -5;
 pub const LUMI_ERR_INTERNAL: c_int = -6;
 
@@ -76,7 +76,7 @@ pub unsafe extern "C" fn lumi_new_device_key(out_handle: *mut u64, out_pubkey32:
 
 /// Seal a check-in to a peer (X25519 DH -> HKDF -> ChaCha20-Poly1305). On success
 /// allocates `nonce||ciphertext`, writes its pointer to `*out_buf` and length to
-/// `*out_len` (caller frees via `lumi_free_buf`). The shared secret + private key
+/// `*out_len` (the caller frees it through `lumi_free_buf`). The shared secret + private key
 /// never leave Rust.
 ///
 /// # Safety
@@ -128,7 +128,7 @@ pub unsafe extern "C" fn lumi_seal_checkin(
     let mut out = Vec::with_capacity(12 + ct.len());
     out.extend_from_slice(&nonce);
     out.extend_from_slice(&ct);
-    // Ensure capacity == len so lumi_free_buf can reconstruct the Vec correctly.
+    // Make sure that capacity == len, so that lumi_free_buf can reconstruct the Vec correctly.
     out.shrink_to_fit();
     let len = out.len();
     let p = out.as_mut_ptr();
@@ -139,9 +139,9 @@ pub unsafe extern "C" fn lumi_seal_checkin(
     LUMI_OK
 }
 
-/// Open a sealed check-in, writing the plaintext fields out. `out_mood`/`out_note`
-/// receive heap C strings the caller frees via `lumi_free_string`. A bad/garbled
-/// `sealed` buffer returns `LUMI_ERR_CRYPTO` (the JS throwing path).
+/// Open a sealed check-in and write the plaintext fields out. `out_mood`/`out_note`
+/// receive heap C strings that the caller frees through `lumi_free_string`. A bad/garbled
+/// `sealed` buffer returns `LUMI_ERR_CRYPTO` (the JS throw path).
 ///
 /// # Safety
 /// All pointers valid; `peer_pub`/`sealed` point to their stated lengths.
@@ -221,8 +221,8 @@ pub unsafe extern "C" fn lumi_free_string(s: *mut c_char) {
     drop(CString::from_raw(s));
 }
 
-/// X25519 DH + HKDF-SHA256. The shared secret is derived and consumed HERE; never
-/// returned (§1). Private, not part of the C ABI.
+/// X25519 DH + HKDF-SHA256. This function derives and consumes the shared secret HERE
+/// and never returns it (§1). Private, not part of the C ABI.
 fn derive_key(handle: u64, peer_pub: &[u8]) -> Result<[u8; 32], c_int> {
     let peer: [u8; 32] = peer_pub.try_into().map_err(|_| LUMI_ERR_BADARG)?;
     let peer_pk = PublicKey::from(peer);
@@ -273,7 +273,7 @@ mod tests {
             lumi_free_string(on);
             lumi_free_buf(buf, len);
 
-            // Throwing path: garbage sealed buffer -> error (becomes a JS throw).
+            // Throw path: garbage sealed buffer -> error (becomes a JS throw).
             let bad = [9u8; 20];
             let (mut m2, mut i2, mut n2) = (ptr::null_mut(), 0u8, ptr::null_mut());
             let rc = lumi_open_checkin(hb, pa.as_ptr(), 32, bad.as_ptr(), bad.len(), &mut m2, &mut i2, &mut n2);

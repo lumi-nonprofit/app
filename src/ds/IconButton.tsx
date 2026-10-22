@@ -1,5 +1,5 @@
-/* IconButton — kulaté tlačítko jen s ikonou; vždy s českým `label`.
-   Dotykový cíl 44 pt (HIG) / 48 dp (Android), press state podle platformy. */
+/* IconButton: a round button with only an icon; always with a translated `label`.
+   The touch target is 44 pt (HIG) / 48 dp (Android), the press state follows the platform. */
 import React from "react";
 import { GestureResponderEvent, Pressable, StyleProp, ViewStyle } from "react-native";
 import { createThemedStyles, useTheme } from "../theme";
@@ -8,7 +8,7 @@ import { pressFeedback, pressedStyle } from "./press";
 
 type IconButtonVariant = "ghost" | "outline" | "ink";
 
-/* Typ názvu ikony odvozujeme z Icon — drží krok s jeho unií názvů. */
+/* The icon name type derives from `Icon`: it keeps pace with its union of names. */
 type IconName = React.ComponentProps<typeof Icon>["name"];
 
 interface Props {

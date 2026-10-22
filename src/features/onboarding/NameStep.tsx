@@ -1,27 +1,27 @@
-/* Onboarding 1 — přivítání + jméno (nepovinné; bez něj Lumi oslovuje neutrálně).
-   HIG Onboarding: rychlý, přeskočitelný; multi-step tlačítka Začít → Pokračovat → Hotovo. */
+/* Step 1 of the onboarding: the welcome and the name (optional; without it Lumi addresses the
+   person in a neutral way). The HIG guidance for the onboarding: fast and easy to skip; the
+   step buttons are "Začít", "Pokračovat" and "Hotovo". */
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Button, Input } from "../../ds";
 import LumiMark from "../../components/LumiMark";
+import { useTranslation } from "../../i18n";
 import { useAppStore } from "../../store";
 import { ObShell, ObTitle } from "./Shell";
 
 export default function NameStep() {
+  const { t } = useTranslation("onboarding");
   const { state, patch } = useAppStore();
   const router = useRouter();
   return (
     <ObShell step={1}>
       <LumiMark size={52} style={styles.mark} />
-      <ObTitle
-        title="Ahoj, tady Lumi."
-        body="Pomůžu ti všímat si, jak se máš, a hledat, co ti dělá dobře. Všechno zůstává u tebe."
-      />
+      <ObTitle title={t("name.title")} body={t("name.body")} />
       <Input
-        label="Jak ti říkat?"
-        placeholder="Třeba Alex"
-        hint="Nepovinné — jen pro oslovení, nikam se neposílá."
+        label={t("name.label")}
+        placeholder={t("name.placeholder")}
+        hint={t("name.hint")}
         value={state.name}
         onChangeText={(v) => patch({ name: v })}
         autoCapitalize="words"
@@ -31,7 +31,7 @@ export default function NameStep() {
       />
       <View style={styles.flex1} />
       <Button size="lg" fullWidth onPress={() => router.push("/onboarding/age")}>
-        Začít
+        {t("name.start")}
       </Button>
     </ObShell>
   );

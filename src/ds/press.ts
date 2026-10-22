@@ -1,5 +1,5 @@
-/* Zpětná vazba stisku podle platformy: Android = Material ripple (state layer),
-   iOS = snížená opacita (HIG: každé tlačítko má press state). */
+/* The press feedback follows the platform: Android = Material ripple (state layer),
+   iOS = a lower opacity (HIG: every button has a press state). */
 import { Platform } from "react-native";
 import type { PressableAndroidRippleConfig, StyleProp, ViewStyle } from "react-native";
 import type { Theme } from "../theme";

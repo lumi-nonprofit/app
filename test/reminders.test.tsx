@@ -1,9 +1,9 @@
-/* Připomínky v Nastavení: zapnutí denního pozvání naplánuje 7 týdenních
-   notifikací a uloží nastavení, vypnutí je zruší; bez povolení zůstává
-   přepínač vypnutý. expo-notifications je mockované — testy ověřují
-   plánování a persistenci, ne chování OS. */
+/* Reminders in Settings: the daily invitation schedules 7 weekly notifications and saves the
+   setting, the switch off cancels them; without the permission the switch stays off.
+   expo-notifications is a mock: the tests check the scheduling and the persistence, not the
+   behaviour of the OS. */
 import * as Notifications from "expo-notifications";
-// enum bereme z nemockovaného expo-modules-core (mock expo-notifications ho nenese)
+// The enum comes from the real expo-modules-core (the mock of expo-notifications does not carry it).
 import { PermissionStatus } from "expo-modules-core";
 import { fireEvent, userEvent, waitFor } from "@testing-library/react-native";
 import { renderRouter, screen } from "expo-router/testing-library";
@@ -43,13 +43,13 @@ async function openSettings(user: User): Promise<void> {
   expect(await screen.findByText("Připomínky")).toBeOnTheScreen();
 }
 
-describe("Připomínky", () => {
+describe("Reminders", () => {
   beforeEach(() => {
-    /* mocky z module factory nepodléhají restoreAllMocks — čistíme volání ručně */
+    /* The mocks from the module factory do not follow restoreAllMocks: the test clears the calls by hand. */
     jest.clearAllMocks();
   });
 
-  it("zapnutí naplánuje 7 týdenních notifikací a uloží nastavení; vypnutí zruší", async () => {
+  it("schedules 7 weekly notifications and saves the setting; the switch off cancels them", async () => {
     const user = userEvent.setup();
     await renderRouter("app");
     await finishOnboarding(user);
@@ -57,7 +57,7 @@ describe("Připomínky", () => {
 
     const toggle = screen.getByRole("switch", { name: "Denní připomínka" });
     expect(toggle).not.toBeChecked();
-    // podřízené volby jsou vidět až po zapnutí hlavního přepínače
+    // The dependent options are visible only after the main switch is on.
     expect(screen.queryByRole("switch", { name: "Večerka ve 21:00" })).toBeNull();
 
     await fireEvent(toggle, "valueChange", true);
@@ -65,8 +65,8 @@ describe("Připomínky", () => {
       expect(screen.getByRole("switch", { name: "Denní připomínka" })).toBeChecked(),
     );
 
-    // 7 týdenních notifikací (po jedné pro každý den) ve výchozích 19:00,
-    // na Androidu v kanálu „Připomínky“ (soukromé zobrazení na zámku)
+    // 7 weekly notifications (one for each day) at the default 19:00, on Android in the
+    // channel "Připomínky" (a private view on the lock screen).
     expect(scheduleMock).toHaveBeenCalledTimes(7);
     expect(scheduleMock.mock.calls.map(([req]) => req.trigger)).toEqual(
       Array.from({ length: 7 }, (_, i) => ({
@@ -93,7 +93,7 @@ describe("Připomínky", () => {
     await waitFor(() =>
       expect(screen.getByRole("switch", { name: "Denní připomínka" })).not.toBeChecked(),
     );
-    // všech 7 denních notifikací je zrušených, nastavení vypnuté
+    // The module cancels all 7 daily notifications and the setting is off.
     await waitFor(() =>
       expect(cancelMock.mock.calls.map(([id]) => id)).toEqual(
         expect.arrayContaining(Array.from({ length: 7 }, (_, i) => `lumi-reminder-${i + 1}`)),
@@ -102,7 +102,7 @@ describe("Připomínky", () => {
     expect(getSetting<boolean>(getTestDb(), REMINDER_ENABLED_KEY)).toBe(false);
   });
 
-  it("bez povolení zůstává přepínač vypnutý a zobrazí se vysvětlení", async () => {
+  it("keeps the switch off and shows an explanation without the permission", async () => {
     const deniedResponse: Notifications.NotificationPermissionsStatus = {
       granted: false,
       canAskAgain: false,
@@ -125,7 +125,7 @@ describe("Připomínky", () => {
     expect(getSetting<boolean>(getTestDb(), REMINDER_ENABLED_KEY)).not.toBe(true);
   });
 
-  it("Večerka: zapnutí naplánuje denní notifikaci ve 21:00 a uloží nastavení", async () => {
+  it("schedules the evening reminder daily at 21:00 and saves the setting", async () => {
     const user = userEvent.setup();
     await renderRouter("app");
     await finishOnboarding(user);

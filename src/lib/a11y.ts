@@ -1,17 +1,17 @@
-/* Přístupnost — pomocné hooky a oznámení pro čtečky obrazovky.
-   iOS nemá live regions (accessibilityLiveRegion je jen Android), proto změny
-   stavu oznamujeme explicitně přes AccessibilityInfo.announceForAccessibility
-   (HIG VoiceOver: „Inform VoiceOver when visible content or layout changes occur“).
-   Všechna volání jsou bezpečná: na webu a při chybě nedělají nic. */
+/* Accessibility: helper hooks and announcements for screen readers.
+   iOS has no live regions (`accessibilityLiveRegion` is Android only), thus the app
+   announces state changes explicitly through `AccessibilityInfo.announceForAccessibility`
+   (HIG VoiceOver: "Inform VoiceOver when visible content or layout changes occur").
+   Every call is safe: on the web and on an error it does nothing. */
 import React from "react";
 import { AccessibilityInfo, Platform } from "react-native";
 
 interface AnnounceOptions {
-  /** iOS: zařadit za právě probíhající řeč místo přerušení (výchozí: přerušit). */
+  /** iOS: queue after the current speech instead of an interruption (default: interrupt). */
   queue?: boolean;
 }
 
-/** Oznámí text VoiceOveru / TalkBacku. Prázdný text se ignoruje. */
+/** Announces the text to VoiceOver / TalkBack. It ignores an empty text. */
 export function announce(message: string, options: AnnounceOptions = {}): void {
   const text = message.trim();
   if (!text || Platform.OS === "web") return;
@@ -22,14 +22,14 @@ export function announce(message: string, options: AnnounceOptions = {}): void {
       AccessibilityInfo.announceForAccessibility(text);
     }
   } catch {
-    /* oznámení nikdy nesmí shodit interakci */
+    /* an announcement must never break an interaction */
   }
 }
 
 type AccessibilityQuery = () => Promise<boolean>;
 type AccessibilityEvent = "screenReaderChanged" | "boldTextChanged" | "reduceMotionChanged";
 
-/** Sdílený vzor: počáteční dotaz + listener na změnu (hodnota se mění za běhu). */
+/** The shared pattern: an initial query + a change listener (the value changes at runtime). */
 function useAccessibilityFlag(query: AccessibilityQuery, event: AccessibilityEvent): boolean {
   const [enabled, setEnabled] = React.useState(false);
   React.useEffect(() => {
@@ -56,17 +56,17 @@ const queryBoldText: AccessibilityQuery = () =>
   Platform.OS === "ios" ? AccessibilityInfo.isBoldTextEnabled() : Promise.resolve(false);
 const queryReduceMotion: AccessibilityQuery = () => AccessibilityInfo.isReduceMotionEnabled();
 
-/** Je zapnutá čtečka obrazovky (VoiceOver / TalkBack)? */
+/** Is the screen reader (VoiceOver / TalkBack) on? */
 export function useScreenReader(): boolean {
   return useAccessibilityFlag(queryScreenReader, "screenReaderChanged");
 }
 
-/** iOS „Bold Text“ — vlastní fonty ho neumí, titulky proto zvedáme o řez výš. */
+/** iOS "Bold Text": custom fonts cannot follow it, thus the titles go one cut up. */
 export function useBoldText(): boolean {
   return useAccessibilityFlag(queryBoldText, "boldTextChanged");
 }
 
-/** Systémová redukce pohybu (HIG Motion / Android Remove animations). */
+/** The system reduce-motion setting (HIG Motion / Android Remove animations). */
 export function useReduceMotion(): boolean {
   return useAccessibilityFlag(queryReduceMotion, "reduceMotionChanged");
 }

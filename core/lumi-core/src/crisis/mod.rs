@@ -5,9 +5,9 @@
 //!
 //! Layout:
 //! - [`model`]   — data types (CrisisLine, Audience, Scope, Channel, dual Hours, …)
-//! - [`hours`]   — opening-hours parser + `open_state` (best-effort, fail-open)
-//! - [`ingest`]  — boundary-validating ČAPLD ingestion (degrade, never drop a line)
-//! - [`matcher`] — deterministic recommender enforcing the 7 safety invariants
+//! - [`hours`]   — service-hours parser + `open_state` (best-effort, fail-open)
+//! - [`ingest`]  — ČAPLD ingestion with validation at the boundary (degrade, never drop a line)
+//! - [`matcher`] — deterministic recommender that enforces the 7 safety invariants
 
 pub mod hours;
 pub mod ingest;

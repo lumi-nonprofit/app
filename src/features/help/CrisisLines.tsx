@@ -1,14 +1,14 @@
-/* Krizové linky bez závislosti na profilu a databázi: obě linky jako tlačítka
-   tel:, pod nimi tísňová čísla. Sdílí je /crisis, ErrorBoundary a fallback
-   DbProvideru — pomoc musí být dostupná, i když selže všechno ostatní. */
+/* The crisis lines without the profile and the database: both primary lines as "tel:" buttons,
+   the emergency numbers under them. /crisis, the ErrorBoundary and the fallback of DbProvider
+   share this component: help must stay available when everything else fails. */
 import { View } from "react-native";
 import { Button, Text } from "../../ds";
-import { HELP_LINES } from "../../model";
+import { useTranslation } from "../../i18n";
 import { createThemedStyles } from "../../theme";
-
-const tel = (phone: string): string => `tel:${phone.replace(/\s/g, "")}`;
+import { EMERGENCY_LINES, HELP_LINES, telHref } from "./lines";
 
 export default function CrisisLines() {
+  const { t } = useTranslation("help");
   const styles = useStyles();
   return (
     <View style={styles.wrap}>
@@ -16,8 +16,8 @@ export default function CrisisLines() {
         const line = HELP_LINES[band];
         return (
           <View key={band} style={styles.line}>
-            <Button variant="crisis" size="lg" fullWidth href={tel(line.phone)}>
-              {`Zavolat ${line.phone} · ${line.name}`}
+            <Button variant="crisis" size="lg" fullWidth href={telHref(line.phone)}>
+              {t("lines.callWithName", { phone: line.phone, name: line.name })}
             </Button>
             <Text variant="footnote" color="textMuted" align="center">
               {line.meta}
@@ -26,15 +26,14 @@ export default function CrisisLines() {
         );
       })}
       <Text variant="subheadline" weight="semibold" color="textDanger" style={styles.emergency}>
-        Při bezprostředním ohrožení života:
+        {t("lines.emergencyIntro")}
       </Text>
       <View style={styles.row}>
-        <Button variant="secondary" href="tel:155" style={styles.flex1}>
-          155 · záchranka
-        </Button>
-        <Button variant="secondary" href="tel:112" style={styles.flex1}>
-          112 · tíseň
-        </Button>
+        {EMERGENCY_LINES.map((line) => (
+          <Button key={line.id} variant="secondary" href={telHref(line.phone)} style={styles.flex1}>
+            {t("lines.emergencyShort", { phone: line.phone, short: line.short })}
+          </Button>
+        ))}
       </View>
     </View>
   );

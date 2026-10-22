@@ -1,15 +1,15 @@
-/* Feature flagy experimentů. Zapínat až po ověření na zařízení. */
+/* The feature flags of the experiments. Turn one on only after a check on a device. */
 
-/** iOS State of Mind (Apple Zdraví): zápis nálad z check-inu.
-    Záměrně NEIMPLEMENTOVÁNO — knihovna @kingstinct/react-native-healthkit
-    State of Mind zatím nepodporuje; zjištění a plán viz docs/state-of-mind.md.
-    Flag existuje, aby budoucí integrace měla jedno místo zapnutí. */
+/** iOS State of Mind (Apple Health): the write of the moods from a check-in.
+    Intentionally ABSENT from the code: the library @kingstinct/react-native-healthkit
+    does not support State of Mind yet; see docs/state-of-mind.md for the findings and the plan.
+    The flag exists so that a future integration has one place to turn it on. */
 export const STATE_OF_MIND_ENABLED = false;
 
-/** M1 walking-skeleton obrazovka (/m1-checkin) nad Rust trezorem.
-    Vypnuto: app/_layout.tsx routu odstraní a nativní modul lumi-vault se
-    do buildu nelinkuje (package.json → expo.autolinking.exclude).
-    Zapnutí = odebrat lumi-vault z exclude a postavit Rust knihovnu podle
-    modules/lumi-vault/RUNBOOK.md. Do buildu pro testery nezapínat
-    (výchozí PIN, ADR 0004 (e), docs/STATUS.md). */
+/** The M1 end-to-end skeleton screen (/m1-checkin) over the Rust vault.
+    Off: app/_layout.tsx removes the route, and the build does not link the native module
+    lumi-vault (package.json → expo.autolinking.exclude).
+    To turn it on: remove lumi-vault from exclude and build the Rust library as
+    modules/lumi-vault/RUNBOOK.md says. Do not turn it on in a build for the testers
+    (the default PIN, ADR 0004 (e), docs/STATUS.md). */
 export const M1_VAULT_SKELETON_ENABLED = false;

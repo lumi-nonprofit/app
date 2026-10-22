@@ -1,40 +1,34 @@
-/* Předání telefonu (app/handover, fullScreenModal) — celoobrazovkový režim pro
-   třetí osobu, která drží telefon místo uživatele.
+/* Handover of the phone (app/handover, fullScreenModal): a full-screen mode for a third person
+   who holds the phone in place of the user.
 
-   ZÁMĚR — VYKÁNÍ: tahle obrazovka je jediná v aplikaci, kde tykání nedává smysl.
-   Mluvíme k někomu jinému než k uživateli (drží telefon za něj/za ni), proto tady
-   všude vykáme. Žádný tlak, žádná vina — jen klidné, konkrétní pokyny.
+   Intent, formal register: this is the only screen where the informal "you" makes no sense. The
+   text speaks to someone other than the user (they hold the phone for them), so the Czech text
+   uses the formal register ("vykání") everywhere. No pressure, no blame: calm, concrete
+   instructions.
 
-   Bez osobních dat: záměrně neimportujeme useAppStore / useEntries / useMeasurements.
-   Žádné jméno, žádné záznamy. Krizová čísla jsou napevno — nezávisí na profilu. */
+   No personal data: the screen leaves out useAppStore, useEntries and useMeasurements on
+   purpose. No name, no entries. The crisis numbers come from lines.ts and do not depend on the
+   profile. */
 import { View } from "react-native";
 import { useRouter } from "expo-router";
 import { Button, Text } from "../../ds";
 import Screen from "../../components/Screen";
+import { useTranslation } from "../../i18n";
 import { createThemedStyles } from "../../theme";
-
-/* Pět principů — každý jako vlastní řádek s tečkou (informace nikdy jen barvou:
-   nositelem je text, tečka je jen vizuální odrážka). Maximálně pár slov. */
-const PRINCIPLES = [
-  "Zůstaňte nablízku.",
-  "Hlavně poslouchejte.",
-  "Neraďte a nebagatelizujte.",
-  "Berte to vážně.",
-  "Při ohrožení nenechávejte o samotě.",
-] as const;
+import { HELP_LINES, LINE_BY_ID, telHref } from "./lines";
 
 function Principle({ text }: { text: string }) {
   const styles = useStyles();
   return (
     <View style={styles.principleRow}>
-      {/* odrážka je dekorativní — význam nese text vedle ní */}
+      {/* The dot is decorative: the text next to it carries the meaning. */}
       <View
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
         style={styles.dot}
       />
-      {/* velké písmo — telefon drží cizí člověk, často ve stresu */}
-      <Text variant="headline" style={styles.principleText}>
+      {/* Large type: a stranger holds the phone, often under stress. */}
+      <Text variant="title3" style={styles.principleText}>
         {text}
       </Text>
     </View>
@@ -42,42 +36,56 @@ function Principle({ text }: { text: string }) {
 }
 
 export default function HandoverScreen() {
+  const { t } = useTranslation("help");
   const router = useRouter();
   const styles = useStyles();
+  /* The 5 principles, each as its own row with a dot. The information is never only in colour:
+     the text carries it, the dot is a visual bullet. A few words each. */
+  const principles = [
+    t("handover.principles.stayClose"),
+    t("handover.principles.listen"),
+    t("handover.principles.noAdvice"),
+    t("handover.principles.takeSeriously"),
+    t("handover.principles.stayWith"),
+  ];
+  const adults = HELP_LINES.plus27;
+  const youth = HELP_LINES.u26;
+  const ambulance = LINE_BY_ID.zachranka;
+  const emergency = LINE_BY_ID.tisen;
   return (
     <Screen contentStyle={styles.content}>
       <Text accessibilityRole="header" variant="title1">
-        Jste tu pro někoho — to je to nejdůležitější.
+        {t("handover.title")}
       </Text>
 
       <View style={styles.principles}>
-        {PRINCIPLES.map((p) => (
+        {principles.map((p) => (
           <Principle key={p} text={p} />
         ))}
       </View>
 
       <View style={styles.actions}>
-        {/* krizové linky — čísla napevno, nezávislá na profilu */}
-        <Button variant="crisis" size="lg" fullWidth href="tel:116123">
-          Zavolat 116 123 — dospělí
+        {/* The crisis lines: the numbers come from lines.ts and do not depend on the profile. */}
+        <Button variant="crisis" size="lg" fullWidth href={telHref(adults.phone)}>
+          {t("handover.callAdults", { phone: adults.phone })}
         </Button>
-        <Button variant="crisis" size="lg" fullWidth href="tel:116111">
-          Zavolat 116 111 — děti a studenti
+        <Button variant="crisis" size="lg" fullWidth href={telHref(youth.phone)}>
+          {t("handover.callYouth", { phone: youth.phone })}
         </Button>
 
-        {/* vysoký kontrast — nouzová čísla musí být čitelná na první pohled */}
+        {/* High contrast: the emergency numbers must be readable at first sight. */}
         <Text
-          variant="headline"
+          variant="title3"
           weight="bold"
           color="textDanger"
           align="center"
           style={styles.emergency}
         >
-          Při ohrožení života: 155 záchranná služba · 112 tísňová linka
+          {t("handover.emergency", { ambulance: ambulance.phone, emergency: emergency.phone })}
         </Text>
 
         <Button variant="secondary" size="lg" fullWidth onPress={() => router.back()}>
-          Vrátit telefon
+          {t("handover.return")}
         </Button>
       </View>
     </Screen>
@@ -95,8 +103,8 @@ const useStyles = createThemedStyles((t) => ({
     borderRadius: t.radius.pill,
     backgroundColor: t.colors.surfaceCrisis,
   },
-  principleText: { flex: 1, fontSize: 20, lineHeight: 26 },
+  principleText: { flex: 1 },
 
   actions: { gap: 12 },
-  emergency: { fontSize: 20, lineHeight: 26, marginVertical: 4 },
+  emergency: { marginVertical: 4 },
 }));

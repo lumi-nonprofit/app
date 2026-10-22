@@ -26,8 +26,10 @@ StyleDictionary.registerFormat({
       const value = token.value;
       if (root === "color") groups.palette[rest.join("")] = value;
       else if (root === "mood") groups.mood[rest.join("")] = value;
-      else if (root === "theme" && rest[0] === "light") groups.lightColors[rest.slice(1).join("")] = value;
-      else if (root === "theme" && rest[0] === "dark") groups.darkColors[rest.slice(1).join("")] = value;
+      else if (root === "theme" && rest[0] === "light")
+        groups.lightColors[rest.slice(1).join("")] = value;
+      else if (root === "theme" && rest[0] === "dark")
+        groups.darkColors[rest.slice(1).join("")] = value;
       else if (root in groups) groups[root][rest.join("")] = value;
     }
     const emit = (name, obj) =>

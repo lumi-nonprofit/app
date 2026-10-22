@@ -1,7 +1,7 @@
-/* RadioRow — jedna volba výběru (věkové pásmo, rytmus dechu): karta s terčíkem.
-   Vybraný stav nese tvar (vyplněný terčík) + obrys selectionBorder (≥ 3:1)
-   + accessibilityState, nikdy jen barva. Řádek ≥ 56 dp / 44 pt, ripple či
-   opacita podle platformy, jemná haptika při výběru. */
+/* RadioRow: one option of a choice (age band, breath rhythm): a card with a radio dot.
+   The shape (a filled dot) + the selectionBorder outline (≥ 3:1) + `accessibilityState`
+   carry the selected state, never only a color. The row is ≥ 56 dp / 44 pt, ripple or
+   opacity follows the platform, a gentle haptic on selection. */
 import { Pressable, View } from "react-native";
 import type { StyleProp, ViewStyle } from "react-native";
 import { haptics } from "../lib/haptics";
@@ -32,8 +32,9 @@ export default function RadioRow({
     <Pressable
       accessibilityRole="radio"
       accessibilityState={{ checked: selected }}
+      aria-checked={selected}
       accessibilityHint={accessibilityHint}
-      /* jméno čte čtečka z textu volby — žádný duplicitní label */
+      /* the screen reader reads the name from the option text: no duplicate label */
       onPress={() => {
         haptics.select();
         onPress();

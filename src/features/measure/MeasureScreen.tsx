@@ -1,10 +1,10 @@
-/* Dotazník (WHO-5 / PHQ-9 / GAD-7): jedna otázka na kartu, progres nahoře,
-   škálové odpovědi jako velké dotykové cíle. Výsledek se ukládá do
-   `measurements` hned po poslední odpovědi.
+/* The questionnaire (WHO-5, PHQ-9, GAD-7): one question per card, the progress at the top, the
+   scale answers as large touch targets. The result goes into `measurements` right after the last
+   answer.
 
-   PHQ-9 otázka 9 (myšlenky na smrt / sebepoškození): odpověď > 0 vede
-   místo výsledku na empatickou mezistránku — klidný tón, akce nad foldem,
-   žádné blokování (k výsledku se dá pokračovat). */
+   PHQ-9 question 9 (thoughts of death or self-harm): an answer above 0 leads to an empathetic
+   interstitial instead of the result. It has a calm tone, the actions above the fold and no
+   block (the person can continue to the result). */
 import React from "react";
 import { Pressable, View, type GestureResponderEvent } from "react-native";
 import { Redirect, Stack, useLocalSearchParams, useRouter } from "expo-router";
@@ -22,7 +22,9 @@ import {
   setSetting,
   type MeasurementType,
 } from "../../db/repo";
-import { HELP_LINES, toISODate, czPlural } from "../../model";
+import { HELP_LINES, toISODate } from "../../model";
+import { useTranslation } from "../../i18n";
+import { formatPercent } from "../../i18n/format";
 import { useAppStore } from "../../store";
 import { announce } from "../../lib/a11y";
 import { haptics } from "../../lib/haptics";
@@ -33,8 +35,9 @@ import { createThemedStyles, useTheme } from "../../theme";
 
 const DISCLAIMER_SEEN_KEY = "measure-disclaimer-seen";
 
-/** Hlavička otázky: titulek = název nástroje; vlevo Zavřít u první otázky,
-    pak Zpět na předchozí otázku (krok uvnitř jedné routy, ne pop stacku). */
+/** The header of a question: the title is the name of the instrument. The left item is Close on
+    the first question, then Back to the previous question (a step inside one route, not a pop of
+    the stack). */
 function QuestionHeader({
   title,
   first,
@@ -44,6 +47,7 @@ function QuestionHeader({
   first: boolean;
   onBack: () => void;
 }) {
+  const { t } = useTranslation("measure");
   const theme = useTheme();
   return (
     <Stack.Screen
@@ -52,7 +56,9 @@ function QuestionHeader({
         gestureEnabled: true,
         ...headerItems(theme, {
           left: [
-            first ? closeItem(onBack, "Zavřít dotazník") : backItem(onBack, "Předchozí otázka"),
+            first
+              ? closeItem(onBack, t("header.close"))
+              : backItem(onBack, t("header.previousQuestion")),
           ],
         }),
       }}
@@ -69,11 +75,12 @@ type Phase =
 export default function MeasureScreen() {
   const { type } = useLocalSearchParams<{ type?: string }>();
   if (!isMeasurementType(type)) return <Redirect href="/" />;
-  // key: změna parametru routy (phq9 → gad7) musí znamenat čistý stav dotazníku
+  // The key: a change of the route parameter (phq9 to gad7) must give the questionnaire a clean state.
   return <Measure key={type} type={type} />;
 }
 
 function Measure({ type }: { type: MeasurementType }) {
+  const { t } = useTranslation(["measure", "common"]);
   const inst = INSTRUMENTS[type];
   const router = useRouter();
   const theme = useTheme();
@@ -82,7 +89,8 @@ function Measure({ type }: { type: MeasurementType }) {
   const write = useDbWriter();
   const { state } = useAppStore();
 
-  /* předchozí skóre pro trend — čte se jednou při otevření, před uložením nového */
+  /* The component reads the previous score for the trend once at the start, before it saves the
+     new one. */
   const [prevScore] = React.useState<number | null>(() => {
     const list = listMeasurements(db, type);
     return list.length ? list[list.length - 1].score : null;
@@ -93,32 +101,34 @@ function Measure({ type }: { type: MeasurementType }) {
       : { kind: "question", index: 0, answers: [] },
   );
 
-  /* ochrana proti dvojkliku: rychlý druhý dotek by dopadl na možnost
-     DALŠÍ otázky (stejná pozice na obrazovce) — u PHQ-9 ot. 9 by tak šlo
-     nevědomky odpovědět na otázku o sebepoškození. Tři vrstvy:
-     1. index-zámek: na jednu otázku projde jen jedna odpověď,
-     2. časový lockout 250 ms z timestampu dotyku (odraz přes commit),
-     3. jednorázové id měření + synchronní zámek uložení (duplicitní
-        submit koliduje na id a ON CONFLICT ho zahodí). */
-  /* rozpracovaný dotazník (≥ 1 odpověď) se nezavře bez dotazu — swipe-down ani Back */
+  /* Protection against a double tap: a fast second touch would land on an option of the next
+     question (the same position on the screen). On PHQ-9 question 9 the person could answer the
+     question about self-harm without intent. There are 3 layers:
+     1. an index lock: only one answer passes per question,
+     2. a time lockout of 250 ms from the timestamp of the touch (a bounce through the commit),
+     3. a single measurement id and a synchronous save lock (a duplicate submit collides on the id,
+        and `ON CONFLICT` drops it). */
+  /* A questionnaire in progress (1 or more answers) does not close without a question: neither a
+     swipe down nor Back. */
   useDiscardGuard({
     dirty: phase.kind === "question" && phase.answers.length > 0,
-    title: "Ukončit dotazník?",
-    message: "Dosavadní odpovědi se neuloží.",
-    confirmLabel: "Ukončit",
+    title: t("discard.title"),
+    message: t("discard.message"),
+    confirmLabel: t("discard.confirm"),
   });
 
-  /* posun v dotazníku oznámí čtečka: číslo otázky, mezistránka, výsledek */
+  /* The screen reader announces a step in the questionnaire: the number of the question, the
+     interstitial and the result. */
   const questionIndex = phase.kind === "question" ? phase.index : -1;
   React.useEffect(() => {
     if (phase.kind === "question") {
-      announce(`Otázka ${phase.index + 1} z ${inst.questions.length}`);
+      announce(t("question.progress", { number: phase.index + 1, total: inst.questions.length }));
     } else if (phase.kind === "support") {
-      announce("Díky za upřímnost. Pomoc je tu i teď.");
+      announce(t("support.announce"));
     } else if (phase.kind === "result") {
-      announce("Hotovo. Díky za chvilku.");
+      announce(t("result.title"));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- oznámení jen při změně kroku, ne odpovědí
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- The announcement follows a change of the step, not of the answers.
   }, [phase.kind, questionIndex]);
 
   const lastAnsweredIndex = React.useRef(-1);
@@ -128,10 +138,10 @@ function Measure({ type }: { type: MeasurementType }) {
 
   const answer = (value: number, e: GestureResponderEvent) => {
     if (phase.kind !== "question") return;
-    if (lastAnsweredIndex.current >= phase.index) return; // dvojklik na téže otázce
-    /* bez timestampu (některá testovací prostředí) lockout neblokuje */
+    if (lastAnsweredIndex.current >= phase.index) return; // A double tap on the same question.
+    /* Without a timestamp (some test environments) the lockout does not block. */
     const ts = e.nativeEvent?.timestamp ?? lastAdvanceAt.current + 1000;
-    if (ts - lastAdvanceAt.current < 250) return; // odraz dopadl na další otázku
+    if (ts - lastAdvanceAt.current < 250) return; // The bounce lands on the next question.
     lastAdvanceAt.current = ts;
     lastAnsweredIndex.current = phase.index;
     haptics.select();
@@ -162,7 +172,7 @@ function Measure({ type }: { type: MeasurementType }) {
 
   const stepBack = () => {
     if (phase.kind === "question" && phase.index > 0) {
-      lastAnsweredIndex.current = phase.index - 2; // předchozí otázka jde zodpovědět znovu
+      lastAnsweredIndex.current = phase.index - 2; // The previous question can get a new answer.
       setPhase({
         kind: "question",
         index: phase.index - 1,
@@ -173,14 +183,14 @@ function Measure({ type }: { type: MeasurementType }) {
     }
   };
 
-  /* ---------- disclaimer (jen PHQ-9 / GAD-7, jen poprvé) ---------- */
+  /* ---------- the disclaimer (only PHQ-9 and GAD-7, only the first time) ---------- */
   if (phase.kind === "disclaimer") {
     return (
       <Screen contentStyle={styles.center}>
         <Stack.Screen
           options={{
             title: inst.title,
-            ...headerItems(theme, { left: [closeItem(() => router.back(), "Zavřít dotazník")] }),
+            ...headerItems(theme, { left: [closeItem(() => router.back(), t("header.close"))] }),
           }}
         />
         <View style={styles.headBlock}>
@@ -188,11 +198,10 @@ function Measure({ type }: { type: MeasurementType }) {
             <Icon name="shield" size={26} color={theme.colors.textInfo} />
           </View>
           <Text accessibilityRole="header" variant="title1" align="center">
-            Než začneš
+            {t("disclaimer.title")}
           </Text>
           <Text variant="body" align="center">
-            Tohle je orientační screeningový nástroj. Nenahrazuje vyšetření ani rozhovor s
-            odborníkem — pomáhá všímat si, jak se máš. Výsledky zůstávají jen v tvém telefonu.
+            {t("disclaimer.text")}
           </Text>
         </View>
         <View style={styles.actions}>
@@ -200,23 +209,23 @@ function Measure({ type }: { type: MeasurementType }) {
             size="lg"
             fullWidth
             onPress={() => {
-              /* flag se ukládá při odsouhlasení (ne až po dokončení) — záměr:
-                 obsah byl přečtený a potvrzený, druhé čtení nevnucujeme */
+              /* The code saves the flag at the consent, not after the completion: the person read
+                 and confirmed the content, so a second read is not necessary. */
               write((d) => setSetting(d, DISCLAIMER_SEEN_KEY, true));
               setPhase({ kind: "question", index: 0, answers: [] });
             }}
           >
-            Pokračovat
+            {t("common:actions.continue")}
           </Button>
           <Button variant="ghost" fullWidth onPress={() => router.back()}>
-            Teď ne
+            {t("disclaimer.notNow")}
           </Button>
         </View>
       </Screen>
     );
   }
 
-  /* ---------- otázky ---------- */
+  /* ---------- the questions ---------- */
   if (phase.kind === "question") {
     const total = inst.questions.length;
     const num = phase.index + 1;
@@ -224,11 +233,12 @@ function Measure({ type }: { type: MeasurementType }) {
       <Screen>
         <QuestionHeader title={inst.title} first={phase.index === 0} onBack={stepBack} />
 
-        {/* progres: text i pruh — informace nikdy jen barvou; pruh je pro
-            čtečky dekorativní (text „Otázka X z Y“ už postup nese) */}
+        {/* The progress as text and as a bar: the information never comes from colour alone. The
+            bar is decorative for screen readers, because the text "Otázka X z Y" carries the
+            progress. */}
         <View>
           <Text variant="footnote" weight="semibold" color="textMuted" style={styles.progressText}>
-            {`Otázka ${num} z ${total}`}
+            {t("question.progress", { number: num, total })}
           </Text>
           <View
             accessibilityElementsHidden
@@ -253,7 +263,7 @@ function Measure({ type }: { type: MeasurementType }) {
             <Pressable
               key={o.value}
               accessibilityRole="button"
-              accessibilityHint={`Odpověď na otázku ${num} z ${total}.`}
+              accessibilityHint={t("question.answer.a11yHint", { number: num, total })}
               onPress={(e) => answer(o.value, e)}
               {...pressFeedback(theme)}
               style={({ pressed }) => [
@@ -272,13 +282,14 @@ function Measure({ type }: { type: MeasurementType }) {
     );
   }
 
-  /* ---------- mezistránka po PHQ-9 ot. 9 > 0 ---------- */
+  /* ---------- the interstitial after PHQ-9 question 9 above 0 ---------- */
   if (phase.kind === "support") {
-    /* bez známého věku radši linka pro dospělé (dětská je věkově omezená) */
+    /* Without a known age, the line for adults is the safer choice (the line for children has an
+       age limit). */
     const line = state.age === "u26" ? HELP_LINES.u26 : HELP_LINES.plus27;
     return (
       <Screen contentStyle={styles.center}>
-        {/* mezistránka se nedá odswipovat ani zavřít křížkem — ven vedou jen akce níž */}
+        {/* The interstitial has no swipe and no close item: only the actions below lead out. */}
         <Stack.Screen
           options={{
             title: inst.title,
@@ -292,11 +303,10 @@ function Measure({ type }: { type: MeasurementType }) {
             <Icon name="heart-handshake" size={26} color={theme.colors.textDanger} />
           </View>
           <Text accessibilityRole="header" variant="title1" align="center">
-            Díky za upřímnost.
+            {t("support.title")}
           </Text>
           <Text variant="body" align="center">
-            Tahle odpověď je důležitá. Nemusíš v tom zůstávat o samotě — pomoc je tu i teď a
-            možností je víc, než se může zdát.
+            {t("support.text")}
           </Text>
         </View>
         <View style={styles.actions}>
@@ -309,7 +319,7 @@ function Measure({ type }: { type: MeasurementType }) {
               router.navigate("/help");
             }}
           >
-            Otevřít Pomoc
+            {t("support.openHelp")}
           </Button>
           <Button
             variant="secondary"
@@ -317,21 +327,21 @@ function Measure({ type }: { type: MeasurementType }) {
             fullWidth
             href={`tel:${line.phone.replace(/\s/g, "")}`}
           >
-            {`Zavolat ${line.nameDative} · ${line.phone}`}
+            {t("support.call", { line: line.nameDative, phone: line.phone })}
           </Button>
           <Button
             variant="ghost"
             fullWidth
             onPress={() => setPhase({ kind: "result", score: phase.score })}
           >
-            Pokračovat k výsledku
+            {t("support.continueToResult")}
           </Button>
         </View>
       </Screen>
     );
   }
 
-  /* ---------- výsledek ---------- */
+  /* ---------- the result ---------- */
   const band = bandFor(type, phase.score);
   const trend = trendText(phase.score, prevScore, type === "who5" ? "percent" : "points");
   return (
@@ -349,7 +359,7 @@ function Measure({ type }: { type: MeasurementType }) {
           <ProgressRing
             value={phase.score / 100}
             size={110}
-            label={`${phase.score} %`}
+            label={formatPercent(phase.score)}
             sublabel="WHO-5"
           />
         ) : (
@@ -360,18 +370,18 @@ function Measure({ type }: { type: MeasurementType }) {
           </View>
         )}
         <Text accessibilityRole="header" variant="title1" align="center">
-          Hotovo. Díky za chvilku.
+          {t("result.title")}
         </Text>
         <Text variant="body" align="center">
           {type === "who5"
             ? prevScore === null
-              ? "Tvůj výchozí bod. Index uvidíš na Dnes i v Přehledech — vždycky jen vůči tvým vlastním datům."
-              : "Index uvidíš na Dnes i v Přehledech — vždycky jen vůči tvým vlastním datům."
+              ? t("result.who5.first")
+              : t("result.who5.next")
             : band?.text}
         </Text>
         {type !== "who5" ? (
           <Text variant="footnote" color="textMuted">
-            {`${phase.score} ${czPlural(phase.score, ["bod", "body", "bodů"])} z ${inst.maxScore}`}
+            {t("result.score", { count: phase.score, max: inst.maxScore })}
           </Text>
         ) : null}
         {trend ? (
@@ -382,7 +392,7 @@ function Measure({ type }: { type: MeasurementType }) {
       </View>
       <View style={styles.actions}>
         <Button size="lg" fullWidth onPress={() => router.back()}>
-          Hotovo
+          {t("common:actions.done")}
         </Button>
       </View>
     </Screen>

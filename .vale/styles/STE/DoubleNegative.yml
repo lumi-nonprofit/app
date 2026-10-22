@@ -1,0 +1,7 @@
+extends: existence
+message: "'%s' is a double negative. STE: write the positive form."
+link: https://www.asd-ste100.org/
+level: warning
+ignorecase: true
+tokens:
+  - '\b(?:not|never|no)\s+(?:un|in|im|non)\w+'

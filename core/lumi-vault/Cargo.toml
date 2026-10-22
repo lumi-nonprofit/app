@@ -1,13 +1,13 @@
 # Lumi at-rest crypto (ADR 0001 §3 / ADR 0004). Vetted pure-Rust RustCrypto only, so the
 # crate stays musl-buildable and the security-critical logic has no hand-rolled crypto.
-# Crypto-only: persistence is abstracted behind the `VaultStore` trait (rusqlite impl =
-# lumi-store, next step). No SQLite / C-ABI / app wiring here.
+# Crypto-only: the `VaultStore` trait abstracts persistence (rusqlite impl =
+# lumi-store, next step). No SQLite / C-ABI / app integration here.
 [package]
 name = "lumi-vault"
 version = "0.0.0"
 edition = "2021"
 publish = false
-description = "Lumi at-rest crypto: vault key hierarchy (Argon2id PIN-wrap), per-record content keys (XChaCha20-Poly1305), crypto-shredding. Persistence via a storage trait."
+description = "Lumi at-rest crypto: vault key hierarchy (Argon2id PIN-wrap), per-record content keys (XChaCha20-Poly1305), crypto-shredding. Persistence through a storage trait."
 
 [dependencies]
 argon2 = "0.5"                                       # RustCrypto pure-Rust Argon2id (NOT a C binding)

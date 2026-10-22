@@ -1,0 +1,66 @@
+{
+  "confirm": {
+    "announce": "Saved. The entry stays on your phone.",
+    "home": "Back to Today",
+    "moment": "This was a moment for you.",
+    "stays": "The entry stays on your phone.",
+    "tipTitle": "This might suit you now",
+    "title": "Saved."
+  },
+  "discard": {
+    "message": "The chosen state, words and note will not be saved.",
+    "title": "Discard this entry?"
+  },
+  "step1": {
+    "continueHint": "First tap the state that is closest right now.",
+    "intensity": {
+      "a11yHint": "Slide to set how strong the feeling is, from {{min}} to {{max}}.",
+      "a11yLabel": "Intensity",
+      "title": "How strong is it?"
+    },
+    "kicker": "Check-in · step 1 of 2",
+    "moods": {
+      "a11yHint": "Pick the state that is closest right now.",
+      "a11yLabel": "How do you feel right now?"
+    },
+    "title": "How do you feel right now?"
+  },
+  "step2": {
+    "deleteTag": {
+      "message": "Entries that already use it stay unchanged.",
+      "title": "Delete this tag?"
+    },
+    "kicker": "Check-in · step 2 of 2",
+    "newTag": {
+      "a11yHint": "Type a name and confirm with the Add button.",
+      "a11yLabel": "New tag",
+      "chip": "+ add",
+      "close": {
+        "a11yHint": "Closes the field for a new tag."
+      },
+      "open": {
+        "a11yHint": "Opens the field for a new tag."
+      },
+      "placeholder": "new tag"
+    },
+    "note": {
+      "label": "Note",
+      "placeholder": "What is on your mind? (optional)"
+    },
+    "save": "Save entry",
+    "saveHint": "Pick at least one word — it helps in Overview.",
+    "summary": {
+      "intensity": "· {{intensity}}"
+    },
+    "tags": {
+      "custom": {
+        "a11yHint": "Hold to delete the tag."
+      },
+      "title": "What is it related to?"
+    },
+    "title": "Which word fits best?",
+    "words": {
+      "hint": "Pick one or two."
+    }
+  }
+}

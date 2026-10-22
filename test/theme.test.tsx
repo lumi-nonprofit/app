@@ -1,6 +1,6 @@
-/* Typografie a téma: varianty ds/Text (Bricolage jen pro titulky, systémový
-   font pro text), limity škálování, tmavé schéma podle systému, Bold Text
-   a Dynamic Type (ring roste s písmem, ale jen do 1,3×). */
+/* Typography and theme: the ds/Text variants (Bricolage only for the titles, the system font for
+   the body text), the scale limits, the dark scheme from the system, Bold Text and Dynamic Type
+   (the ring grows with the font, but only to 1.3x). */
 import { PixelRatio, StyleSheet } from "react-native";
 import type { StyleProp, TextStyle, ViewStyle } from "react-native";
 import { render, screen } from "@testing-library/react-native";
@@ -18,7 +18,7 @@ const flat = (node: {
 }): TextStyle & ViewStyle => (StyleSheet.flatten(node.props.style) ?? {}) as TextStyle & ViewStyle;
 
 describe("ds/Text", () => {
-  it("titulky nesou Bricolage, tělo textu systémový font se skutečnou váhou", async () => {
+  it("titles use Bricolage, the body text uses the system font with a real weight", async () => {
     await render(
       <ThemeProvider>
         <Text variant="title1">Titulek</Text>
@@ -38,7 +38,7 @@ describe("ds/Text", () => {
     expect(flat(screen.getByText("Nadpis karty")).fontWeight).toBe("600");
   });
 
-  it("Bold Text zvedne titulky 600 na 700 (iOS neumí ztučnit vlastní font)", async () => {
+  it("Bold Text raises the titles from 600 to 700 (iOS cannot embolden a custom font)", async () => {
     await render(
       <ThemeProvider boldText>
         <Text variant="title3">Podtitulek</Text>
@@ -47,7 +47,7 @@ describe("ds/Text", () => {
     expect(flat(screen.getByText("Podtitulek")).fontFamily).toBe("BricolageGrotesque_700Bold");
   });
 
-  it("kicker je verzálkový a škáluje nejvýš 1,6×; tlačítko 2×", async () => {
+  it("the kicker is uppercase and scales at most 1.6x; the button 2x", async () => {
     await render(
       <ThemeProvider>
         <Text variant="kicker">Sekce</Text>
@@ -58,11 +58,11 @@ describe("ds/Text", () => {
     expect(flat(kicker).textTransform).toBe("uppercase");
     expect(kicker.props.maxFontSizeMultiplier).toBe(1.6);
     expect(screen.getByText("Pokračovat").props.maxFontSizeMultiplier).toBe(2);
-    /* bez limitu u běžného textu: Dynamic Type až 200 %+ */
+    /* No limit for the body text: Dynamic Type up to 200 % and more. */
     expect(screen.getByText("Sekce").props.allowFontScaling).not.toBe(false);
   });
 
-  it("barvy jdou z rolí tématu — tmavé schéma podle systému", async () => {
+  it("colours come from the theme roles: the dark scheme follows the system", async () => {
     mockColorScheme.mockReturnValue("dark");
     await render(
       <ThemeProvider>
@@ -74,7 +74,7 @@ describe("ds/Text", () => {
     expect(flat(screen.getByText("Akcent")).color).toBe(darkTheme.colors.textAccent);
   });
 
-  it("barvy jdou z rolí tématu — světlé schéma podle systému", async () => {
+  it("colours come from the theme roles: the light scheme follows the system", async () => {
     mockColorScheme.mockReturnValue("light");
     await render(
       <ThemeProvider>
@@ -86,19 +86,19 @@ describe("ds/Text", () => {
 });
 
 describe("Dynamic Type", () => {
-  it("ring roste se systémovým písmem, ale nejvýš 1,3× (popisek se musí vejít)", async () => {
+  it("the ring grows with the system font, but at most 1.3x (the label must fit)", async () => {
     jest.spyOn(PixelRatio, "getFontScale").mockReturnValue(3.1);
     await render(
       <ThemeProvider>
         <ProgressRing value={0.8} size={72} label="80 %" sublabel="WHO-5" />
       </ThemeProvider>,
     );
-    /* RNTL nemapuje roli progressbar na dotaz podle role — hledáme podle popisku */
+    /* RNTL does not map the progressbar role to a role query, so the test queries the label. */
     const ring = screen.getByLabelText("WHO-5");
     expect(ring.props.accessibilityRole).toBe("progressbar");
     expect(flat(ring).width).toBe(Math.round(72 * 1.3));
     expect(ring.props.accessibilityValue).toEqual({ min: 0, max: 100, now: 80 });
-    /* popisek v kruhu škáluje s průměrem, ne s písmem */
+    /* The label in the ring scales with the diameter, not with the font. */
     expect(screen.getByText("80 %").props.allowFontScaling).toBe(false);
   });
 });

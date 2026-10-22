@@ -1,7 +1,7 @@
-/* DbProvider: otevře šifrovanou databázi (vč. Drizzle migrací) a do té doby
-   nevykresluje nic (nativní splash zůstává). Když otevření selže, vykreslí
-   `fallback` (krizové linky nesmí záviset na databázi). Verze dat řídí
-   re-query hooků po zápisu. */
+/* DbProvider: opens the encrypted database (with the Drizzle migrations) and renders
+   nothing until then (the native splash stays). When the open fails, it renders
+   `fallback` (the crisis lines must not depend on the database). The data version drives
+   the re-query of the hooks after a write. */
 import React from "react";
 import { connectDb } from "./connect";
 import type { LumiDb } from "./types";
@@ -17,7 +17,7 @@ const DbVersionContext = React.createContext<DbVersion | null>(null);
 
 interface DbProviderProps {
   children: React.ReactNode;
-  /** Obrazovka při selhání databáze (bez ní zůstane viditelný jen splash). */
+  /** The screen on a database failure (without it only the splash stays visible). */
   fallback?: React.ReactNode;
 }
 
@@ -32,12 +32,13 @@ export function DbProvider({ children, fallback }: DbProviderProps) {
         if (alive) setDb(d);
       })
       .catch(() => {
-        // S12: žádné citlivé logy v produkci. Klíč/PRAGMA/cesty se nelogují nikdy;
-        // ani chybový objekt (může nést PRAGMA či cestu k souboru).
-        // Rejection reason je záměrně ignorován (callback nemá parametr), aby se
-        // omylem nelogovaly citlivé detaily. V dev buildu jen obecná zpráva.
-        // Bez DB se vykreslí jen fallback (krizové linky), nikdy zbytek aplikace.
-        if (__DEV__) console.error("Lumi: databázi se nepodařilo otevřít.");
+        // S12: no sensitive logs in production. The key, the PRAGMA and the paths never go
+        // to a log; neither does the error object (it can carry the PRAGMA or a file path).
+        // The callback ignores the rejection reason on purpose (it has no parameter), so
+        // that sensitive details never reach a log by accident. The dev build logs only a
+        // general message. Without the DB only the fallback (the crisis lines) renders,
+        // never the rest of the app.
+        if (__DEV__) console.error("Lumi: the database did not open.");
         if (alive) setFailed(true);
       });
     return () => {
@@ -56,12 +57,12 @@ export function DbProvider({ children, fallback }: DbProviderProps) {
 
 export function useDb(): LumiDb {
   const db = React.useContext(DbContext);
-  if (!db) throw new Error("useDb musí být uvnitř <DbProvider>.");
+  if (!db) throw new Error("useDb must be inside <DbProvider>.");
   return db;
 }
 
 export function useDbVersion(): DbVersion {
   const ctx = React.useContext(DbVersionContext);
-  if (!ctx) throw new Error("useDbVersion musí být uvnitř <DbProvider>.");
+  if (!ctx) throw new Error("useDbVersion must be inside <DbProvider>.");
   return ctx;
 }

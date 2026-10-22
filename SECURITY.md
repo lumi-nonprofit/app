@@ -1,58 +1,77 @@
 # Security Policy
 
-Lumi is a privacy-first, local-first mental-wellbeing app. Health data
-(special-category, GDPR Art. 9) stays on the device; the optional sync server is
-zero-knowledge (ciphertext + wrapped-key envelopes only). Security is a core
-product property — see `docs/adr/0001-cross-platform-architecture.md` (§3 crypto,
-§5 sync, §9 the S1–S12 requirement mapping).
+Lumi is a privacy-first, local-first app for mental wellbeing. Health data (a special category,
+GDPR Art. 9) stays on the device. The optional sync server (M2, a design only today) is
+zero-knowledge: it holds only ciphertext and wrapped-key envelopes. Security is a core property of
+the product. See `docs/adr/0001-cross-platform-architecture.md` (§3 crypto, §5 sync, §9 the
+mapping of the requirements S1 to S12).
 
 ## Supported versions
 
-Lumi is pre-release (0.x). Only the latest `main` receives security fixes.
+Lumi is pre-release (0.x). Only the latest `main` gets security fixes.
 
-| Version | Supported |
-| ------- | --------- |
-| latest `main` (0.x) | ✅ |
-| older 0.x | ❌ |
+| Version             | Supported |
+| ------------------- | --------- |
+| latest `main` (0.x) | ✅        |
+| older 0.x           | ❌        |
 
-## Reporting a vulnerability
+## How to report a vulnerability
 
-**Please report privately — do not open a public issue for a security problem.**
+**Report a security problem in private. Do not open a public issue.**
 
-- **Preferred:** GitHub *private vulnerability reporting* — repository **Security**
-  tab → **Report a vulnerability**. (Maintainers: enable this under Settings →
-  Code security.)
-- **Email fallback:** anna.zezulka@pm.me
+- **Preferred:** the private vulnerability report on GitHub — repository **Security** tab →
+  **Report a vulnerability**. (Maintainers: turn this on under Settings → Code security.)
+- **Email fallback:** <anna.zezulka@pm.me>
 
-What to expect: acknowledgement within ~7 days; an assessment and, if accepted, a
-fix plan with a coordinated disclosure timeline. We do not run a paid bug bounty
-(nonprofit), but we credit reporters who wish to be named.
+What to expect: an acknowledgement within about 7 days. Then an assessment follows. If we accept
+the report, we make a fix plan with a coordinated disclosure timeline. We do not run a paid bug
+bounty (we are a nonprofit), but we credit reporters who want to be named.
 
-Please include: affected component (app / Rust core / sync server), version or
-commit, reproduction steps, and impact. For data-exposure issues, **do not include
-real personal/health data** in the report.
+Include in the report:
 
-## Cryptography & audit-gap disclosure
+- the affected component (app, Rust core or sync server);
+- the version or the commit;
+- the steps to reproduce the problem;
+- the impact.
 
-The shared Rust core uses well-regarded but **not independently audited** crates.
-We disclose this rather than imply assurance we don't have:
+For a data-exposure issue, **do not put real personal or health data** into the report.
 
-- **KDF:** `argon2` (Argon2id, RFC 9106) — unaudited.
-- **AEAD:** `chacha20poly1305` (XChaCha20-Poly1305) / `aes-gcm` (AES-256-GCM) —
-  RustCrypto, not independently audited.
-- **Key agreement / wrapping:** `x25519-dalek` 2.x, HPKE (RFC 9180) — unaudited.
-- **Post-quantum:** **not shipped.** X25519-only today; a versioned `wrap_alg`
-  seam reserves space for a future X25519 + ML-KEM hybrid. We will **not** depend
-  on `ml-kem` / PQ-HPKE in production until at least one independent audit lands.
+## Cryptography and audit-gap disclosure
 
-Mitigations: pinned + reviewed dependency versions, `cargo-audit` / `cargo-deny`
-(RUSTSEC) and `npm audit` in CI, a CycloneDX SBOM per release, no `unsafe` in the
-core (`unsafe_code = "forbid"`), and `zeroize` on key material. The crypto design
-and parameters are documented in ADR 0001 §3 for review.
+The shared Rust core uses crates with a good reputation, but **nobody has audited them
+independently**. We disclose this instead of a claim of assurance that we do not have. The crates
+in `core/Cargo.lock` today:
+
+- **KDF:** `argon2` (Argon2id, RFC 9106) — not audited.
+- **AEAD:** `chacha20poly1305` (XChaCha20-Poly1305, RustCrypto) — not audited.
+
+**Not shipped:** X25519 key agreement (`x25519-dalek`), HPKE (RFC 9180), AES-GCM and ML-KEM. ADR
+0005 plans them for M2, and ADR 0005 is a proposal, not an accepted design. The versioned
+`wrap_alg` seam in the envelope reserves space for a future X25519 + ML-KEM hybrid. We will **not**
+depend on `ml-kem` or PQ-HPKE in production before at least one independent audit of the crates.
+
+Mitigations:
+
+- pinned and reviewed dependency versions;
+- `cargo audit` (the RustSec advisory database) and `npm audit` in CI, as a report-only job
+  (there is no `cargo-deny`);
+- a CycloneDX SBOM as an artifact of every CI run (it is not a release asset);
+- `unsafe` code forbidden in every core crate (`unsafe_code = "forbid"`), except `lumi-ffi-cabi`,
+  which has `unsafe` by design (the C ABI);
+- `zeroize` on key material.
+
+ADR 0001 §3 documents the crypto design and the parameters for review.
 
 ## Scope
 
-In scope: the Rust core (crypto, key hierarchy, sync/merge), the zero-knowledge
-sync server, on-device data protection, and the app's handling of secrets. Out of
-scope: issues requiring a physical device already unlocked by the user, and
-third-party platform vulnerabilities (report those upstream).
+In scope:
+
+- the Rust core (crypto, key hierarchy, sync and merge);
+- the zero-knowledge sync server;
+- the protection of data on the device;
+- the way the app handles secrets.
+
+Out of scope:
+
+- an issue that needs a physical device that the user has already unlocked;
+- a vulnerability of a third-party platform (report it upstream).

@@ -1,0 +1,9 @@
+extends: existence
+message: "'%s' is not approved. STE: use 'must' for a requirement and 'can' for a possibility."
+link: https://www.asd-ste100.org/
+level: error
+ignorecase: true
+tokens:
+  - should
+  - might
+  - may

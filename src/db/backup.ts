@@ -1,7 +1,7 @@
-/* Záloha: export celé databáze do JSON souboru a zpětný import s náhledem
-   a slučováním podle id (žádné duplicity, nic se nepřepisuje).
-   Pozor: exportovaný soubor už NENÍ šifrovaný — UI na to upozorňuje.
-   Klíč databáze se nikdy neexportuje. */
+/* Backup: the export of the whole database to a JSON file and the import back with a
+   preview and a merge by id (no duplicates, no overwrite).
+   Caution: the exported file has NO encryption any more; the UI warns about it.
+   The database key never goes into an export. */
 import { count } from "drizzle-orm";
 import { entries as entriesTable, measurements as measurementsTable } from "./schema";
 import {
@@ -13,16 +13,20 @@ import {
   type Measurement,
 } from "./repo";
 import type { LumiDb } from "./types";
+import { normalizeTags, normalizeWords } from "./vocab";
 import type { AgeBand, Entry, Intensity, ISODate, MoodId } from "../model";
 
-export const BACKUP_VERSION = 1 as const;
+/* Version 2 (2026-10-18): the words and the tags of an entry are ids (src/db/vocab.ts).
+   Version 1 stored the Czech text; the import maps it to ids, so old files still import. */
+export const BACKUP_VERSION = 2 as const;
+const READABLE_VERSIONS: readonly number[] = [1, 2];
 
 export interface BackupV1 {
   version: typeof BACKUP_VERSION;
   exportedAt: string;
   entries: Entry[];
   measurements: Measurement[];
-  /* bez `onboarded` (vázané na zařízení) a samozřejmě bez šifrovacího klíče */
+  /* without `onboarded` (bound to the device) and, of course, without the encryption key */
   settings: { name: string; age: AgeBand | null; share: boolean };
 }
 
@@ -61,8 +65,12 @@ function asEntry(e: unknown): Entry | null {
     time: typeof x.time === "string" ? x.time : "0:00",
     mood: x.mood as MoodId,
     intensity: Math.min(5, Math.max(1, Math.round(x.intensity))) as Intensity,
-    words: Array.isArray(x.words) ? x.words.filter((w) => typeof w === "string") : [],
-    tags: Array.isArray(x.tags) ? x.tags.filter((t) => typeof t === "string") : [],
+    words: normalizeWords(
+      Array.isArray(x.words) ? x.words.filter((w): w is string => typeof w === "string") : [],
+    ),
+    tags: normalizeTags(
+      Array.isArray(x.tags) ? x.tags.filter((t): t is string => typeof t === "string") : [],
+    ),
     note: typeof x.note === "string" ? x.note : "",
   };
 }
@@ -108,7 +116,8 @@ export function parseBackup(json: string): ParseResult {
   if (!parsed || typeof parsed !== "object" || !("version" in parsed))
     return { ok: false, reason: "not-a-backup" };
   const raw = parsed as Partial<BackupV1>;
-  if (raw.version !== BACKUP_VERSION) return { ok: false, reason: "unknown-version" };
+  if (typeof raw.version !== "number" || !READABLE_VERSIONS.includes(raw.version))
+    return { ok: false, reason: "unknown-version" };
 
   const entries = Array.isArray(raw.entries)
     ? raw.entries.map(asEntry).filter((e): e is Entry => e !== null)
@@ -147,7 +156,7 @@ export interface ImportResult {
   addedMeasurements: number;
 }
 
-/** Sloučení podle id: existující řádky zůstávají, nic se nepřepisuje. */
+/** A merge by id: the rows that already exist stay, the import overwrites nothing. */
 export function importBackup(db: LumiDb, backup: BackupV1): ImportResult {
   const countAll = () => ({
     e: db.select({ n: count() }).from(entriesTable).get()?.n ?? 0,

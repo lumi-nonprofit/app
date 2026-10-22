@@ -1,32 +1,31 @@
-/* Onboarding 3 — soukromí: bez právničiny, sdílení default vypnuté */
+/* Step 3 of the onboarding: privacy without legal language; the share option is off by default. */
 import React from "react";
 import { View } from "react-native";
 import { useRouter } from "expo-router";
 import { Button, Icon, Text } from "../../ds";
 import type { IconName } from "../../ds/Icon";
+import { useTranslation } from "../../i18n";
 import { useAppStore } from "../../store";
 import { createThemedStyles, useTheme } from "../../theme";
 import { ObShell, ObTitle } from "./Shell";
 
 export default function PrivacyStep() {
+  const { t } = useTranslation(["onboarding", "common"]);
   const { patch } = useAppStore();
   const router = useRouter();
   const theme = useTheme();
   const styles = useStyles();
   const rows: { icon: IconName; text: string }[] = [
-    { icon: "smartphone", text: "Tvoje záznamy zůstávají jen v tomhle telefonu." },
-    {
-      icon: "flask-conical",
-      text: "Pokud někdy budeš chtít, můžeš je anonymně sdílet pro výzkum — ale jen pokud to v nastavení zapneš.",
-    },
-    { icon: "toggle-left", text: "Teď je sdílení vypnuté." },
+    { icon: "smartphone", text: t("privacy.rows.phone") },
+    { icon: "flask-conical", text: t("privacy.rows.research") },
+    { icon: "toggle-left", text: t("privacy.rows.off") },
   ];
   return (
     <ObShell step={3} onBack={() => router.back()}>
       <View style={styles.shieldBadge}>
         <Icon name="shield" size={26} color={theme.colors.textInfo} />
       </View>
-      <ObTitle title="Tvoje data zůstávají u tebe" />
+      <ObTitle title={t("privacy.title")} />
       <View style={styles.rowsBox}>
         {rows.map((r, i) => (
           <View key={r.icon} style={[styles.row, i > 0 && styles.rowBorder]}>
@@ -40,9 +39,9 @@ export default function PrivacyStep() {
         ))}
       </View>
       <View style={styles.flex1} />
-      {/* Stačí přepnout onboarded — Protected stack v app/_layout sám přesměruje na taby. */}
+      {/* A change of `onboarded` is enough: the protected stack in app/_layout redirects to the tabs. */}
       <Button size="lg" fullWidth onPress={() => patch({ onboarded: true })}>
-        Hotovo
+        {t("common:actions.done")}
       </Button>
     </ObShell>
   );

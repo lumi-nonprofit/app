@@ -1,0 +1,7 @@
+extends: occurrence
+message: "The sentence has more than 25 words. STE: 25 words in descriptive text, 20 in procedures."
+link: https://www.asd-ste100.org/
+level: error
+scope: sentence
+max: 25
+token: \b(\w+)\b

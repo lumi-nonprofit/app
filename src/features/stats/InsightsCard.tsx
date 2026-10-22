@@ -1,27 +1,26 @@
-/* Co se ukazuje — lokální vzorce ze záznamů zvoleného období.
-   Texty přicházejí hotové z insights.ts (vždy deskriptivní, nikdy kauzální),
-   karta je jen vykresluje; informaci nese text, ikona je dekorace.
-   Pod prahem dat jemné povzbuzení místo vzorců — žádná vina. */
+/* "What shows up": local patterns from the entries of the chosen period. The texts come ready
+   from insights.ts (always descriptive, never causal); the card only draws them. The text
+   carries the information, the icon is decoration. Below the data threshold the card shows a
+   gentle encouragement instead of patterns: no guilt. */
 import React from "react";
 import { View } from "react-native";
 import { useRouter } from "expo-router";
 import { Button, Card, Icon, Text } from "../../ds";
 import type { IconName } from "../../ds/Icon";
 import { SectionLabel } from "../../components/Header";
-import { computeInsights, TOO_FEW_DATA_TEXT, type Insight } from "./insights";
+import { useTranslation } from "../../i18n";
+import { computeInsights, tooFewDataText, type Insight, type Period } from "./insights";
 import { buildWeek, type Entry } from "../../model";
 import { createThemedStyles, useTheme } from "../../theme";
 
-type Period = "týden" | "měsíc";
-
-/* ikona podle druhu nálezu — id dodává insights.ts; neznámé id → sparkles */
+/* The icon of each kind of insight; insights.ts gives the id, an unknown id gets sparkles. */
 const INSIGHT_ICONS: Record<string, IconName> = {
   frequent: "sparkles",
   "tag-mood": "eye",
   daypart: "clock",
 };
 
-/** Jeden řádek nálezu — sdílí ho i Ohlédnutí za týdnem (ReflectionScreen). */
+/** One insight row. The weekly reflection (ReflectionScreen) shares it. */
 export function InsightRow({ insight }: { insight: Insight }) {
   const theme = useTheme();
   const styles = useStyles();
@@ -49,29 +48,30 @@ interface Props {
 export default function InsightsCard({ entries, period }: Props) {
   const router = useRouter();
   const styles = useStyles();
-  /* týden = 7 ISO dnů aktuálního týdne (Po–Ne); měsíc = celé předané období
-     (Přehledy už čtou jen ~35 dní zpět) */
+  const { t } = useTranslation("stats");
+  /* A week is the 7 ISO days of the current week (Monday to Sunday); a month is the whole
+     period that the caller passes (the overview reads about 35 days back). */
   const scoped = React.useMemo(() => {
-    if (period === "měsíc") return entries;
+    if (period === "month") return entries;
     const days = new Set(buildWeek(entries).map((d) => d.iso));
     return entries.filter((e) => days.has(e.date));
   }, [entries, period]);
-  const insights = computeInsights(scoped, period === "týden" ? "Tenhle týden" : "Tenhle měsíc");
+  const insights = computeInsights(scoped, period);
 
   return (
     <View>
-      <SectionLabel>Co se ukazuje</SectionLabel>
+      <SectionLabel>{t("insights.title")}</SectionLabel>
       <Card style={styles.card}>
         {insights.length ? (
           insights.map((i) => <InsightRow key={i.id} insight={i} />)
         ) : (
           <View style={styles.empty}>
             <Text variant="subheadline" color="textMuted">
-              {TOO_FEW_DATA_TEXT}
+              {tooFewDataText()}
             </Text>
-            {/* prázdný stav s jasným dalším krokem (HIG Writing) */}
+            {/* An empty state with a clear next step (HIG guidance on copy). */}
             <Button variant="ghost" size="sm" onPress={() => router.push("/checkin")}>
-              Přidat zápis
+              {t("insights.addEntry")}
             </Button>
           </View>
         )}

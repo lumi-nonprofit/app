@@ -1,6 +1,6 @@
-/* Vlastní štítky v check-inu (krok 2): přidání přes „+ přidat“ (chip se řadí
-   vždy za vestavěné), uložení do záznamu a mazání podržením — záznamy,
-   kde už je štítek použitý, zůstávají beze změny. */
+/* Custom tags in the check-in (step 2): the user adds one with "+ přidat" (the chip always
+   comes after the built-in ones), the entry stores it, and a long press deletes it. The
+   entries that already use the tag stay unchanged. */
 import { Alert } from "react-native";
 import { fireEvent, userEvent, waitFor, within } from "@testing-library/react-native";
 import { renderRouter, screen } from "expo-router/testing-library";
@@ -11,7 +11,7 @@ import { getTestDb } from "./helpers/testDb";
 type User = ReturnType<typeof userEvent.setup>;
 
 async function finishOnboarding(user: User): Promise<void> {
-  // hydratace je asynchronní — první obrazovka se objeví až po načtení
+  // The hydration is asynchronous: the first screen appears only after the load.
   expect(await screen.findByText("Ahoj, tady Lumi.")).toBeOnTheScreen();
   await user.type(screen.getByLabelText(/Jak ti říkat/), "Janko");
   await user.press(screen.getByRole("button", { name: "Začít" }));
@@ -21,7 +21,7 @@ async function finishOnboarding(user: User): Promise<void> {
   expect(await screen.findByText("Jak se dnes cítíš?")).toBeOnTheScreen();
 }
 
-/** Otevře check-in z Dnes, vybere stav a přejde na krok 2 (slova + štítky). */
+/** Opens the check-in from "Dnes", selects a state and goes to step 2 (words and tags). */
 async function openStep2(user: User, cta = "Začít check-in"): Promise<void> {
   await user.press(screen.getByRole("button", { name: cta }));
   expect(await screen.findByText("Jak se právě teď cítíš?")).toBeOnTheScreen();
@@ -30,7 +30,7 @@ async function openStep2(user: User, cta = "Začít check-in"): Promise<void> {
   expect(await screen.findByText("Které slovo to vystihuje nejlíp?")).toBeOnTheScreen();
 }
 
-/** Texty všech tlačítek v pořadí vykreslení — kontrola pořadí chipů. */
+/** The texts of all buttons in render order, to check the order of the chips. */
 function buttonNames(): string[] {
   return screen.getAllByRole("button").map((b) =>
     within(b)
@@ -40,15 +40,15 @@ function buttonNames(): string[] {
   );
 }
 
-describe("Vlastní štítky", () => {
-  it("přidá vlastní štítek: hned vybraný, řadí se za vestavěné a je v DB", async () => {
+describe("Custom tags", () => {
+  it("adds a custom tag, selects it, sorts it after the built-in ones and stores it in the DB", async () => {
     const user = userEvent.setup();
     await renderRouter("app");
     await finishOnboarding(user);
     await openStep2(user);
 
     await user.press(screen.getByRole("button", { name: "+ přidat" }));
-    // prázdný vstup nic nedělá — pole zůstává otevřené, DB beze změny
+    // An empty input does nothing: the field stays open, the DB stays unchanged.
     await user.press(screen.getByRole("button", { name: "Přidat" }));
     expect(screen.getByLabelText("Nový štítek")).toBeOnTheScreen();
     expect(listCustomTags(getTestDb())).toHaveLength(0);
@@ -56,23 +56,23 @@ describe("Vlastní štítky", () => {
     await user.type(screen.getByLabelText("Nový štítek"), "terapie");
     await user.press(screen.getByRole("button", { name: "Přidat" }));
 
-    // chip je hned vybraný, input se zavřel
+    // The new chip starts selected, and the input closes.
     expect(await screen.findByRole("button", { name: "terapie" })).toBeSelected();
     expect(screen.queryByLabelText("Nový štítek")).toBeNull();
 
-    // pořadí: za posledním vestavěným štítkem, před „+ přidat“
+    // Order: after the last built-in tag, before "+ přidat".
     const names = buttonNames();
     const lastBuiltin = CONTEXT_TAGS[CONTEXT_TAGS.length - 1];
     expect(names.indexOf("terapie")).toBeGreaterThan(names.indexOf(lastBuiltin));
     expect(names.indexOf("terapie")).toBeLessThan(names.indexOf("+ přidat"));
 
-    // štítek je uložený v DB jako vlastní (ne vestavěný)
+    // The DB stores the tag as a custom one (not built-in).
     const custom = listCustomTags(getTestDb());
     expect(custom).toHaveLength(1);
     expect(custom[0]).toMatchObject({ label: "terapie", builtin: false });
   });
 
-  it("uložený zápis obsahuje vlastní štítek; duplicitní label se jen vybere", async () => {
+  it("stores the custom tag in the entry and only selects a duplicate label", async () => {
     const user = userEvent.setup();
     await renderRouter("app");
     await finishOnboarding(user);
@@ -80,11 +80,11 @@ describe("Vlastní štítky", () => {
 
     await user.press(screen.getByRole("button", { name: "stres" }));
     await user.press(screen.getByRole("button", { name: "+ přidat" }));
-    // potvrzení i klávesnicí (returnKeyType done → onSubmitEditing)
+    // The keyboard also confirms (`returnKeyType` done fires `onSubmitEditing`).
     await user.type(screen.getByLabelText("Nový štítek"), "terapie", { submitEditing: true });
     expect(await screen.findByRole("button", { name: "terapie" })).toBeSelected();
 
-    // duplicitní label: žádný druhý chip ani druhý řádek v DB
+    // A duplicate label: no second chip and no second row in the DB.
     await user.press(screen.getByRole("button", { name: "+ přidat" }));
     await user.type(screen.getByLabelText("Nový štítek"), "terapie", { submitEditing: true });
     expect(screen.getAllByRole("button", { name: "terapie" })).toHaveLength(1);
@@ -99,16 +99,16 @@ describe("Vlastní štítky", () => {
     expect(rows[0].tags).toEqual(["terapie"]);
   });
 
-  it("podržení vlastního chipu → potvrzení → štítek zmizí, starší záznamy zůstávají", async () => {
+  it("long press on a custom chip asks first, then removes the tag and keeps the older entries", async () => {
     const user = userEvent.setup();
-    // Alert se v testu rovnou potvrdí destruktivním tlačítkem („Smazat“)
+    // The test confirms the alert at once with the destructive button ("Smazat").
     jest.spyOn(Alert, "alert").mockImplementation((_title, _message, buttons) => {
       buttons?.find((b) => b.style === "destructive")?.onPress?.();
     });
     await renderRouter("app");
     await finishOnboarding(user);
 
-    // první zápis s vlastním štítkem — po smazání štítku musí zůstat beze změny
+    // The first entry with the custom tag: it must stay unchanged after the removal of the tag.
     await openStep2(user);
     await user.press(screen.getByRole("button", { name: "stres" }));
     await user.press(screen.getByRole("button", { name: "+ přidat" }));
@@ -118,7 +118,8 @@ describe("Vlastní štítky", () => {
     await user.press(screen.getByRole("button", { name: "Zpět na Dnes" }));
     expect(await screen.findByText(/Dnes zapsáno/)).toBeOnTheScreen();
 
-    // druhý check-in: vybrat vestavěný i vlastní štítek, pak vlastní podržením smazat
+    // Second check-in: select a built-in tag and the custom tag, then delete the custom tag
+    // with a long press.
     await openStep2(user, "Přidat další zápis");
     await user.press(screen.getByRole("button", { name: "obavy" }));
     await user.press(screen.getByRole("button", { name: "škola" }));
@@ -129,22 +130,23 @@ describe("Vlastní štítky", () => {
       "Smazat štítek?",
       "Záznamy, kde už je použitý, zůstanou beze změny.",
       expect.any(Array),
+      expect.objectContaining({ cancelable: true }),
     );
 
-    // chip zmizel z nabídky i z DB; zbytek výběru v draftu zůstal
-    // (potvrzení Alertu běží mimo userEvent → počkat na doběhnutí re-renderu)
+    // The chip disappears from the list and from the DB; the rest of the draft selection stays.
+    // (The alert confirmation runs outside `userEvent`, so wait for the re-render to finish.)
     await waitFor(() => expect(screen.queryByRole("button", { name: "terapie" })).toBeNull());
     expect(listCustomTags(getTestDb())).toHaveLength(0);
     expect(screen.getByRole("button", { name: "škola" })).toBeSelected();
     expect(screen.getByRole("button", { name: "obavy" })).toBeSelected();
 
-    // nový zápis se uloží bez smazaného štítku, starší záznam ho má pořád
+    // The app stores the new entry without the deleted tag; the older entry still has it.
     await user.press(screen.getByRole("button", { name: "Uložit zápis" }));
     expect(await screen.findByText("Uloženo.")).toBeOnTheScreen();
     const rows = listEntries(getTestDb());
     expect(rows).toHaveLength(2);
     const tagsByWords = Object.fromEntries(rows.map((r) => [r.words.join(","), r.tags]));
-    expect(tagsByWords["stres"]).toEqual(["terapie"]); // starší záznam beze změny
-    expect(tagsByWords["obavy"]).toEqual(["škola"]); // nový bez smazaného štítku
+    expect(tagsByWords["stress"]).toEqual(["terapie"]); // older entry unchanged
+    expect(tagsByWords["worry"]).toEqual(["school"]); // new entry without the deleted tag
   });
 });

@@ -1,8 +1,8 @@
-/* Lumi — profil a preference aplikace (jméno, věkové pásmo, sdílení,
-   onboarded). Drží se v paměti a zapisují do settings tabulky šifrované
-   SQLite (viz src/db) — žádný backend, žádná telemetrie. Záznamy a měření
-   ve storu nejsou: čtou se hooky useEntries/useMeasurements ze src/db/hooks.
-   Navigaci vlastní expo-router — nikdy se nepersistuje. */
+/* Lumi: the profile and the preferences of the app (name, age band, share, onboarded). They
+   live in memory and go to the settings table of the encrypted SQLite (see src/db): no backend,
+   no telemetry. Entries and measurements are not in the store: the hooks useEntries and
+   useMeasurements in src/db/hooks read them. expo-router owns the navigation and never
+   persists it. */
 import React from "react";
 import { DEFAULT_PROFILE, readProfile, writeProfile, type ProfileSettings } from "./db/repo";
 import { useDb } from "./db/provider";
@@ -19,13 +19,13 @@ interface AppStore {
 
 const AppStateContext = React.createContext<AppStore | null>(null);
 
-/** Profil pro celý strom; čte se synchronně z DB (DbProvider už ji otevřel). */
+/** The profile for the whole tree; it reads synchronously from the DB (DbProvider has opened it). */
 export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const db = useDb();
   const [state, setState] = React.useState<AppState>(() => readProfile(db));
   const patch = React.useCallback<PatchState>(
     (p) => {
-      writeProfile(db, p); // zápis nejdřív do DB, pak do paměti
+      writeProfile(db, p); // First the DB, then the memory.
       setState((s) => ({ ...s, ...p }));
     },
     [db],
@@ -36,7 +36,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
 
 export function useAppStore(): AppStore {
   const ctx = React.useContext(AppStateContext);
-  if (!ctx) throw new Error("useAppStore musí být uvnitř <AppStateProvider>.");
+  if (!ctx) throw new Error("useAppStore must be used inside <AppStateProvider>.");
   return ctx;
 }
 

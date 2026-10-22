@@ -1,0 +1,47 @@
+{
+  "discard": {
+    "confirm": "End",
+    "message": "Your answers so far will not be saved.",
+    "title": "End the questionnaire?"
+  },
+  "disclaimer": {
+    "notNow": "Not now",
+    "text": "This is an indicative screening tool. It does not replace an examination or a talk with a professional — it helps you notice how you are doing. The results stay only on your phone.",
+    "title": "Before you start"
+  },
+  "header": {
+    "close": "Close the questionnaire",
+    "previousQuestion": "Previous question"
+  },
+  "question": {
+    "answer": {
+      "a11yHint": "Answer to question {{number}} of {{total}}."
+    },
+    "progress": "Question {{number}} of {{total}}"
+  },
+  "result": {
+    "score_one": "{{count}} point of {{max}}",
+    "score_other": "{{count}} points of {{max}}",
+    "title": "Done. Thanks for the moment.",
+    "who5": {
+      "first": "Your starting point. You will see the index on Today and in Overview — always only against your own data.",
+      "next": "You will see the index on Today and in Overview — always only against your own data."
+    }
+  },
+  "support": {
+    "announce": "Thanks for your honesty. Help is here right now.",
+    "call": "Call {{line}} · {{phone}}",
+    "continueToResult": "Continue to the result",
+    "openHelp": "Open Help",
+    "text": "This answer matters. You do not have to stay alone with it — help is here right now, and there are more options than it may seem.",
+    "title": "Thanks for your honesty."
+  },
+  "trend": {
+    "byPercent": "{{value}}",
+    "byPoints_one": "{{count}} point",
+    "byPoints_other": "{{count}} points",
+    "less": "{{amount}} less than last time.",
+    "more": "{{amount}} more than last time.",
+    "same": "The same as last time."
+  }
+}

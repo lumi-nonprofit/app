@@ -1,0 +1,19 @@
+extends: substitution
+message: "Consider '%s' instead of '%s'. STE prefers the simpler approved word."
+link: https://www.asd-ste100.org/
+level: warning
+ignorecase: true
+swap:
+  therefore: thus
+  indicate: show
+  indicates: shows
+  approximately: about
+  sufficient: enough
+  perform: do
+  performs: does
+  obtain: get
+  obtains: gets
+  provide: give
+  provides: gives
+  various: different
+  numerous: many

@@ -1,0 +1,66 @@
+{
+  "confirm": {
+    "announce": "Uloženo. Záznam zůstává v telefonu.",
+    "home": "Zpět na Dnes",
+    "moment": "Tohle byla chvilka pro tebe.",
+    "stays": "Záznam zůstává v telefonu.",
+    "tipTitle": "Mohlo by teď sednout",
+    "title": "Uloženo."
+  },
+  "discard": {
+    "message": "Vybraný stav, slova ani poznámka se neuloží.",
+    "title": "Zahodit rozepsaný zápis?"
+  },
+  "step1": {
+    "continueHint": "Nejdřív klepni na stav, který je teď nejblíž.",
+    "intensity": {
+      "a11yHint": "Posunem vybereš sílu pocitu, od {{min}} po {{max}}.",
+      "a11yLabel": "Intenzita",
+      "title": "Jak silné to je?"
+    },
+    "kicker": "Check-in · krok 1 ze 2",
+    "moods": {
+      "a11yHint": "Vyber stav, který je teď nejblíž.",
+      "a11yLabel": "Jak se právě teď cítíš?"
+    },
+    "title": "Jak se právě teď cítíš?"
+  },
+  "step2": {
+    "deleteTag": {
+      "message": "Záznamy, kde už je použitý, zůstanou beze změny.",
+      "title": "Smazat štítek?"
+    },
+    "kicker": "Check-in · krok 2 ze 2",
+    "newTag": {
+      "a11yHint": "Napiš název a potvrď tlačítkem Přidat.",
+      "a11yLabel": "Nový štítek",
+      "chip": "+ přidat",
+      "close": {
+        "a11yHint": "Zavře pole pro nový štítek."
+      },
+      "open": {
+        "a11yHint": "Otevře pole pro nový štítek."
+      },
+      "placeholder": "nový štítek"
+    },
+    "note": {
+      "label": "Poznámka",
+      "placeholder": "Co máš na srdci? (nepovinné)"
+    },
+    "save": "Uložit zápis",
+    "saveHint": "Vyber aspoň jedno slovo — pomáhá v Přehledech.",
+    "summary": {
+      "intensity": "· {{intensity}}"
+    },
+    "tags": {
+      "custom": {
+        "a11yHint": "Podržením smažeš štítek."
+      },
+      "title": "Co s tím souvisí?"
+    },
+    "title": "Které slovo to vystihuje nejlíp?",
+    "words": {
+      "hint": "Vyber jedno nebo dvě."
+    }
+  }
+}

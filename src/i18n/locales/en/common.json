@@ -1,0 +1,76 @@
+{
+  "actions": {
+    "add": "Add",
+    "back": "Back",
+    "cancel": "Cancel",
+    "continue": "Continue",
+    "delete": "Delete",
+    "discard": "Discard",
+    "done": "Done",
+    "ok": "OK",
+    "retry": "Try again",
+    "save": "Save"
+  },
+  "ageBands": {
+    "none": {
+      "label": "Prefer not to say",
+      "meta": "Help offers both lines"
+    },
+    "plus27": {
+      "label": "27 and over",
+      "meta": "Primary line: Linka první psychické pomoci 116 123"
+    },
+    "u26": {
+      "label": "up to 26",
+      "meta": "Primary line: Linka bezpečí 116 111"
+    }
+  },
+  "appName": "Lumi",
+  "counts": {
+    "entries_one": "{{count}} entry",
+    "entries_other": "{{count}} entries",
+    "minutes_one": "{{count}} min",
+    "minutes_other": "{{count}} min",
+    "questions_one": "{{count}} question",
+    "questions_other": "{{count}} questions"
+  },
+  "errors": {
+    "databaseFailed": {
+      "message": "The database on this phone cannot be opened right now. Close the app and try again — your entries are still saved.",
+      "title": "Your entries could not be opened"
+    },
+    "screenFailed": {
+      "message": "The screen could not be shown. Try again; if that does not help, close the app and open it again. Your entries are still saved.",
+      "title": "Something went wrong"
+    }
+  },
+  "greeting": {
+    "afternoon": "Good afternoon",
+    "evening": "Good evening",
+    "morning": "Good morning",
+    "withName": "{{greeting}}, {{name}}"
+  },
+  "list": {
+    "separator": ", "
+  },
+  "weekdays": {
+    "long": {
+      "fri": "Friday",
+      "mon": "Monday",
+      "sat": "Saturday",
+      "sun": "Sunday",
+      "thu": "Thursday",
+      "tue": "Tuesday",
+      "wed": "Wednesday"
+    },
+    "short": {
+      "fri": "Fr",
+      "mon": "Mo",
+      "sat": "Sa",
+      "sun": "Su",
+      "thu": "Th",
+      "tue": "Tu",
+      "wed": "We"
+    }
+  }
+}

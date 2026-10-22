@@ -1,4 +1,4 @@
-// Step 4a — the C++ Hybrid Object implementing the Nitrogen-generated HybridLumiVaultSpec
+// Step 4a — the C++ Hybrid Object that implements the Nitrogen-generated HybridLumiVaultSpec
 // over the lumi-ffi-cabi C ABI. Lives in the local Nitro module's cpp/ (on the include path,
 // alongside the generated HybridLumiVaultSpec.hpp and the cbindgen lumi_ffi_cabi.h).
 #pragma once

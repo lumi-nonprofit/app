@@ -1,12 +1,15 @@
-/* Onboarding — sdílený obal kroků (tečky průběhu, zpět) a titulek, bez tab baru.
-   Obsah scrolluje (Dynamic Type 200 %, malé displeje, klávesnice) — CTA se
-   nikdy neocitne mimo obrazovku. */
+/* The shared shell of the onboarding steps (progress dots, back) and the title, without a tab
+   bar. The content scrolls (Dynamic Type 200 %, small displays, the keyboard), so the call to
+   action never ends up outside the screen. */
 import React from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button, IconButton, Text } from "../../ds";
+import { useTranslation } from "../../i18n";
 import { createThemedStyles } from "../../theme";
+
+const STEPS = [1, 2, 3] as const;
 
 interface ObShellProps {
   step: number;
@@ -15,6 +18,7 @@ interface ObShellProps {
 }
 
 export function ObShell({ step, onBack, children }: ObShellProps) {
+  const { t } = useTranslation(["onboarding", "common"]);
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const styles = useStyles();
@@ -26,16 +30,21 @@ export function ObShell({ step, onBack, children }: ObShellProps) {
       >
         <View style={[styles.top, { paddingTop: insets.top + 24 }]}>
           {onBack ? (
-            <IconButton icon="arrow-left" label="Zpět" onPress={onBack} />
+            <IconButton icon="arrow-left" label={t("common:actions.back")} onPress={onBack} />
           ) : (
             <View style={styles.topSpacer} />
           )}
           <View
             style={styles.dots}
-            accessibilityLabel={`Krok ${step} ze 3`}
-            accessibilityHint="Průběh úvodního nastavení."
+            accessibilityRole="progressbar"
+            accessibilityLabel={t("shell.progress.a11yLabel", { step, total: STEPS.length })}
+            accessibilityHint={t("shell.progress.a11yHint")}
+            accessibilityValue={{ min: 1, max: STEPS.length, now: step }}
+            aria-valuemin={1}
+            aria-valuemax={STEPS.length}
+            aria-valuenow={step}
           >
-            {[1, 2, 3].map((i) => (
+            {STEPS.map((i) => (
               <View key={i} style={[styles.dot, i === step && styles.dotActive]} />
             ))}
           </View>
@@ -48,10 +57,10 @@ export function ObShell({ step, onBack, children }: ObShellProps) {
           keyboardDismissMode="interactive"
         >
           {children}
-          {/* krizová pomoc je dostupná i před dokončením úvodu (HIG Agency: snadný únik) */}
+          {/* The crisis help is available before the end of the onboarding too (HIG Agency: an easy exit). */}
           <View style={styles.crisis}>
             <Button variant="ghost" size="sm" onPress={() => router.push("/crisis")}>
-              Potřebuješ pomoc hned?
+              {t("shell.crisis")}
             </Button>
           </View>
         </ScrollView>
@@ -80,7 +89,7 @@ export function ObTitle({ title, body }: ObTitleProps) {
 const useStyles = createThemedStyles((t) => ({
   flex1: { flex: 1 },
   screen: { flex: 1, backgroundColor: t.colors.surfacePage },
-  /* paddingTop doplňuje insets.top + 24 inline */
+  /* The inline style adds insets.top + 24 to paddingTop. */
   top: {
     paddingHorizontal: 24,
     minHeight: t.platform.minTouch,
@@ -90,10 +99,10 @@ const useStyles = createThemedStyles((t) => ({
   },
   topSpacer: { width: t.platform.minTouch },
   dots: { flexDirection: "row", gap: 6 },
-  /* průběh: neaktivní tečka ≥ 3:1 (borderStrong), aktivní protáhlá + accentFill */
+  /* Progress: an inactive dot has at least 3:1 (borderStrong); the active dot is wider and uses accentFill. */
   dot: { width: 8, height: 8, borderRadius: t.radius.pill, backgroundColor: t.colors.borderStrong },
   dotActive: { width: 22, backgroundColor: t.colors.accentFill },
-  /* paddingBottom doplňuje insets.bottom + 40 inline */
+  /* The inline style adds insets.bottom + 24 to paddingBottom. */
   body: { flexGrow: 1, paddingTop: 18, paddingHorizontal: 24 },
 
   crisis: { alignItems: "center", marginTop: 12 },

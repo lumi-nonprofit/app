@@ -1,17 +1,18 @@
 //! `lumi-store` — a rusqlite (**bundled SQLite**) implementation of the [`VaultStore`] trait
 //! that `lumi-vault` defines. This crate **only persists** the wrapped/ciphertext material
-//! lumi-vault hands it; it performs **no** key derivation or AEAD.
+//! lumi-vault hands it; it does **no** key derivation or AEAD.
 //!
 //! - **Plain SQLite, no SQLCipher** (ADR 0004 (e)): the at-rest *content* is already sealed by
 //!   lumi-vault's app-layer per-record AEAD, so there is **no database-level key** here (the old
-//!   `PRAGMA key`-from-JS §1 violation is gone — the Rust core owns the connection and no key
-//!   exists at this layer). SQLCipher-over-the-index is the committed pre-ship hardening, not built.
-//! - **`PRAGMA secure_delete = ON`** so crypto-shredding actually overwrites freed bytes (the old
-//!   wrapped content key is scrubbed, not left in a freelist page).
+//!   `PRAGMA key`-from-JS §1 violation no longer exists — the Rust core owns the connection and
+//!   no key exists at this layer). SQLCipher-over-the-index is the committed pre-ship hardening, not built.
+//! - **`PRAGMA secure_delete = ON`** so crypto-shredding actually overwrites freed bytes (SQLite
+//!   scrubs the old wrapped content key and does not leave it in a freelist page).
 //! - Writes + shred are **atomic + durable** (explicit transaction + commit; `synchronous = FULL`).
-//! - The schema is shaped for **forward-compatibility**: `PRAGMA user_version` gates future
-//!   migrations, and the recovery-key wrap / biometric-keystore copy / sync metadata can be added
-//!   later as nullable `ALTER TABLE ADD COLUMN`s **without reformatting** persisted rows. None built now.
+//! - The schema has a **forward-compatible** shape: `PRAGMA user_version` gates future
+//!   migrations, and later steps can add the recovery-key wrap / biometric-keystore copy / sync
+//!   metadata as nullable `ALTER TABLE ADD COLUMN`s **without a rewrite** of persisted rows. None
+//!   built now.
 
 #![forbid(unsafe_code)]
 
@@ -33,7 +34,7 @@ pub struct SqliteStore {
 }
 
 impl SqliteStore {
-    /// Open (creating + migrating if needed) a vault database file at `path`.
+    /// Open (or create and migrate) a vault database file at `path`.
     pub fn open(path: impl AsRef<Path>) -> StoreResult<Self> {
         let conn = Connection::open(path).map_err(err)?;
         Self::init(conn)
@@ -53,8 +54,8 @@ impl SqliteStore {
         conn.pragma_update(None, "synchronous", "FULL").map_err(err)?;
         // Pin the rollback (DELETE) journal explicitly: secure_delete scrubs the freed cell in the
         // MAIN db file on commit. Under WAL, shredded bytes could linger in the -wal sidecar until a
-        // checkpoint — weakening the crypto-shred guarantee — so we must NOT use WAL here. (PRAGMA
-        // journal_mode returns the resulting mode; for in-memory DBs it stays "memory" — harmless.)
+        // checkpoint — which weakens the crypto-shred guarantee — so we must NOT use WAL here. (PRAGMA
+        // journal_mode returns the mode now in effect; for in-memory DBs it stays "memory" — harmless.)
         conn.query_row("PRAGMA journal_mode = DELETE", [], |_| Ok(())).map_err(err)?;
 
         // Forward-compat: any future migration column (recovery-key wrap, biometric/keystore copy,

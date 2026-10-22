@@ -13,8 +13,8 @@ fn dataset() -> Dataset {
 }
 
 fn weekday_now(holiday: bool) -> PragueTime {
-    // Wednesday 03:00 — a time when most non-NONSTOP lines are closed, to prove
-    // the safety net still provides an open channel.
+    // Wednesday 03:00 — a time when most non-NONSTOP lines have closed, to prove
+    // the safety net still gives an open channel.
     PragueTime {
         weekday: Weekday::Wed,
         minute_of_day: 180,
@@ -96,7 +96,7 @@ fn ingest_keeps_all_31_lines_no_drops() {
 fn email_channel_only_from_email_counseling() {
     let d = dataset();
 
-    // Modrá linka: counseling help@, admin reditelka@. Only help@ may appear.
+    // "Modrá linka": help@ is the help address, reditelka@ the admin one. Only help@ can appear.
     let modra = d
         .lines
         .iter()
@@ -174,7 +174,7 @@ fn verbatim_hours_retained_even_when_unparseable() {
             };
             if let Some(h) = h {
                 if !h.raw.is_empty() && h.parsed.is_none() {
-                    saw_unparseable = true; // raw is still present — that's the point
+                    saw_unparseable = true; // raw is still present — that is the point
                 }
             }
         }
@@ -218,7 +218,7 @@ fn invariant_2_3_fail_open_and_always_one_open_now() {
             .filter(|r| r.open == OpenState::Open)
             .count();
         assert!(open_count >= 1, "no dead ends: at least one open-now line");
-        // Fail open: no line is ever rendered confidently Closed without surfacing;
+        // Fail open: no line ever renders as confidently Closed without data to show;
         // unparseable hours yield Unknown (reachable), never LikelyClosed-with-no-data
         // that hides it. Here we assert unparseable lines are Unknown.
         for r in &res.lines {

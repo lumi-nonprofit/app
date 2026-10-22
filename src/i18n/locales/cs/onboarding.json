@@ -1,0 +1,34 @@
+{
+  "age": {
+    "body": "Podle věku se nabídne správná krizová linka.",
+    "continueHint": "Vyber jedno z pásem — jde jen o krizovou linku.",
+    "group": {
+      "a11yHint": "Podle věku se nastaví primární krizová linka.",
+      "a11yLabel": "Věkové pásmo"
+    },
+    "title": "Kolik ti je?"
+  },
+  "name": {
+    "body": "Pomůžu ti všímat si, jak se máš, a hledat, co ti dělá dobře. Všechno zůstává u tebe.",
+    "hint": "Nepovinné — jen pro oslovení, nikam se neposílá.",
+    "label": "Jak ti říkat?",
+    "placeholder": "Třeba Alex",
+    "start": "Začít",
+    "title": "Ahoj, tady Lumi."
+  },
+  "privacy": {
+    "rows": {
+      "off": "Teď je sdílení vypnuté.",
+      "phone": "Tvoje záznamy zůstávají jen v tomhle telefonu.",
+      "research": "Pokud někdy budeš chtít, můžeš je anonymně sdílet pro výzkum — ale jen pokud to v nastavení zapneš."
+    },
+    "title": "Tvoje data zůstávají u tebe"
+  },
+  "shell": {
+    "crisis": "Potřebuješ pomoc hned?",
+    "progress": {
+      "a11yHint": "Průběh úvodního nastavení.",
+      "a11yLabel": "Krok {{step}} ze {{total}}"
+    }
+  }
+}

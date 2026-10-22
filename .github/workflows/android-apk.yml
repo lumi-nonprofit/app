@@ -5,7 +5,7 @@ name: Android APK
 #   tag v*        build, sign with the pilot key, create a DRAFT pre-release with the APK
 #   pull request  build, sign with a throwaway key (a check that the build still works)
 #
-# Three jobs, so that each job has only the access that it needs:
+# 3 jobs, so that each job has only the access that it needs:
 #   build    runs npm and Gradle (third-party code). No secrets. Read-only token.
 #   check    pull requests only. Signs with a throwaway key. No secrets.
 #   release  tags only. Gets the pilot key from the environment "pilot-release" and makes the
@@ -163,7 +163,7 @@ jobs:
       contents: write # for the draft release
       actions: write # to delete the artifact of the job "build"
     steps:
-      # This job has the pilot key. Its two actions are pinned to a commit.
+      # This job has the pilot key. Its 2 actions are pinned to a commit.
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           persist-credentials: false

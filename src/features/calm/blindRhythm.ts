@@ -1,6 +1,7 @@
-/* Dech naslepo — rytmus vedený vibracemi, čistá logika bez UI.
-   Výrazný impulz na začátku nádechu, dvojitý na začátku výdechu,
-   u 4-7-8 navíc jemný tik uprostřed zádrže. */
+/* Blind breath: the vibrations give the rhythm. The module holds pure logic and no user
+   interface. A strong pulse starts the inhale, a double pulse starts the exhale, and the 4-7-8
+   rhythm adds a soft tick in the middle of the hold. The labels of the rhythms come from the
+   message catalog (calm.json, keys `blind.rhythm44` and `blind.rhythm478`); BlindBreathScreen reads them. */
 
 export type BlindRhythmId = "4-4" | "4-7-8";
 
@@ -21,10 +22,8 @@ export const BLIND_RHYTHMS: Record<BlindRhythmId, BlindPhase[]> = {
   ],
 };
 
-export const BLIND_RHYTHM_LABELS: Record<BlindRhythmId, string> = {
-  "4-4": "4-4 · klidný rytmus",
-  "4-7-8": "4-7-8 · při napětí",
-};
+/** The rhythms in the order of the choice list. */
+export const BLIND_RHYTHM_IDS: readonly BlindRhythmId[] = ["4-4", "4-7-8"];
 
 export const BLIND_DURATIONS_MIN = [1, 3, 5] as const;
 
@@ -34,7 +33,7 @@ export function cycleSeconds(rhythm: BlindRhythmId): number {
 
 export type BlindEvent = "inhale" | "exhale-double" | "hold-tick" | null;
 
-/** Haptická událost pro danou odehranou vteřinu (od 0). */
+/** The haptic event of one second of the exercise (from 0). */
 export function blindEventAt(rhythm: BlindRhythmId, second: number): BlindEvent {
   let t = second % cycleSeconds(rhythm);
   for (const phase of BLIND_RHYTHMS[rhythm]) {
@@ -42,12 +41,12 @@ export function blindEventAt(rhythm: BlindRhythmId, second: number): BlindEvent 
       if (t === 0) {
         if (phase.kind === "inhale") return "inhale";
         if (phase.kind === "exhale") return "exhale-double";
-        return null; // začátek zádrže bez impulzu — odděluje ji až tik uprostřed
+        return null; // The hold starts without a pulse. Only the tick in the middle marks it.
       }
       if (phase.kind === "hold" && t === Math.floor(phase.seconds / 2)) return "hold-tick";
       return null;
     }
     t -= phase.seconds;
   }
-  return null; // nedosažitelné (t < součet fází) — pojistka pro TS
+  return null; // Not reachable (t is less than the sum of the phases). The return satisfies TypeScript.
 }

@@ -1,18 +1,20 @@
-/* Potvrzovací dialogy podle platformy.
-   iOS (HIG Action sheets): volby k úmyslné akci = action sheet, destruktivní
-   volba nahoře, „Zrušit“ dole. Android (Android guides): systémový dialog,
-   „Zrušit“ nikdy jako výchozí. Web: window.confirm. Všechny varianty vrací
-   Promise<boolean> — true = uživatel akci potvrdil. */
+/* Confirmation dialogs for each platform.
+   iOS (HIG Action sheets): the choices of an intentional action are an action sheet, the
+   destructive choice at the top, "Cancel" at the bottom. Android (Android guides): a system
+   dialog, "Cancel" never the default. Web: window.confirm. Every variant returns
+   Promise<boolean>: true when the user confirmed the action.
+   The default labels come from the message catalog at call time, in the active language. */
 import { ActionSheetIOS, Alert, Platform } from "react-native";
+import i18n from "../i18n";
 
 export interface ConfirmOptions {
-  /** Titulek popisuje situaci („Zahodit rozepsaný zápis?“), ne „Chyba“. */
+  /** The title describes the situation ("Discard this entry?"), not "Error". */
   title: string;
   message?: string;
-  /** Sloveso, které popisuje výsledek („Zahodit“, „Smazat“), nikdy „OK“. */
-  confirmLabel: string;
+  /** A verb that describes the result ("Discard", "Delete"), never "OK". */
+  confirmLabel?: string;
   cancelLabel?: string;
-  /** Akce ničí data, která si člověk nevybral úmyslně → červený styl. */
+  /** The action destroys data that the person did not choose on purpose: red style. */
   destructive?: boolean;
 }
 
@@ -20,16 +22,18 @@ export function confirm({
   title,
   message,
   confirmLabel,
-  cancelLabel = "Zrušit",
+  cancelLabel,
   destructive = false,
 }: ConfirmOptions): Promise<boolean> {
+  const confirmText = confirmLabel ?? i18n.t("common:actions.ok");
+  const cancelText = cancelLabel ?? i18n.t("common:actions.cancel");
   return new Promise((resolve) => {
     if (Platform.OS === "ios") {
       ActionSheetIOS.showActionSheetWithOptions(
         {
           title,
           message,
-          options: [confirmLabel, cancelLabel],
+          options: [confirmText, cancelText],
           destructiveButtonIndex: destructive ? 0 : undefined,
           cancelButtonIndex: 1,
         },
@@ -50,9 +54,9 @@ export function confirm({
       title,
       message,
       [
-        { text: cancelLabel, style: "cancel", onPress: () => resolve(false) },
+        { text: cancelText, style: "cancel", onPress: () => resolve(false) },
         {
-          text: confirmLabel,
+          text: confirmText,
           style: destructive ? "destructive" : "default",
           onPress: () => resolve(true),
         },
@@ -62,16 +66,44 @@ export function confirm({
   });
 }
 
-/** Zahození rozpracované práce (check-in, dotazník, krizový plán). */
-export function confirmDiscard(
-  opts: Partial<ConfirmOptions> & { title: string; confirmLabel?: string },
-): Promise<boolean> {
-  return confirm({ confirmLabel: "Zahodit", destructive: true, ...opts });
+/** Discard of unsaved work (check-in, questionnaire, crisis plan). */
+export function confirmDiscard(opts: ConfirmOptions): Promise<boolean> {
+  return confirm({
+    destructive: true,
+    ...opts,
+    confirmLabel: opts.confirmLabel ?? i18n.t("common:actions.discard"),
+  });
 }
 
-/** Smazání položky (vlastní štítek apod.). */
-export function confirmDelete(
-  opts: Partial<ConfirmOptions> & { title: string; confirmLabel?: string },
-): Promise<boolean> {
-  return confirm({ confirmLabel: "Smazat", destructive: true, ...opts });
+/** Deletion of an item (a custom tag, for example). */
+export function confirmDelete(opts: ConfirmOptions): Promise<boolean> {
+  return confirm({
+    destructive: true,
+    ...opts,
+    confirmLabel: opts.confirmLabel ?? i18n.t("common:actions.delete"),
+  });
+}
+
+export interface NotifyOptions {
+  title: string;
+  message?: string;
+  /** The label of the only button; default "OK". */
+  dismissLabel?: string;
+}
+
+/** A message with one button. Resolves when the person closes it. */
+export function notify({ title, message, dismissLabel }: NotifyOptions): Promise<void> {
+  const dismissText = dismissLabel ?? i18n.t("common:actions.ok");
+  return new Promise((resolve) => {
+    if (Platform.OS === "web") {
+      const g = globalThis as { alert?: (text: string) => void };
+      if (typeof g.alert === "function") g.alert([title, message].filter(Boolean).join("\n"));
+      resolve();
+      return;
+    }
+    Alert.alert(title, message, [{ text: dismissText, onPress: () => resolve() }], {
+      cancelable: true,
+      onDismiss: () => resolve(),
+    });
+  });
 }

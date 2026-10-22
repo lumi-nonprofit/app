@@ -1,7 +1,7 @@
-/* Klíč šifrované databáze: 256bit náhodný, vzniká při prvním spuštění a žije
-   výhradně v expo-secure-store (Keychain / Keystore). Nikdy ho nelogovat,
-   neexportovat ani nedávat do stavu aplikace — odsud jde rovnou do PRAGMA key.
-   requireAuthentication: false — appka musí fungovat i bez biometriky. */
+/* The key of the encrypted database: 256-bit random, created at the first start, and it
+   lives only in expo-secure-store (Keychain / Keystore). Never log it, never export it,
+   never put it into the app state: from here it goes straight into PRAGMA key.
+   requireAuthentication: false, because the app must work also without biometrics. */
 import * as Crypto from "expo-crypto";
 import * as SecureStore from "expo-secure-store";
 

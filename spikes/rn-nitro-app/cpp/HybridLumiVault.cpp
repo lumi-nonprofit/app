@@ -65,7 +65,7 @@ std::string HybridLumiVault::listCheckinsJson(double handle) {
   char* json = nullptr;
   check(lumi_list_checkins(static_cast<uint64_t>(handle), &json), "listCheckins");
   std::string out = (json != nullptr) ? std::string(json) : std::string("[]");
-  lumi_string_free(json); // free the Rust-allocated string (NULL is ignored)
+  lumi_string_free(json); // free the Rust-allocated string (NULL is a no-op)
   return out;
 }
 

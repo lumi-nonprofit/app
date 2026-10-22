@@ -1,6 +1,6 @@
-/* Obsah uvnitř nativních tabů: spodní bezpečnou zónu a výšku tab baru řeší
-   navigátor (iOS content insets, Android bottom nav + safe area), Screen tedy
-   nepřidává insets.bottom. Mimo taby (modaly) si spodní zónu hlídá sám. */
+/* Content inside the native tabs. The navigator handles the bottom safe area and the height of
+   the tab bar (iOS content insets, Android bottom navigation and safe area). Screen thus leaves
+   out insets.bottom there. Outside the tabs (modals) Screen handles the bottom area itself. */
 import React from "react";
 
 export const TabContentContext = React.createContext(false);

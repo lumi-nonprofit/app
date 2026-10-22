@@ -1,7 +1,7 @@
 //! Deterministic, on-device crisis-line recommender.
 //!
-//! Enforces the seven safety invariants in `docs/crisis-line-recommender.md` §7.
-//! The guaranteed safety net is hardcoded + compiled in (the offline fallback);
+//! Enforces the 7 safety invariants in `docs/crisis-line-recommender.md` §7.
+//! The guaranteed safety net lives in the source, compiled in (the offline fallback);
 //! the ČAPLD dataset only ever *enriches* it. Filters change ORDER and DEMOTE;
 //! they never remove a line and never empty the result.
 
@@ -169,7 +169,7 @@ fn score_line(l: &CrisisLine, q: &MatchQuery, universal: bool) -> i32 {
     }
 
     // "Free calls only" DEMOTES paid, non-universal lines — it never removes them
-    // (cost stays visible; the universal free lines are unaffected).
+    // (cost stays visible; the universal free lines stay as they are).
     if q.free_only && l.cost != Cost::Free && !universal {
         s -= 1000;
     }
@@ -215,7 +215,7 @@ fn group(r: &RankedLine, q: &MatchQuery) -> u8 {
             return 0; // the age-appropriate universal line, pinned first
         }
         if q.chips.contains(&Chip::Violence) && r.line.has_tel("116006") {
-            return 1; // DV line pinned high when violence is indicated
+            return 1; // DV line pinned high when the query has the Violence chip
         }
         return 2;
     }
@@ -318,7 +318,7 @@ fn safety_net() -> Vec<(CrisisLine, bool)> {
         parsed: Some(OpeningHours::Nonstop),
     };
 
-    // Rodičovská linka — PO–ČT 09:00–21:00, PÁ 09:00–17:00 (built directly so the
+    // Rodičovská linka — "PO–ČT 09:00–21:00, PÁ 09:00–17:00" (built directly, so that the
     // verified core never depends on the parser).
     let rodicovska_hours = Hours {
         raw: "PO–ČT 09:00–21:00, PÁ 09:00–17:00".to_string(),

@@ -1,73 +1,95 @@
-/* Krizové a podpůrné linky — jeden zdroj pro Pomoc (seznam kontaktů), tísňová
-   čísla a popisky. Primární/sekundární linku podle věku drží HELP_LINES
-   v modelu (sdílí ji onboarding, dotazník i nouzové obrazovky). Hodiny a čísla
-   se ověřují per release podle docs/cz-crisis-data-checklist.md. */
+/* Crisis and support lines: the single data source for Help (the contact list), the emergency
+   numbers, the primary line by age, the crisis card and the handover screen. The numbers are
+   data; the names and the descriptions come from the message catalog (content.json, key
+   `helpLines.<id>`). Each release checks the hours and the numbers against
+   docs/cz-crisis-data-checklist.md. */
 import type { Tone } from "../../ds";
 import type { IconName } from "../../ds/Icon";
+import { contentText } from "../../i18n/content";
+import type { AgeBand } from "../../model";
+
+export type LineId = "linka-bezpeci" | "lppp" | "obetem" | "rodicovska" | "zachranka" | "tisen";
 
 export interface ContactLine {
-  id: string;
-  name: string;
-  /** Telefon tak, jak se zobrazuje; `href` z něj vznikne bez mezer. */
+  id: LineId;
+  /** The number as the app shows it; `telHref` removes the spaces. */
   phone: string;
-  meta: string;
   icon: IconName;
   tone: Tone;
+  readonly name: string;
+  /** The dative form for sentences like "Zavolat Lince bezpečí" (the same as `name` in English). */
+  readonly nameDative: string;
+  readonly meta: string;
+}
+
+export interface EmergencyLine extends ContactLine {
+  /** A short name for a small button: "záchranka", "tíseň". */
+  readonly short: string;
 }
 
 export const telHref = (phone: string): string => `tel:${phone.replace(/\s/g, "")}`;
 
+function line(id: LineId, phone: string, icon: IconName, tone: Tone): ContactLine {
+  return {
+    id,
+    phone,
+    icon,
+    tone,
+    get name() {
+      return contentText(`helpLines.${id}.name`);
+    },
+    get nameDative() {
+      return contentText(`helpLines.${id}.nameDative`);
+    },
+    get meta() {
+      return contentText(`helpLines.${id}.meta`);
+    },
+  };
+}
+
+function emergency(id: "zachranka" | "tisen", phone: string): EmergencyLine {
+  return {
+    ...line(id, phone, "phone", "danger"),
+    get name() {
+      return contentText(`helpLines.${id}.name`);
+    },
+    get nameDative() {
+      return contentText(`helpLines.${id}.nameDative`);
+    },
+    get meta() {
+      return contentText(`helpLines.${id}.meta`);
+    },
+    get short() {
+      return contentText(`helpLines.${id}.short`);
+    },
+  };
+}
+
 export const CONTACT_LINES: readonly ContactLine[] = [
-  {
-    id: "linka-bezpeci",
-    name: "Linka bezpečí",
-    phone: "116 111",
-    meta: "nonstop, zdarma · děti a studenti do 26 let",
-    icon: "phone",
-    tone: "danger",
-  },
-  {
-    id: "lppp",
-    name: "Linka první psychické pomoci",
-    phone: "116 123",
-    meta: "nonstop, zdarma · dospělí",
-    icon: "phone",
-    tone: "danger",
-  },
-  {
-    id: "obetem",
-    name: "Linka pomoci obětem",
-    phone: "116 006",
-    meta: "nonstop, zdarma · pro oběti násilí a trestných činů",
-    icon: "phone",
-    tone: "danger",
-  },
-  {
-    id: "rodicovska",
-    name: "Rodičovská linka",
-    phone: "606 021 021",
-    meta: "Po–Čt 9–21 · Pá 9–17 · rodiče a blízcí dětí · běžný tarif",
-    icon: "phone",
-    tone: "info",
-  },
+  line("linka-bezpeci", "116 111", "phone", "danger"),
+  line("lppp", "116 123", "phone", "danger"),
+  line("obetem", "116 006", "phone", "danger"),
+  line("rodicovska", "606 021 021", "phone", "info"),
 ];
 
-/** Tísňová čísla — vždy volatelná, bez ohledu na věk a profil. */
-export const EMERGENCY_LINES: readonly ContactLine[] = [
-  {
-    id: "zachranka",
-    name: "155 · Záchranná služba",
-    phone: "155",
-    meta: "při bezprostředním ohrožení života",
-    icon: "phone",
-    tone: "danger",
-  },
-  {
-    id: "tisen",
-    name: "112 · Tísňová linka",
-    phone: "112",
-    meta: "jednotné evropské číslo, i bez SIM",
-    icon: "phone",
-    tone: "danger",
-  },
+/** The emergency numbers: always callable, whatever the age and the profile. */
+export const EMERGENCY_LINES: readonly EmergencyLine[] = [
+  emergency("zachranka", "155"),
+  emergency("tisen", "112"),
 ];
+
+export const LINE_BY_ID: Record<LineId, ContactLine> = Object.fromEntries(
+  [...CONTACT_LINES, ...EMERGENCY_LINES].map((l) => [l.id, l]),
+) as Record<LineId, ContactLine>;
+
+/** The primary line of each age band. Without an age band, Help offers both lines. */
+export const PRIMARY_LINE_BY_AGE: Record<AgeBand, LineId> = {
+  u26: "linka-bezpeci",
+  plus27: "lppp",
+};
+
+/** The primary line of each age band (onboarding, questionnaire and emergency screens). */
+export const HELP_LINES: Record<AgeBand, ContactLine> = {
+  u26: LINE_BY_ID[PRIMARY_LINE_BY_AGE.u26],
+  plus27: LINE_BY_ID[PRIMARY_LINE_BY_AGE.plus27],
+};

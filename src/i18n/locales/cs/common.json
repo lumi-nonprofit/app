@@ -1,0 +1,82 @@
+{
+  "actions": {
+    "add": "Přidat",
+    "back": "Zpět",
+    "cancel": "Zrušit",
+    "continue": "Pokračovat",
+    "delete": "Smazat",
+    "discard": "Zahodit",
+    "done": "Hotovo",
+    "ok": "OK",
+    "retry": "Zkusit znovu",
+    "save": "Uložit"
+  },
+  "ageBands": {
+    "none": {
+      "label": "Nechci uvádět",
+      "meta": "Pomoc nabídne obě linky"
+    },
+    "plus27": {
+      "label": "27 a více",
+      "meta": "Primární linka: Linka první psychické pomoci 116 123"
+    },
+    "u26": {
+      "label": "do 26 let",
+      "meta": "Primární linka: Linka bezpečí 116 111"
+    }
+  },
+  "appName": "Lumi",
+  "counts": {
+    "entries_one": "{{count}} záznam",
+    "entries_few": "{{count}} záznamy",
+    "entries_many": "{{count}} záznamu",
+    "entries_other": "{{count}} záznamů",
+    "minutes_one": "{{count}} min",
+    "minutes_few": "{{count}} min",
+    "minutes_many": "{{count}} min",
+    "minutes_other": "{{count}} min",
+    "questions_one": "{{count}} otázka",
+    "questions_few": "{{count}} otázky",
+    "questions_many": "{{count}} otázky",
+    "questions_other": "{{count}} otázek"
+  },
+  "errors": {
+    "databaseFailed": {
+      "message": "Databáze v telefonu teď nejde otevřít. Zavři aplikaci a zkus to znovu — tvoje záznamy zůstávají uložené.",
+      "title": "Záznamy se nepodařilo otevřít"
+    },
+    "screenFailed": {
+      "message": "Obrazovku se nepodařilo zobrazit. Zkus to znovu; když to nepomůže, aplikaci zavři a otevři znovu. Tvoje záznamy zůstávají uložené.",
+      "title": "Něco se nepovedlo"
+    }
+  },
+  "greeting": {
+    "afternoon": "Dobré odpoledne",
+    "evening": "Dobrý večer",
+    "morning": "Dobré ráno",
+    "withName": "{{greeting}}, {{name}}"
+  },
+  "list": {
+    "separator": ", "
+  },
+  "weekdays": {
+    "long": {
+      "fri": "pátek",
+      "mon": "pondělí",
+      "sat": "sobota",
+      "sun": "neděle",
+      "thu": "čtvrtek",
+      "tue": "úterý",
+      "wed": "středa"
+    },
+    "short": {
+      "fri": "Pá",
+      "mon": "Po",
+      "sat": "So",
+      "sun": "Ne",
+      "thu": "Čt",
+      "tue": "Út",
+      "wed": "St"
+    }
+  }
+}

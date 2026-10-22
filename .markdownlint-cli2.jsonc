@@ -1,0 +1,17 @@
+{
+  // Markdown structure rules. Prettier wraps lines at 100 columns, so MD013 is off.
+  "config": {
+    "default": true,
+    "MD013": false,
+    "MD024": { "siblings_only": true },
+    "MD033": { "allowed_elements": ["br", "sub", "sup", "details", "summary", "kbd"] },
+    "MD036": false,
+    "MD040": true,
+    "MD041": true,
+    // Valid in-file links protect the ADR anchors that code comments cite.
+    "MD051": true,
+  },
+  "globs": ["**/*.md"],
+  "gitignore": true,
+  "ignores": ["node_modules", "design/node_modules", "CODE_OF_CONDUCT.md", "**/target/**"],
+}

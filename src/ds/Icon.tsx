@@ -1,9 +1,9 @@
-/* Icon — platformní symbol (v plánu „Symbol“; jméno Icon zůstává, protože
-   `Symbol` by stínilo globální JS konstruktor). iOS: SF Symbols přes expo-symbols
-   (váhy, Liquid Glass v lištách), Android: Material Symbols (font přes
-   expo-symbols), web: Lucide. Jedna mapa názvů — `IconName` zůstává klíčem
-   v modelu (doporučení, aktivity). Výchozí barva = barva textu tématu.
-   Ikona je dekorativní (skrytá před čtečkou), pokud nedostane `label`. */
+/* Icon: the platform symbol (the plan calls it "Symbol"; the name `Icon` stays, because
+   `Symbol` would shadow the global JS constructor). iOS: SF Symbols through `expo-symbols`
+   (weights, Liquid Glass in the bars), Android: Material Symbols (the font through
+   `expo-symbols`), web: Lucide. One map of names: `IconName` stays the key in the model
+   (recommendations, activities). The default color = the text color of the theme.
+   The icon is decorative (hidden from the screen reader) unless it gets a `label`. */
 import React from "react";
 import { Platform, View, type StyleProp, type ViewStyle } from "react-native";
 import { SymbolView } from "expo-symbols";
@@ -48,8 +48,8 @@ interface Glyph {
   lucide: LucideIcon;
 }
 
-/* HIG SF Symbols: standardní symboly pro standardní akce (xmark, plus, gearshape,
-   chevron.backward); Material Symbols: stejné významy v Android idiomu. */
+/* HIG SF Symbols: the standard symbols for the standard actions (xmark, plus, gearshape,
+   chevron.backward); Material Symbols: the same meanings in the Android idiom. */
 const ICONS = {
   "arrow-left": { sf: "chevron.backward", md: "arrow_back", lucide: ArrowLeft },
   "audio-lines": { sf: "waveform", md: "graphic_eq", lucide: AudioLines },
@@ -91,18 +91,18 @@ const SF_WEIGHT: Record<IconWeight, SymbolWeight> = {
   semibold: "semibold",
   bold: "bold",
 };
-/* Lucide kreslí váhu tloušťkou tahu */
+/* Lucide draws the weight with the stroke width */
 const STROKE: Record<IconWeight, number> = { regular: 1.75, medium: 2, semibold: 2.2, bold: 2.5 };
 
 interface Props {
   name: IconName;
   size?: number;
   color?: string;
-  /** Váha symbolu — má odpovídat váze sousedního textu (HIG SF Symbols). */
+  /** The weight of the symbol: it must match the weight of the adjacent text (HIG SF Symbols). */
   weight?: IconWeight;
-  /** Jen Lucide (web): tloušťka tahu; jinak se odvozuje z `weight`. */
+  /** Only Lucide (web): the stroke width; otherwise it derives from `weight`. */
   strokeWidth?: number;
-  /** Významová ikona: popisek pro čtečku. Bez něj je ikona dekorativní. */
+  /** A meaningful icon: the label for the screen reader. Without it the icon is decorative. */
   label?: string;
   style?: StyleProp<ViewStyle>;
 }
@@ -117,7 +117,7 @@ export default function Icon({
   style,
 }: Props) {
   const theme = useTheme();
-  /* `| undefined` drží původní runtime pojistku pro neznámý název ikony */
+  /* `| undefined` keeps the original runtime guard for an unknown icon name */
   const glyph: Glyph | undefined = ICONS[name];
   const tint = color ?? theme.colors.textBody;
   const a11y = label

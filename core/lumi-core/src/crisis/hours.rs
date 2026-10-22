@@ -1,8 +1,8 @@
-//! Opening-hours parsing + open-now computation.
+//! Service-hours parser + open-now computation.
 //!
 //! **Best-effort, FAIL OPEN.** The parser is deliberately *conservative*: it only
 //! returns `Some(..)` for strings it can read unambiguously (NONSTOP, or explicit
-//! weekday + HH:MM ranges incl. overnight wrap). Anything with prose, seasonal or
+//! weekday + HH:MM ranges incl. overnight wrap). A string with prose, seasonal or
 //! holiday exceptions, or malformed times returns `None` → treated as Unknown →
 //! reachable. We NEVER render a confident "Closed". See spec §5.
 
@@ -15,8 +15,8 @@ use super::model::{Interval, OpeningHours, Weekday};
 pub struct PragueTime {
     pub weekday: Weekday,
     pub minute_of_day: u16, // 0..=1439
-    /// True if `now` is, or is adjacent to, a CZ public holiday. Holidays can't be
-    /// resolved reliably offline, so affected weekly lines degrade to Unknown.
+    /// True if `now` is, or is adjacent to, a CZ public holiday. Offline, the code cannot
+    /// resolve holidays reliably, so affected weekly lines degrade to Unknown.
     pub is_or_borders_holiday: bool,
 }
 
@@ -43,7 +43,7 @@ pub fn open_state(parsed: &Option<OpeningHours>, now: PragueTime) -> OpenState {
         // 24/7/365 — open even on holidays.
         OpeningHours::Nonstop => OpenState::Open,
         OpeningHours::Weekly(intervals) => {
-            // Can't assert open/closed around holidays without a holiday calendar.
+            // Without a holiday calendar, the code cannot assert open/closed around holidays.
             if now.is_or_borders_holiday {
                 return OpenState::Unknown;
             }
@@ -88,7 +88,7 @@ fn next_open(intervals: &[Interval], now: PragueTime) -> Option<NextOpen> {
 // Parser
 // ---------------------------------------------------------------------------
 
-/// Parse an hours string. Returns `None` (→ Unknown) for anything not unambiguous.
+/// Parse an hours string. Returns `None` (→ Unknown) for anything ambiguous.
 pub fn parse_hours(raw: &str) -> Option<OpeningHours> {
     let s = raw.trim();
     if s.is_empty() {
@@ -124,7 +124,7 @@ pub fn parse_hours(raw: &str) -> Option<OpeningHours> {
     }
 
     if !pending_days.is_empty() {
-        return None; // dangling day tokens (e.g. "… víkendy a svátky nepřetržitě")
+        return None; // day tokens without a time (for example "… víkendy a svátky nepřetržitě")
     }
     if intervals.is_empty() {
         return None;
@@ -158,8 +158,8 @@ fn parse_piece(piece: &str) -> Option<PieceKind> {
             times.push(min);
             continue;
         }
-        // A non-time, non-separator token after a time has started means trailing
-        // prose or a second range ("… (mimo svátky)", "… a 15:00 - 19:00").
+        // A non-time, non-separator token after a time has started means prose at the
+        // end or a second range ("… (mimo svátky)", "… a 15:00 - 19:00").
         if !times.is_empty() {
             return None;
         }
@@ -167,7 +167,7 @@ fn parse_piece(piece: &str) -> Option<PieceKind> {
             .trim_matches(|c: char| !c.is_alphanumeric())
             .to_string();
         if cleaned.is_empty() {
-            return None; // punctuation-only token, e.g. "(letní"
+            return None; // punctuation-only token, for example "(letní"
         }
         day_toks.push(cleaned);
     }
@@ -182,7 +182,7 @@ fn parse_piece(piece: &str) -> Option<PieceKind> {
     if times.len() != 2 {
         return None; // a lone time without a range
     }
-    let days = parse_day_tokens(&day_toks)?; // may be empty → rely on pending days
+    let days = parse_day_tokens(&day_toks)?; // can be empty → rely on pending days
     Some(PieceKind::Clause {
         days,
         start: times[0],
@@ -247,7 +247,7 @@ fn day_range(a: Weekday, b: Weekday) -> Option<Vec<Weekday>> {
     Some((ai..=bi).map(Weekday::from_index).collect())
 }
 
-/// Push an interval, splitting overnight ranges (start >= end) at midnight.
+/// Push an interval; split overnight ranges (start >= end) at midnight.
 fn push_interval(out: &mut Vec<Interval>, day: Weekday, start: u16, end: u16) {
     if start == end {
         return; // zero-length / ambiguous — ignore
@@ -424,14 +424,14 @@ mod tests {
     #[test]
     fn open_state_overnight() {
         let oh = parse_hours("PO - PÁ 19:00 - 07:00");
-        // Tuesday 06:00 should be open (Monday night wrap).
+        // Tuesday 06:00: expect Open (Monday night wrap).
         let tue_early = PragueTime {
             weekday: Weekday::Tue,
             minute_of_day: 360,
             is_or_borders_holiday: false,
         };
         assert_eq!(open_state(&oh, tue_early), OpenState::Open);
-        // Tuesday noon should be closed.
+        // Tuesday noon: expect Closed.
         let tue_noon = PragueTime {
             weekday: Weekday::Tue,
             minute_of_day: 720,

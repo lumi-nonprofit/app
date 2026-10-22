@@ -2,27 +2,31 @@
 // JS -> Nitro -> C++ -> Rust -> SQLite path against a temp DB and emits a sentinel to logcat +
 // screen. Wire this temporarily as the app entry (see RUNBOOK Step 6); do NOT touch the real
 // check-in feature yet — that is step 4b.
-import React from 'react';
-import { Text, View, StyleSheet } from 'react-native';
-import * as FileSystem from 'expo-file-system';
-import { LumiVault } from './LumiVault';
+import React from "react";
+import { Text, View, StyleSheet } from "react-native";
+import * as FileSystem from "expo-file-system";
+import { LumiVault } from "./LumiVault";
 
-const SENTINEL = 'LUMI_SLICE_SMOKE';
+const SENTINEL = "LUMI_SLICE_SMOKE";
 
 function runSmoke(): string {
   // a throwaway temp DB path (the real app uses the secure app dir; this is smoke-only)
-  const dbPath = `${FileSystem.cacheDirectory}lumi-smoke-${Date.now()}.db`.replace('file://', '');
+  const dbPath = `${FileSystem.cacheDirectory}lumi-smoke-${Date.now()}.db`.replace("file://", "");
   try {
     LumiVault.open(dbPath);
-    const handle = LumiVault.unlock('smoke-pin-1234');
+    const handle = LumiVault.unlock("smoke-pin-1234");
 
-    const id = LumiVault.putCheckin(handle, { mood: 'klid', intensity: 3, note: 'smoke' }, Date.now());
+    const id = LumiVault.putCheckin(
+      handle,
+      { mood: "klid", intensity: 3, note: "smoke" },
+      Date.now(),
+    );
 
     const list = LumiVault.listCheckins(handle);
     const roundtrip =
       list.length === 1 &&
       list[0].recordId === id &&
-      (list[0].payload as { mood?: string }).mood === 'klid';
+      (list[0].payload as { mood?: string }).mood === "klid";
 
     const destroyed = LumiVault.shredCheckin(handle, id);
     const afterShred = LumiVault.listCheckins(handle).length === 0;
@@ -47,6 +51,6 @@ export default function SmokeApp() {
 }
 
 const styles = StyleSheet.create({
-  c: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
+  c: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
   t: { fontSize: 14 },
 });

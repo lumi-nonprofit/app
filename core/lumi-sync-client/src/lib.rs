@@ -1,9 +1,9 @@
 //! Zero-knowledge sync — client side (ADR 0001 §5).
 //!
 //! **What M0 locks (and why now):** the on-wire **envelope format**. The server
-//! stores only opaque blobs + wrapped-key envelopes it cannot read; getting the
-//! format wrong later forces a painful migration of every user's synced data. So
-//! the format is fixed at M0 with:
+//! stores only opaque blobs + wrapped-key envelopes it cannot read; a wrong
+//! format, found later, forces a painful migration of every user's synced data. So
+//! M0 fixes the format with:
 //! - an explicit **`format_version`** byte,
 //! - **reserved bytes** so M1's replay-protection / idempotency review can extend
 //!   the header **without a migration** (ADR condition 4),
@@ -20,7 +20,7 @@
 
 use lumi_crdt::{DeviceId, Hlc};
 
-/// Bump only with a migration. Everything below is wire-compatible within a version.
+/// Bump only with a migration. All of the below is wire-compatible within a version.
 pub const FORMAT_VERSION: u8 = 1;
 
 const HEADER_RESERVED: usize = 6; // free space for M1 (flags, replay nonce id, …)
@@ -49,7 +49,7 @@ impl WrapAlg {
 /// timing — ADR 0001 §6).
 pub type RecordId = [u8; 16];
 
-/// Length-padding buckets (bytes). A payload is padded up to the smallest bucket
+/// Length-padding buckets (bytes). The encoder pads a payload up to the smallest bucket
 /// that fits it plus its 4-byte length prefix, so on-wire sizes reveal only the
 /// bucket, not the true length. Beyond the largest bucket we round to its multiple.
 pub const BUCKETS: &[usize] = &[256, 1024, 4096, 16384, 65536];
@@ -170,7 +170,7 @@ impl Envelope {
         let ct_len = r.u32()? as usize;
         let ciphertext = r.take(ct_len)?.to_vec();
         if r.i != r.b.len() {
-            return None; // trailing bytes
+            return None; // extra bytes at the end
         }
         Some(Envelope {
             wrap_alg,
@@ -219,7 +219,7 @@ impl Reader<'_> {
 }
 
 /// Opaque sync cursor (monotonic). Its exact semantics (and replay/idempotency)
-/// are finalised in M1 using the reserved header space — hence opaque here.
+/// get their final form in M1 with the reserved header space — hence opaque here.
 pub type Cursor = u64;
 
 /// `push(blobs)` — upload encoded envelopes. The server stores them opaquely.
@@ -306,7 +306,7 @@ mod tests {
         let mut wrong = bytes.clone();
         wrong[0] = 99; // unknown format version
         assert!(Envelope::decode(&wrong).is_none());
-        bytes.push(0); // trailing byte
+        bytes.push(0); // extra byte at the end
         assert!(Envelope::decode(&bytes).is_none());
         assert!(Envelope::decode(b"").is_none());
     }

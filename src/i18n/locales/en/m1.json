@@ -1,0 +1,57 @@
+{
+  "capture": {
+    "intensity": {
+      "a11yHint": "Choose the intensity from 1 (least) to 5 (most).",
+      "label": "Intensity"
+    },
+    "mood": {
+      "a11yHint": "Choose how you feel right now.",
+      "label": "Mood"
+    },
+    "note": {
+      "a11yHint": "An optional short note for this check-in.",
+      "a11yLabel": "Note, optional",
+      "label": "Note (optional)",
+      "placeholder": "A few words…"
+    },
+    "option": {
+      "selected": "✓ {{name}}"
+    },
+    "save": {
+      "a11yHint": "Encrypts and saves the check-in.",
+      "label": "Save check-in",
+      "noMood": {
+        "a11yHint": "Choose a mood first."
+      }
+    },
+    "title": "How are you?"
+  },
+  "debug": {
+    "dbPath": "DB: {{path}}"
+  },
+  "errors": {
+    "open": "The vault could not be opened (the database file is unavailable or damaged).",
+    "save": "Saving failed.",
+    "saveDetail": "Saving failed. ({{detail}})",
+    "unlock": "The vault could not be unlocked (check the PIN)."
+  },
+  "list": {
+    "empty": "None yet. Save the first one.",
+    "item": "{{mood}} · {{intensity}}/5",
+    "title": "Saved check-ins"
+  },
+  "locked": {
+    "hint": "Unlock the vault with your PIN.",
+    "pin": {
+      "a11yHint": "Enter the PIN and confirm to unlock the encrypted vault.",
+      "a11yLabel": "Vault PIN",
+      "placeholder": "PIN"
+    },
+    "title": "Lumi — check-in (M1)",
+    "unlock": {
+      "a11yHint": "Unlocks the encrypted vault (Argon2id).",
+      "busy": "Unlocking…",
+      "label": "Unlock"
+    }
+  }
+}

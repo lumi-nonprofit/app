@@ -1,7 +1,7 @@
-/* Ohlédnutí za týdnem — klidný souhrn reflektovaného týdne (v neděli ten
-   právě končící, jinak naposledy dokončený): tečky dní, počet záznamů,
-   nejčastější slova a max 2 nálezy. Žádné hodnocení, žádné srovnávání —
-   jen co tu je, plus poděkování za všímavost. */
+/* The weekly reflection: a calm summary of the reflected week (on Sunday the week that ends,
+   otherwise the last complete week): the dots of the days, the number of entries, the most
+   frequent words and at most 2 insights. No score, no comparison: only what is there, and a
+   thank-you for the attention. */
 import React from "react";
 import { View } from "react-native";
 import { Card, Text } from "../../ds";
@@ -9,33 +9,34 @@ import Screen from "../../components/Screen";
 import { LumiHeader, SectionLabel } from "../../components/Header";
 import MoodShape from "../../components/MoodShape";
 import { useEntries } from "../../db/hooks";
-import { computeInsights, TOO_FEW_DATA_TEXT } from "./insights";
+import { useTranslation } from "../../i18n";
+import { computeInsights, tooFewDataText } from "./insights";
 import { reflectionWeekRange } from "./reflection";
 import { InsightRow } from "./InsightsCard";
 import {
-  DAY_LETTERS,
-  DAY_NAMES,
-  INTENSITY_LABELS,
   MOOD_BY_ID,
   aggregateDay,
-  czPlural,
+  intensityLabel,
   toISODate,
+  weekdayLetters,
+  weekdayNames,
+  wordLabel,
   type Entry,
   type ISODate,
 } from "../../model";
 import { createThemedStyles } from "../../theme";
 
-/** 7 ISO dnů reflektovaného týdne od pondělí `from`; poledne kvůli změnám času. */
+/** The 7 ISO days of the reflected week from the Monday `from`; noon because of daylight time. */
 function weekDates(from: ISODate): ISODate[] {
   const monday = new Date(`${from}T12:00:00`);
-  return DAY_LETTERS.map((_, i) => {
+  return weekdayLetters().map((_, i) => {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
     return toISODate(d);
   });
 }
 
-/** Nejčastější slova týdne (max 3), řazeno podle počtu výskytů. */
+/** The most frequent words of the week (at most 3), by the number of occurrences. */
 function topWords(entries: Entry[]): string[] {
   const counts = new Map<string, number>();
   for (const e of entries) for (const w of e.words) counts.set(w, (counts.get(w) ?? 0) + 1);
@@ -50,23 +51,29 @@ interface ReflectionDayProps {
   dayEntries: Entry[];
 }
 
-/* den jako tečka — stejné kódování jako v Přehledech: barva + tvar = stav,
-   velikost = intenzita, prázdný den = obrysový kruh (nikdy jen barva) */
+/* A day as a dot, with the same code as the overview: colour and shape are the mood, size is
+   the intensity, an empty day is an outlined circle (never colour alone). */
 function ReflectionDay({ index, dayEntries }: ReflectionDayProps) {
   const styles = useStyles();
+  const { t } = useTranslation("stats");
   const agg = aggregateDay(dayEntries);
   const mood = agg ? MOOD_BY_ID[agg.mood] : null;
-  /* `mood` existuje právě tehdy, když `agg` — podmínka rozšířena jen kvůli zúžení typů */
+  /* `mood` exists exactly when `agg` exists; the condition narrows the types. */
+  const dayName = weekdayNames()[index];
   const label =
     agg && mood
-      ? `${DAY_NAMES[index]} — ${mood.name}, ${INTENSITY_LABELS[agg.intensity - 1]}`
-      : `${DAY_NAMES[index]} — bez záznamu`;
+      ? t("calendar.day.entry", {
+          day: dayName,
+          mood: mood.name,
+          intensity: intensityLabel(agg.intensity),
+        })
+      : t("calendar.day.empty", { day: dayName });
   return (
     <View
       accessible
       accessibilityRole="image"
       accessibilityLabel={label}
-      accessibilityHint="Souhrn dne: barva a tvar značí stav, velikost intenzitu."
+      accessibilityHint={t("calendar.day.a11yHint")}
       style={styles.day}
     >
       <View style={styles.dayShape}>
@@ -77,7 +84,7 @@ function ReflectionDay({ index, dayEntries }: ReflectionDayProps) {
         )}
       </View>
       <Text variant="caption1" maxFontSizeMultiplier={1.6}>
-        {DAY_LETTERS[index]}
+        {weekdayLetters()[index]}
       </Text>
     </View>
   );
@@ -85,23 +92,26 @@ function ReflectionDay({ index, dayEntries }: ReflectionDayProps) {
 
 export default function ReflectionScreen() {
   const styles = useStyles();
-  /* okamžik otevření drží rozsah i titulek stabilní po celý život obrazovky */
+  const { t } = useTranslation("stats");
+  /* The moment of the open keeps the range and the title stable for the life of the screen. */
   const [now] = React.useState(() => new Date());
   const range = reflectionWeekRange(now);
   const entries = useEntries(range);
   const days = weekDates(range.from);
   const count = entries.length;
   const words = React.useMemo(() => topWords(entries), [entries]);
-  /* v reflexi max 2 nálezy — souhrn má zůstat krátký a klidný */
-  const insights = computeInsights(entries, "Tenhle týden").slice(0, 2);
+  /* At most 2 insights in the reflection: the summary stays short and calm. */
+  const insights = computeInsights(entries, "week").slice(0, 2);
 
   return (
     <Screen>
-      {/* v neděli se ohlížíme za právě končícím týdnem — „minulý“ by mátl;
-          titulek „Ohlédnutí“ a Zpět nese nativní hlavička */}
-      <LumiHeader title={now.getDay() === 0 ? "Tvůj týden" : "Tvůj minulý týden"} />
+      {/* On Sunday the reflection looks at the week that ends; "last week" would confuse.
+          The native header carries the title "Ohlédnutí" and the back button. */}
+      <LumiHeader
+        title={now.getDay() === 0 ? t("reflection.titleCurrent") : t("reflection.titleLast")}
+      />
 
-      {/* tečky dní + počet záznamů */}
+      {/* The dots of the days and the number of entries. */}
       <Card>
         <View style={styles.weekRow}>
           {days.map((iso, i) => (
@@ -109,20 +119,20 @@ export default function ReflectionScreen() {
           ))}
         </View>
         <Text variant="subheadline" weight="medium" color="textMuted" style={styles.countText}>
-          {`Celkem ${count} ${czPlural(count, ["záznam", "záznamy", "záznamů"])}.`}
+          {t("reflection.total", { count })}
         </Text>
       </Card>
 
-      {/* nejčastější slova — jen když nějaká jsou */}
+      {/* The most frequent words, only when there are some. */}
       {words.length ? (
         <View>
-          <SectionLabel>Nejčastější slova</SectionLabel>
+          <SectionLabel>{t("reflection.topWords")}</SectionLabel>
           <Card style={styles.wordsCard}>
             <View style={styles.wordsRow}>
               {words.map((w) => (
                 <View key={w} style={styles.wordPill}>
                   <Text variant="subheadline" weight="medium" color="textOnSunken">
-                    {w}
+                    {wordLabel(w)}
                   </Text>
                 </View>
               ))}
@@ -131,22 +141,22 @@ export default function ReflectionScreen() {
         </View>
       ) : null}
 
-      {/* max 2 nálezy; pod prahem dat jemné povzbuzení */}
+      {/* At most 2 insights; below the data threshold a gentle encouragement. */}
       <View>
-        <SectionLabel>Co se ukazuje</SectionLabel>
+        <SectionLabel>{t("reflection.insightsTitle")}</SectionLabel>
         <Card style={styles.insightsCard}>
           {insights.length ? (
             insights.map((i) => <InsightRow key={i.id} insight={i} />)
           ) : (
             <Text variant="subheadline" color="textMuted">
-              {TOO_FEW_DATA_TEXT}
+              {tooFewDataText()}
             </Text>
           )}
         </Card>
       </View>
 
       <Text variant="footnote" color="textMuted" align="center" style={styles.closing}>
-        Ať byl týden jakýkoliv, díky, že si ho všímáš.
+        {t("reflection.closing")}
       </Text>
     </Screen>
   );

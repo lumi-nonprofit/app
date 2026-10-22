@@ -1,8 +1,8 @@
-/* Guard neuložených změn (HIG Modality/Alerts: varovat při nečekané ztrátě
-   rozpracovaného obsahu; action sheet na iOS, dialog na Androidu).
-   Staví na usePreventRemove: zachytí systémové Zpět, swipe-down sheetu,
-   hardware Back i router.back()/dismiss(). Programové odchody po uložení
-   jdou přes `leave()`, které další odchod propustí bez dotazu. */
+/* The guard of unsaved changes (HIG Modality/Alerts: warn before an unexpected loss of
+   work in progress; an action sheet on iOS, a dialog on Android).
+   It builds on `usePreventRemove`: it catches the system Back, the swipe-down of a sheet,
+   the hardware Back and router.back()/dismiss(). Programmatic exits after a save go
+   through `leave()`, which lets the next exit pass without a question. */
 import React from "react";
 import { useNavigation } from "expo-router";
 import { usePreventRemove } from "expo-router/react-navigation";
@@ -10,20 +10,20 @@ import type { NavigationAction } from "expo-router/react-navigation";
 import { confirmDiscard } from "./dialogs";
 
 interface Options {
-  /** Jsou rozpracované změny, které by odchod zahodil? */
+  /** Are there changes in progress that an exit would discard? */
   dirty: boolean;
-  /** Titulek popisuje situaci („Zahodit rozepsaný zápis?“). */
+  /** The title describes the situation ("Zahodit rozepsaný zápis?"). */
   title: string;
   message?: string;
-  /** Sloveso potvrzení; výchozí „Zahodit“. */
+  /** The verb of the confirmation; the default is "Zahodit". */
   confirmLabel?: string;
-  /** Akce, které rozpracovanou práci nezahazují (např. Zpět na předchozí krok
-      uvnitř sheetu) — projdou bez dotazu. Výchozí: každé odstranění se ptá. */
+  /** The actions that do not discard the work in progress (for example, Back to the previous
+      step inside the sheet): they pass without a question. Default: every removal asks. */
   allow?: (action: NavigationAction) => boolean;
 }
 
 export function useDiscardGuard({ dirty, title, message, confirmLabel, allow }: Options): {
-  /** Odchod bez dotazu (po uložení): nastaví výjimku a zavolá navigaci. */
+  /** An exit without a question (after a save): sets the exception and calls the navigation. */
   leave: (go: () => void) => void;
 } {
   const navigation = useNavigation();
@@ -45,7 +45,7 @@ export function useDiscardGuard({ dirty, title, message, confirmLabel, allow }: 
   const leave = React.useCallback((go: () => void) => {
     bypass.current = true;
     go();
-    /* když navigace nic neodstranila (např. nebylo kam), výjimka nesmí zůstat viset */
+    /* when the navigation removed nothing (for example, nowhere to go), the exception must go */
     setTimeout(() => {
       bypass.current = false;
     }, 1000);

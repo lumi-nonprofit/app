@@ -1,6 +1,6 @@
-/* Card — základní plocha Lumi: karta s rádiusem 22, měkkým teplým stínem (light)
-   nebo hairline (dark — stíny nejsou vidět). Klikatelná karta je přístupná
-   (role button) a má press state podle platformy. */
+/* Card: the basic surface of Lumi: a card with the radius 22, a soft warm shadow (light)
+   or a hairline (dark: shadows are not visible). A tappable card is accessible
+   (the role button) and has a press state that follows the platform. */
 import React from "react";
 import { Pressable, View } from "react-native";
 import type { GestureResponderEvent, StyleProp, ViewStyle } from "react-native";
@@ -50,8 +50,8 @@ export default function Card({
 const useStyles = createThemedStyles((t) => ({
   card: { borderRadius: t.radius.lg, padding: t.space.s5, overflow: "hidden" },
   default: { backgroundColor: t.colors.surfaceCard, ...t.elevation.card, ...t.cardBorder },
-  /* sunken: bez stínu */
+  /* sunken: no shadow */
   sunken: { backgroundColor: t.colors.surfaceSunken },
-  /* ink: text uvnitř obarvují volající (textOnPrimary) */
+  /* ink: the callers color the text inside (textOnPrimary) */
   ink: { backgroundColor: t.colors.surfacePrimary, ...t.elevation.card },
 }));

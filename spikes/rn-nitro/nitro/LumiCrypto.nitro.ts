@@ -6,7 +6,7 @@
 // §1: the only data that crosses is handle, publicKeyB64, mood, intensity, note,
 // sealedB64 — NO secret/private-key type in any signature. The private key stays in
 // the Rust SECRETS registry behind the opaque handle.
-import type { HybridObject } from 'react-native-nitro-modules';
+import type { HybridObject } from "react-native-nitro-modules";
 
 export interface DeviceKey {
   handle: string; // u64 as decimal string (JS-number-safe)
@@ -19,8 +19,7 @@ export interface CheckinDraft {
   note: string;
 }
 
-export interface LumiCrypto
-  extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
+export interface LumiCrypto extends HybridObject<{ ios: "c++"; android: "c++" }> {
   // -> { handle, publicKeyB64 }   (private key stays in Rust)
   newDeviceKey(): DeviceKey;
   // -> sealedB64; THROWS on unknown handle / bad peer key
@@ -31,6 +30,6 @@ export interface LumiCrypto
     intensity: number,
     note: string,
   ): string;
-  // -> { mood, intensity, note }; THROWS if the sealed blob can't be opened
+  // -> { mood, intensity, note }; THROWS if the sealed blob does not open
   openCheckin(handle: string, peerPublicB64: string, sealedB64: string): CheckinDraft;
 }

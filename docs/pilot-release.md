@@ -6,8 +6,8 @@ puts the APK into a draft release.
 
 **Not checked yet:**
 
-1. Sections 1 and 2 on GitHub. No tag was pushed, and the environment `pilot-release` does not
-   exist. The build and the signing script ran on a GitHub runner with a throwaway key. The
+1. Sections 1 and 2 on GitHub. Nobody pushed a tag yet, and the environment `pilot-release` does
+   not exist. The build and the signing script ran on a GitHub runner with a throwaway key. The
    signing script also ran on a local computer with a test key.
 2. The `podman` command in section 1.
 3. The install and the behaviour of the APK on a device. Section 3 describes what Android does in
@@ -18,13 +18,13 @@ puts the APK into a draft release.
 Rules:
 
 - Make the key on your own computer. Do not make it in CI or in a chat with an AI assistant.
-- Do not commit the key. Keep two copies of the key and of its password in two places, for
-  example a password manager and an offline disk. GitHub does not show a secret again.
-- Android accepts an update only when the new APK is signed with the same key as the installed
-  app. If you lose the key, each tester must uninstall the app before the next install. An
-  uninstall deletes the data of the app.
+- Do not commit the key. Keep 2 copies of the key and of its password in 2 places. For example: a
+  password manager and an offline disk. GitHub does not show a secret again.
+- Android accepts an update only when the new APK has the same key as the installed app. If you
+  lose the key, each tester must uninstall the app before the next install. An uninstall deletes
+  the data of the app.
 
-Make the key. The command asks for a new password two times. The password needs 6 characters or
+Make the key. The command asks for a new password 2 times. The password needs 6 characters or
 more:
 
 ```bash
@@ -50,7 +50,7 @@ Give the key to GitHub in a protected environment:
 1. Open the repository on GitHub: **Settings → Environments → New environment**. The name is
    `pilot-release`.
 2. Turn on **Required reviewers** and add yourself. Save the rule.
-3. Add two **environment secrets**:
+3. Add 2 **environment secrets**:
 
    | Name                        | Value                                     |
    | --------------------------- | ----------------------------------------- |
@@ -79,7 +79,7 @@ Rules:
   Android version code.
 - Use each tag one time. Do not move a tag. For the next build, make the next tag
   (`v0.1.0-pilot.2`).
-- Push the tag with `git`. Do not make the release in the GitHub web page: the workflow does not
+- Push the tag with `git`. Do not make the release in the GitHub web page. The workflow does not
   add an APK to a published release.
 
 Then:
@@ -87,7 +87,7 @@ Then:
 1. Open **Actions → Android APK** on GitHub and open the run. The build takes about 17 minutes.
 2. The job `Sign and draft the release` waits for you. Click **Review deployments**, select
    `pilot-release` and approve.
-3. Open **Releases**. The run made a draft pre-release with two files: the APK and its SHA-256
+3. Open **Releases**. The run made a draft pre-release with 2 files: the APK and its SHA-256
    checksum.
 4. Download the APK from the draft.
 
@@ -96,9 +96,9 @@ the APK public, because the repository is public. ADR 0007 reads "pilot" as "not
 release". To keep the pilot limited, do not publish the draft. Send the APK file to the testers.
 
 After a successful run, the draft holds the only copy of the APK that the pilot key signed. The
-run also keeps a build artifact for a short time: the same app, signed with the public debug key
-of the Expo template. The job `release` deletes this artifact at its end. Until then, and for one
-day if the job fails, any signed-in GitHub user can download the artifact.
+run also keeps a build artifact for a short time. It is the same app, signed with the public debug
+key of the Expo template. The job `release` deletes this artifact at its end. Until then, and for
+one day if the job fails, any signed-in GitHub user can download the artifact.
 
 ## 3. Install the APK on a phone
 
@@ -107,16 +107,18 @@ day if the job fails, any signed-in GitHub user can download the artifact.
    opened the file (the browser or the file manager).
 3. Tap **Install**.
 
-To update, install the next pilot APK. Do not uninstall the app first. The data stays.
+To update, install the next pilot APK over the app. Keep the app on the phone. The data stays.
 
-An APK that is signed with a different key cannot update the app. Android stops the install. To
-install such an APK, uninstall the app first. The data is lost. The workflow uses the pilot key
-only for a build from a tag, so only an APK from a tag build can update a pilot install. Do not
-give the testers an APK from EAS or from a local build: it has a different key.
+An APK with a different key cannot update the app. Android stops the install. To install such an
+APK, uninstall the app first. Android deletes the data.
+
+The workflow uses the pilot key only for a build from a tag. So only an APK from a tag build can
+update a pilot install. Do not give the testers an APK from EAS or from a local build: it has a
+different key.
 
 ## 4. Check the file
 
-The page of the run and the notes of the draft release show two values:
+The page of the run and the notes of the draft release show 2 values:
 
 - **SHA-256 of the APK.** `sha256sum lumi-0.1.0-pilot.1-arm64-v8a.apk` on your computer must
   print the same value.
@@ -133,9 +135,9 @@ The page of the run and the notes of the draft release show two values:
   screen of the app.
 - The known problems of the app are in [`STATUS.md`](STATUS.md).
 
-Do not rename the workflow file. The Android version code is the number of the workflow run, and
-the numbers of a renamed workflow start again at 1. Android does not install an APK with a lower
-version code over the app.
+Do not rename the workflow file. The Android version code is the number of the workflow run. The
+numbers of a renamed workflow start again at 1. Android refuses an APK with a lower version code
+over the app.
 
 ## 6. The build check on pull requests
 

@@ -1,0 +1,85 @@
+{
+  "calendar": {
+    "badgeMonth": "last 28 days",
+    "badgeWeek": "this week",
+    "day": {
+      "a11yHint": "Summary of the day: colour and shape show the mood, size shows the intensity.",
+      "empty": "{{day}} — no entry",
+      "entry": "{{day}} — {{mood}}, {{intensity}}"
+    },
+    "emptyText": "Not much here yet — every entry counts.",
+    "legendEmpty": "no entry",
+    "startCheckin": "Start a check-in",
+    "title": "Mood by day",
+    "today": "today"
+  },
+  "deep": {
+    "intro_one": "A short questionnaire ({{count}} question) · optional",
+    "intro_other": "A short questionnaire ({{count}} questions) · optional",
+    "last": "Last time: {{band}}",
+    "lastLess": "Last time: {{band}} · {{amount}} less than before",
+    "lastMore": "Last time: {{band}} · {{amount}} more than before",
+    "lastSame": "Last time: {{band}} · the same as before",
+    "note": "Optional — only when you want to. Lumi never reminds you of them.",
+    "title": "Want to go deeper?"
+  },
+  "header": {
+    "settings": "Settings",
+    "title": "Your week"
+  },
+  "insights": {
+    "addEntry": "Add an entry",
+    "daypartAfternoon": "In the afternoon, {{mood}} shows up most often.",
+    "daypartEvening": "In the evening, {{mood}} shows up most often.",
+    "daypartMorning": "In the morning, {{mood}} shows up most often.",
+    "frequent": "{{period}}, {{mood}} shows up most often.",
+    "frequentWithWord": "{{period}}, {{mood}} shows up most often — most often with the word “{{word}}”.",
+    "tagMoodEnergie": "{{mood}} most often came {{tag}} {{period}}.",
+    "tagMoodKlid": "{{mood}} most often came {{tag}} {{period}}.",
+    "tagMoodNapeti": "{{mood}} most often came {{tag}} {{period}}.",
+    "tagMoodUtlum": "{{mood}} most often came {{tag}} {{period}}.",
+    "title": "What shows up",
+    "tooFewData": "Too few entries for patterns yet — every entry helps."
+  },
+  "period": {
+    "a11yHint": "Switches the view between the week and the month.",
+    "a11yLabel": "Period",
+    "inSentenceMonth": "this month",
+    "inSentenceWeek": "this week",
+    "month": "month",
+    "sentenceStartMonth": "This month",
+    "sentenceStartWeek": "This week",
+    "week": "week"
+  },
+  "reflection": {
+    "card": {
+      "subtitle": "Summary: dots, words and what shows up",
+      "title": "Weekly reflection"
+    },
+    "closing": "Whatever the week was like, thank you for noticing it.",
+    "insightsTitle": "What shows up",
+    "titleCurrent": "Your week",
+    "titleLast": "Your last week",
+    "topWords": "Most frequent words",
+    "total_one": "{{count}} entry in total.",
+    "total_other": "{{count}} entries in total."
+  },
+  "wellbeing": {
+    "firstQuestionnaire": "Fill in the first questionnaire",
+    "intro": "A short questionnaire (5 questions) sets your starting point. No grades, no comparison.",
+    "low": "The last two weeks look demanding. It is okay to ask for support.",
+    "noValue": "—",
+    "openHelp": "Open Help",
+    "questionnaire": "Fill in the questionnaire",
+    "sublabel": "WHO-5",
+    "title": "Wellbeing index"
+  },
+  "who5": {
+    "filledAgo_one": "Filled in {{count}} day ago.",
+    "filledAgo_other": "Filled in {{count}} days ago.",
+    "filledToday": "Filled in today.",
+    "nextIn_one": "The next questionnaire is ready in {{count}} day.",
+    "nextIn_other": "The next questionnaire is ready in {{count}} days.",
+    "nextToday": "The next questionnaire is ready today."
+  }
+}

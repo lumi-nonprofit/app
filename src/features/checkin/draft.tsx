@@ -1,6 +1,6 @@
-/* Rozpracovaný check-in — žije jen v paměti checkin stacku, nikdy se
-   nepersistuje. Provider je v app/checkin/_layout: každé otevření modálu
-   začíná s čistým draftem. `saved` vypne guard neuložených změn po zápisu. */
+/* A check-in in progress. It lives only in the memory of the check-in stack; nothing persists
+   it. The provider sits in app/checkin/_layout: each time the modal opens, the draft starts
+   empty. `saved` turns off the guard of unsaved changes after the write. */
 import React from "react";
 import type { CheckinDraft } from "../../model";
 
@@ -15,7 +15,7 @@ export const EMPTY_DRAFT: CheckinDraft = {
 interface CheckinDraftStore {
   draft: CheckinDraft;
   setDraft: (p: Partial<CheckinDraft>) => void;
-  /** Zápis je uložený — odchod ze sheetu už nic nezahazuje. */
+  /** The entry is already in the database; to leave the sheet now discards nothing. */
   saved: boolean;
   markSaved: () => void;
 }
@@ -37,7 +37,7 @@ export function CheckinDraftProvider({ children }: { children: React.ReactNode }
   return <CheckinDraftContext.Provider value={value}>{children}</CheckinDraftContext.Provider>;
 }
 
-/** Je v draftu něco, co by zavření sheetu zahodilo? */
+/** Does the draft hold anything that a close of the sheet would discard? */
 export function isDraftDirty(draft: CheckinDraft): boolean {
   return (
     draft.mood !== null ||
@@ -49,6 +49,6 @@ export function isDraftDirty(draft: CheckinDraft): boolean {
 
 export function useCheckinDraft(): CheckinDraftStore {
   const ctx = React.useContext(CheckinDraftContext);
-  if (!ctx) throw new Error("useCheckinDraft musí být uvnitř <CheckinDraftProvider>.");
+  if (!ctx) throw new Error("useCheckinDraft must be used inside <CheckinDraftProvider>.");
   return ctx;
 }

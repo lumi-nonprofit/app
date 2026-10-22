@@ -1,25 +1,27 @@
-/* Neznámá cesta (deep link na neexistující obrazovku). Česky, s jasným
-   dalším krokem — HIG Writing: prázdná obrazovka vždy říká, co dál. */
+/* An unknown path (a deep link to a screen that does not exist). The text names a clear next
+   step (the HIG guidance on text: an empty screen always says what comes next). */
 import { View } from "react-native";
 import { Link, Stack } from "expo-router";
 import { Text } from "../src/ds";
+import { useTranslation } from "../src/i18n";
 import { createThemedStyles } from "../src/theme";
 
 export default function NotFoundScreen() {
+  const { t } = useTranslation("navigation");
   const styles = useStyles();
   return (
     <>
-      <Stack.Screen options={{ headerShown: true, title: "Nenalezeno" }} />
+      <Stack.Screen options={{ headerShown: true, title: t("notFound.title") }} />
       <View style={styles.wrap}>
         <Text accessibilityRole="header" variant="title2" align="center">
-          Tahle stránka v Lumi není
+          {t("notFound.heading")}
         </Text>
         <Text variant="body" align="center">
-          Odkaz je asi neplatný nebo zastaralý.
+          {t("notFound.message")}
         </Text>
         <Link href="/" accessibilityRole="link" style={styles.link}>
           <Text variant="label" color="textStrong" style={styles.linkText}>
-            Zpět na Dnes
+            {t("notFound.home")}
           </Text>
         </Link>
       </View>

@@ -45,7 +45,7 @@ async fn health() -> &'static str {
     "ok"
 }
 
-/// Accept an opaque blob. The body is stored verbatim; never inspected.
+/// Accept an opaque blob. The store keeps the body verbatim and never looks inside it.
 async fn push(State(store): State<Store>, body: Bytes) -> StatusCode {
     store
         .blobs

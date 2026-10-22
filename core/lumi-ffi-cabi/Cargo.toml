@@ -5,7 +5,7 @@
 # the handle. Depends on lumi-store to instantiate the production VaultManager<SqliteStore>.
 #
 # Host/NDK-only (pulls lumi-store -> bundled SQLite C); NOT in the dependency-free musl loop.
-# NOTE: no `[profile.release] panic = "abort"` — the catch_unwind backstop needs unwinding panics.
+# NOTE: no `[profile.release] panic = "abort"` — the catch_unwind backstop needs panics that unwind.
 [package]
 name = "lumi-ffi-cabi"
 version = "0.0.0"

@@ -1,0 +1,7 @@
+extends: occurrence
+message: "The paragraph has more than 6 sentences. STE: one topic and a maximum of 6 sentences per paragraph."
+link: https://www.asd-ste100.org/
+level: error
+scope: paragraph
+max: 6
+token: '[^\s.!?][.!?](?:\s|$)'

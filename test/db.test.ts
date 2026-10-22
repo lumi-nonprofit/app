@@ -1,5 +1,5 @@
-/* Datová vrstva: schéma + repo funkce a záloha export → smazání → import
-   = identická data. */
+/* The data layer: the schema, the repo functions and the backup. An export, a wipe and an
+   import give identical data. */
 import { buildBackup, importBackup, parseBackup } from "../src/db/backup";
 import {
   insertEntry,
@@ -24,11 +24,11 @@ const entry = (e: Partial<Entry> & Pick<Entry, "mood" | "intensity">): Entry => 
   ...e,
 });
 
-describe("repo: záznamy a měření", () => {
-  it("INSERT + čtení s rozsahem, řazení podle id (pořadí vzniku)", () => {
+describe("repo: entries and measurements", () => {
+  it("inserts, reads with a range and sorts by id (creation order)", () => {
     const db = createTestDb();
     const a = entry({ mood: "klid", intensity: 2, date: "2026-06-10" });
-    const b = entry({ mood: "napeti", intensity: 4, date: "2026-06-12", words: ["stres"] });
+    const b = entry({ mood: "napeti", intensity: 4, date: "2026-06-12", words: ["stress"] });
     const c = entry({ mood: "klid", intensity: 3, date: "2026-06-12" });
     insertEntry(db, b);
     insertEntry(db, a);
@@ -37,7 +37,7 @@ describe("repo: záznamy a měření", () => {
     expect(listEntries(db)).toHaveLength(3);
     expect(listEntries(db, { from: "2026-06-12" }).map((e) => e.id)).toEqual([b.id, c.id]);
     expect(listEntries(db, { to: "2026-06-10" })).toHaveLength(1);
-    // duplicitní id se tiše ignoruje (merge sémantika)
+    // The repo silently ignores a duplicate id (merge semantics).
     insertEntry(db, {
       ...a,
       note: "jiná",
@@ -55,7 +55,7 @@ describe("repo: záznamy a měření", () => {
     expect(originalA.tags).toEqual([]);
   });
 
-  it("měření se filtrují podle typu a řadí podle data", () => {
+  it("filters measurements by type and sorts them by date", () => {
     const db = createTestDb();
     insertMeasurement(db, { id: "m2", type: "who5", score: 72, date: "2026-06-10", answers: [] });
     insertMeasurement(db, {
@@ -74,7 +74,7 @@ describe("repo: záznamy a měření", () => {
     expect(listMeasurements(db, "gad7")).toHaveLength(0);
   });
 
-  it("profil: defaulty, zápis po částech, neznámé hodnoty nepropadnou", () => {
+  it("gives profile defaults, writes the profile in parts and drops unknown values", () => {
     const db = createTestDb();
     expect(readProfile(db)).toEqual({ onboarded: false, name: "", age: null, share: false });
     writeProfile(db, { name: "Janko", age: "u26" });
@@ -83,14 +83,14 @@ describe("repo: záznamy a měření", () => {
   });
 });
 
-describe("záloha", () => {
-  it("export → smazání → import vrátí identická data", () => {
+describe("backup", () => {
+  it("returns identical data after export, wipe and import", () => {
     const db = createTestDb();
     const e1 = entry({
       mood: "utlum",
       intensity: 3,
-      words: ["únava"],
-      tags: ["spánek"],
+      words: ["tiredness"],
+      tags: ["sleep"],
       note: "dlouhý den",
     });
     const e2 = entry({ mood: "energie", intensity: 5, date: "2026-06-11" });
@@ -107,7 +107,7 @@ describe("záloha", () => {
 
     const json = JSON.stringify(buildBackup(db, new Date("2026-06-12T20:00:00")));
 
-    // „smazání“: čistá databáze
+    // The "wipe": a clean database.
     const fresh = createTestDb();
     const parsed = parseBackup(json);
     if (!parsed.ok) throw new Error("záloha se nenačetla");
@@ -123,11 +123,11 @@ describe("záloha", () => {
     expect(listEntries(fresh)).toEqual(listEntries(db));
     expect(listMeasurements(fresh, "who5")).toEqual(listMeasurements(db, "who5"));
 
-    // merge bez duplicit: druhý import nepřidá nic
+    // Merge without duplicates: a second import adds nothing.
     expect(importBackup(fresh, parsed.backup)).toEqual({ addedEntries: 0, addedMeasurements: 0 });
   });
 
-  it("v záloze není šifrovací klíč ani onboarded", () => {
+  it("keeps the encryption key and the onboarded flag out of the backup", () => {
     const db = createTestDb();
     writeProfile(db, { name: "Janko", onboarded: true });
     const backup = buildBackup(db);
@@ -135,13 +135,13 @@ describe("záloha", () => {
     expect(JSON.stringify(backup)).not.toMatch(/key|klíč/i);
   });
 
-  it("nevalidní soubor se odmítne srozumitelně", () => {
+  it("rejects an invalid file with a clear reason", () => {
     expect(parseBackup("tohle není json")).toEqual({ ok: false, reason: "invalid-json" });
     expect(parseBackup("{}")).toEqual({ ok: false, reason: "not-a-backup" });
     expect(parseBackup('{"version": 99}')).toEqual({ ok: false, reason: "unknown-version" });
   });
 
-  it("DB tabulky jdou vyprázdnit a import je obnoví (smoke pro schéma)", () => {
+  it("empties the DB tables and the import restores them (schema smoke test)", () => {
     const db = createTestDb();
     insertEntry(db, entry({ mood: "klid", intensity: 1 }));
     insertMeasurement(db, { id: "w1", type: "who5", score: 50, date: "2026-06-12", answers: [] });

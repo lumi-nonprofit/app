@@ -1,0 +1,7 @@
+extends: existence
+message: "'%s' is not approved. STE: write two sentences, or 'A, or B, or both'."
+link: https://www.asd-ste100.org/
+level: error
+nonword: true
+tokens:
+  - '\band/or\b'

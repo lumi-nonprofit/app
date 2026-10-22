@@ -56,7 +56,7 @@ fn ffi_round_trip_put_list_shred() {
         let mut handle = 0u64;
         assert_eq!(lumi_unlock_vault(pin.as_ptr(), &mut handle), LUMI_OK);
 
-        // put two records
+        // put 2 records
         let j1 = cstr(r#"{"mood":"klid","intensity":3,"note":"ok"}"#);
         let j2 = cstr(r#"{"mood":"napeti","intensity":5,"note":""}"#);
         let mut rid1 = [0u8; 16];
@@ -70,7 +70,7 @@ fn ffi_round_trip_put_list_shred() {
         assert_eq!(lumi_list_checkins(handle, &mut out), LUMI_OK);
         assert!(!out.is_null());
         let listed = CStr::from_ptr(out).to_str().unwrap().to_string();
-        lumi_string_free(out); // free Rust-allocated string via the library
+        lumi_string_free(out); // free the Rust-allocated string through the library
         assert_eq!(listed.matches("\"record_id\"").count(), 2);
         assert!(listed.contains("klid") && listed.contains("napeti"));
 
@@ -79,7 +79,7 @@ fn ffi_round_trip_put_list_shred() {
         assert_eq!(lumi_shred_checkin(handle, rid1.as_ptr(), &mut destroyed), LUMI_OK);
         assert!(destroyed, "shredding a live record reports destroyed=true");
 
-        // double-shred -> destroyed = false, still LUMI_OK (the throwing path resolves to a bool)
+        // double-shred -> destroyed = false, still LUMI_OK (the throw path resolves to a bool)
         assert_eq!(lumi_shred_checkin(handle, rid1.as_ptr(), &mut destroyed), LUMI_OK);
         assert!(!destroyed, "re-shredding reports destroyed=false");
 
@@ -109,7 +109,7 @@ fn ffi_wrong_pin_returns_error_code() {
         assert_eq!(lumi_put_checkin(h, j.as_ptr(), 1, rid.as_mut_ptr()), LUMI_OK);
         assert_eq!(lumi_vault_close(), LUMI_OK);
 
-        // reopen, wrong PIN -> the throwing path surfaces as LUMI_ERR_WRONG_PIN
+        // reopen, wrong PIN -> the throw path surfaces as LUMI_ERR_WRONG_PIN
         assert_eq!(lumi_vault_open(db.c_path().as_ptr()), LUMI_OK);
         let wrong = cstr("the-WRONG-pin");
         let mut h2 = 0u64;
@@ -123,7 +123,7 @@ fn ffi_error_codes_not_open_bad_handle_null() {
     let _g = serialize();
     unsafe {
         // not open -> LUMI_ERR_NOT_OPEN
-        assert_eq!(lumi_vault_close(), LUMI_OK); // ensure manager is None
+        assert_eq!(lumi_vault_close(), LUMI_OK); // make sure that the manager is None
         let pin = cstr("x");
         let mut h = 0u64;
         assert_eq!(lumi_unlock_vault(pin.as_ptr(), &mut h), LUMI_ERR_NOT_OPEN);
@@ -146,7 +146,7 @@ fn ffi_error_codes_not_open_bad_handle_null() {
         assert_eq!(lumi_list_checkins(bad, &mut out), LUMI_ERR_BAD_HANDLE);
         assert_eq!(lumi_shred_checkin(bad, rid.as_ptr(), &mut destroyed), LUMI_ERR_BAD_HANDLE);
 
-        // freeing NULL is a no-op
+        // a free of NULL is a no-op
         lumi_string_free(ptr::null_mut());
 
         assert_eq!(lumi_vault_close(), LUMI_OK);

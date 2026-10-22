@@ -1,8 +1,8 @@
-/* Sdílené volby nativního stacku (iOS HIG toolbars / Android top app bar).
-   iOS: velký titulek na kořenech tabů, systémové Zpět bez textu
-   (`headerBackButtonDisplayMode: "minimal"`), žádné vlastní pozadí lišty —
-   Liquid Glass a scroll edge effect dodává systém. Android: titulek vlevo
-   v Bricolage (M3 titleLarge 22 sp), lišta v barvě plochy bez stínu. */
+/* Shared options of the native stack (iOS HIG toolbars / Android top app bar).
+   iOS: a large title on the tab roots, the system back button without text
+   (`headerBackButtonDisplayMode: "minimal"`), no custom bar background: the system supplies
+   Liquid Glass and the scroll edge effect. Android: the title on the left in Bricolage
+   (M3 titleLarge 22 sp), the bar in the page colour without a shadow. */
 import type { NativeStackNavigationOptions } from "expo-router";
 import { useRouter } from "expo-router";
 import { DISPLAY_FONT } from "../ds/Text";
@@ -16,7 +16,11 @@ export function stackScreenOptions(theme: Theme): NativeStackNavigationOptions {
     headerTitleAlign: ios ? "center" : "left",
     headerTitleStyle: ios
       ? { color: theme.colors.textStrong }
-      : { fontFamily: DISPLAY_FONT.semibold, fontSize: 22, color: theme.colors.textStrong },
+      : {
+          fontFamily: DISPLAY_FONT.semibold,
+          fontSize: theme.platform.headerTitleSize,
+          color: theme.colors.textStrong,
+        },
     headerLargeTitleStyle: { fontFamily: DISPLAY_FONT.bold, color: theme.colors.textStrong },
     headerStyle: ios ? undefined : { backgroundColor: theme.colors.surfacePage },
     headerShadowVisible: false,
@@ -25,12 +29,12 @@ export function stackScreenOptions(theme: Theme): NativeStackNavigationOptions {
   };
 }
 
-/** Kořen tabu: na iOS velký titulek, který při scrollu přejde na standardní. */
+/** The root of a tab: on iOS a large title that collapses to the standard title on scroll. */
 export function largeTitleOptions(theme: Theme): NativeStackNavigationOptions {
   return { headerLargeTitleEnabled: theme.platform.isIOS };
 }
 
-/** Zavření modální úlohy: zpět, a po deep linku bez historie na Dnes. */
+/** Closes a modal task: back, or the fallback route after a deep link without history. */
 export function useCloseModal(
   fallback: Parameters<ReturnType<typeof useRouter>["replace"]>[0] = "/",
 ) {

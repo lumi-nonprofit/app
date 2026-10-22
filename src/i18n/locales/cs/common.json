@@ -3,7 +3,6 @@
     "add": "Přidat",
     "back": "Zpět",
     "cancel": "Zrušit",
-    "close": "Zavřít",
     "continue": "Pokračovat",
     "delete": "Smazat",
     "discard": "Zahodit",
@@ -28,10 +27,6 @@
   },
   "appName": "Lumi",
   "counts": {
-    "days_one": "{{count}} den",
-    "days_few": "{{count}} dny",
-    "days_many": "{{count}} dne",
-    "days_other": "{{count}} dní",
     "entries_one": "{{count}} záznam",
     "entries_few": "{{count}} záznamy",
     "entries_many": "{{count}} záznamu",
@@ -40,19 +35,10 @@
     "minutes_few": "{{count}} min",
     "minutes_many": "{{count}} min",
     "minutes_other": "{{count}} min",
-    "points_one": "{{count}} bod",
-    "points_few": "{{count}} body",
-    "points_many": "{{count}} bodu",
-    "points_other": "{{count}} bodů",
     "questions_one": "{{count}} otázka",
     "questions_few": "{{count}} otázky",
     "questions_many": "{{count}} otázky",
     "questions_other": "{{count}} otázek"
-  },
-  "dayparts": {
-    "afternoon": "odpoledne",
-    "evening": "večer",
-    "morning": "ráno"
   },
   "errors": {
     "databaseFailed": {
@@ -71,7 +57,6 @@
     "withName": "{{greeting}}, {{name}}"
   },
   "list": {
-    "last": " a ",
     "separator": ", "
   },
   "weekdays": {

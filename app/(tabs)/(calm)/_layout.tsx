@@ -11,7 +11,10 @@ export default function CalmStackLayout() {
   const theme = useTheme();
   return (
     <Stack screenOptions={stackScreenOptions(theme)}>
-      <Stack.Screen name="calm" options={{ title: t("titles.calm"), ...largeTitleOptions(theme) }} />
+      <Stack.Screen
+        name="calm"
+        options={{ title: t("titles.calm"), ...largeTitleOptions(theme) }}
+      />
     </Stack>
   );
 }

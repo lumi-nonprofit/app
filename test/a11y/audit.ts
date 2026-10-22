@@ -1,5 +1,5 @@
 /* The accessibility audit of a rendered screen. The audit walks the host tree that
-   `screen.toJSON()` of React Native Testing Library returns and reports the violations of the
+   `screen.toJSON()` returns (RNTL) and reports the violations of the
    rules below. The rules cover the parts of WCAG 2.2 AA that a static tree can show: name, role
    and value (4.1.2), headings (2.4.6) and the target size (2.5.8), with the touch targets of the
    HIG (44 pt) and Material (48 dp). Contrast lives in test/contrast.test.ts, and axe-core checks
@@ -165,7 +165,11 @@ export function auditTree(root: Child | Child[] | null, options: AuditOptions): 
       if (pressable && role === undefined) {
         if (p.accessible === false) {
           if (!(node.children ?? []).some(hasRoleInside)) {
-            report("role", here, `${describe(node)} is a pressable container without a role inside.`);
+            report(
+              "role",
+              here,
+              `${describe(node)} is a pressable container without a role inside.`,
+            );
           }
         } else {
           report("role", here, `${describe(node)} is pressable but has no accessibilityRole.`);
@@ -190,7 +194,7 @@ export function auditTree(root: Child | Child[] | null, options: AuditOptions): 
         }
       }
 
-      /* 6. Text without content confuses the reading order. */
+      /* 6. Text without content confuses the order of the screen reader. */
       if (node.type === "Text" && !accessibleName(node)) {
         report("empty-text", here, "A Text element has no content.");
       }

@@ -23,7 +23,8 @@ module.exports = {
       /* The web build of lucide-react-native is an ES module (.mjs), which the Babel transform of
          the preset does not cover. The CommonJS build has the same icons. */
       moduleNameMapper: {
-        "^lucide-react-native$": "<rootDir>/node_modules/lucide-react-native/dist/cjs/lucide-react-native.js",
+        "^lucide-react-native$":
+          "<rootDir>/node_modules/lucide-react-native/dist/cjs/lucide-react-native.js",
       },
     },
   ],

@@ -14,9 +14,9 @@
     "today": "dnes"
   },
   "deep": {
+    "intro_one": "Krátký dotazník ({{count}} otázka) · dobrovolný",
     "intro_few": "Krátký dotazník ({{count}} otázky) · dobrovolný",
     "intro_many": "Krátký dotazník ({{count}} otázky) · dobrovolný",
-    "intro_one": "Krátký dotazník ({{count}} otázka) · dobrovolný",
     "intro_other": "Krátký dotazník ({{count}} otázek) · dobrovolný",
     "last": "Naposledy: {{band}}",
     "lastLess": "Naposledy: {{band}} · {{amount}} míň než minule",
@@ -63,9 +63,9 @@
     "titleCurrent": "Tvůj týden",
     "titleLast": "Tvůj minulý týden",
     "topWords": "Nejčastější slova",
+    "total_one": "Celkem {{count}} záznam.",
     "total_few": "Celkem {{count}} záznamy.",
     "total_many": "Celkem {{count}} záznamu.",
-    "total_one": "Celkem {{count}} záznam.",
     "total_other": "Celkem {{count}} záznamů."
   },
   "wellbeing": {
@@ -79,14 +79,14 @@
     "title": "Wellbeing index"
   },
   "who5": {
+    "filledAgo_one": "Vyplněno před {{count}} dnem.",
     "filledAgo_few": "Vyplněno před {{count}} dny.",
     "filledAgo_many": "Vyplněno před {{count}} dne.",
-    "filledAgo_one": "Vyplněno před {{count}} dnem.",
     "filledAgo_other": "Vyplněno před {{count}} dny.",
     "filledToday": "Vyplněno dnes.",
+    "nextIn_one": "Další dotazník tě čeká za {{count}} den.",
     "nextIn_few": "Další dotazník tě čeká za {{count}} dny.",
     "nextIn_many": "Další dotazník tě čeká za {{count}} dne.",
-    "nextIn_one": "Další dotazník tě čeká za {{count}} den.",
     "nextIn_other": "Další dotazník tě čeká za {{count}} dní.",
     "nextToday": "Další dotazník tě čeká dnes."
   }

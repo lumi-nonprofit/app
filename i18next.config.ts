@@ -1,6 +1,6 @@
 // Configuration of i18next-cli (https://github.com/i18next/i18next-cli).
 // `npm run i18n:extract` writes the keys that the code uses into the catalogs.
-// `npm run i18n:check` fails when a catalog is out of date, a translation is missing, or the
+// `npm run i18n:check` fails when a catalog is out of date, a translation is absent, or the
 // catalogs differ (scripts/check-i18n.mjs).
 import { defineConfig } from "i18next-cli";
 

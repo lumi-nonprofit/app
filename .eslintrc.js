@@ -1,6 +1,6 @@
 // ESLint configuration. The rules enforce the standards of README.md, section "Standards":
 // accessibility (eslint-plugin-react-native-a11y), the design system (no raw Text, no raw palette,
-// no raw type scale or colours in screens) and the message catalogs (no literal user-facing text).
+// no raw type scale or colours in screens) and the message catalogs (no literal text for the user).
 module.exports = {
   root: true,
   extends: ["expo", "plugin:react-native-a11y/all"],
@@ -33,7 +33,7 @@ module.exports = {
         // theme roles. A raw size or a raw colour in a screen breaks Dynamic Type, dark mode
         // and the contrast test.
         "no-restricted-syntax": [
-          "warn",
+          "error",
           {
             selector: "Property[key.name=/^(fontSize|lineHeight)$/] > Literal[raw=/^[0-9]/]",
             message: "The type scale lives in ds/Text variants (HIG text styles, M3 type roles).",
@@ -77,8 +77,8 @@ module.exports = {
       },
     },
     {
-      // Every user-facing string comes from the message catalogs (src/i18n/locales). A literal
-      // in JSX, in a user-facing prop, in a dialog or in a notification is an error.
+      // Every string that the user sees comes from the message catalogs (src/i18n/locales). A literal
+      // in JSX, in a prop that the user sees, in a dialog or in a notification is an error.
       // Ids, routes, icon names, style values and keys pass through `words.exclude`.
       files: ["app/**/*.{ts,tsx}", "src/**/*.{ts,tsx}"],
       excludedFiles: [
@@ -91,7 +91,7 @@ module.exports = {
       ],
       rules: {
         "i18next/no-literal-string": [
-          "warn",
+          "error",
           {
             mode: "all",
             "should-validate-template": true,
@@ -100,20 +100,21 @@ module.exports = {
                 "^(title|label|placeholder|hint|description|subtitle|sublabel|kicker|message|confirmLabel|cancelLabel|loadingLabel|headerTitle|headerBackTitle|tabBarLabel|accessibilityLabel|accessibilityHint|dialogTitle|body|text)$",
               ],
               exclude: [
-                "^(testID|sf|md|icon|name|href|variant|size|color|tone|weight|align|presentation|pathname|mimeType|behavior|display|mode|locale|keyboardType|autoComplete|textContentType|returnKeyType|autoCapitalize|accessibilityRole|importantForAccessibility|key|style|anchor|contentInsetAdjustmentBehavior)$",
+                "^(testID|sf|md|icon|name|href|variant|size|color|tone|weight|align|presentation|pathname|mimeType|behavior|display|mode|locale|keyboardType|autoComplete|textContentType|returnKeyType|autoCapitalize|accessibilityRole|importantForAccessibility|key|style|anchor|contentInsetAdjustmentBehavior|viewBox|fill|stroke|d)$",
               ],
             },
             callees: {
               include: [
                 "^(Alert\\.alert|confirm|confirmDiscard|confirmDelete|notify|announce|scheduleNotificationAsync|Notifications\\.scheduleNotificationAsync|setNotificationChannelAsync|Notifications\\.setNotificationChannelAsync)$",
               ],
+              // The plugin matches the whole callee text, so a prefix needs `.*` after it.
               exclude: [
-                "^console\\.",
-                "Error$",
-                "^jest\\.",
+                "console\\.\\w+",
+                "\\w*Error",
+                "jest\\.\\w+",
                 "^require$",
                 "^(getSetting|setSetting|openURL|execSync|replace|split|includes|startsWith|endsWith|padStart|join|indexOf|test|match|useState|useRef|createContext|t|i18n\\.t|contentText|contentTextOrNull|Date|RegExp|useAccessibilityFlag|addEventListener|removeEventListener|setTimeout|setInterval|parseInt|Number|String)$",
-                "^Intl\\.",
+                "Intl\\.\\w+",
               ],
             },
             "object-properties": {
@@ -122,7 +123,15 @@ module.exports = {
               ],
             },
             words: {
-              exclude: ["^[a-z0-9_./:()\\[\\]#%,+*-]*$", "^[A-Z0-9_./-]+$", "^\\s*$", "^tel:"],
+              // Ids, routes, style values, theme roles (camelCase) and numbers are not text.
+              exclude: [
+                "^[a-z0-9_./:()\\[\\]#%,+*-]*$",
+                "^[A-Z0-9_./-]+$",
+                "^[a-z]+(?:[A-Z][a-z0-9]*)+$",
+                "^[0-9][0-9 .,:-]*$",
+                "^\\s*$",
+                "^tel:",
+              ],
             },
           },
         ],

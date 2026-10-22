@@ -12,7 +12,10 @@ export default function HelpStackLayout() {
   const theme = useTheme();
   return (
     <Stack screenOptions={stackScreenOptions(theme)}>
-      <Stack.Screen name="help" options={{ title: t("titles.help"), ...largeTitleOptions(theme) }} />
+      <Stack.Screen
+        name="help"
+        options={{ title: t("titles.help"), ...largeTitleOptions(theme) }}
+      />
       <Stack.Screen name="plan/[section]" options={{ title: t("titles.plan") }} />
     </Stack>
   );

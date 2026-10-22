@@ -25,10 +25,10 @@ const entry = (e: Partial<Entry> & Pick<Entry, "mood" | "intensity">): Entry => 
 });
 
 describe("plural forms from the catalog", () => {
-  it("declines days in Czech", () => {
-    expect(i18n.t("common:counts.days", { count: 1 })).toBe("1 den");
-    expect(i18n.t("common:counts.days", { count: 3 })).toBe("3 dny");
-    expect(i18n.t("common:counts.days", { count: 11 })).toBe("11 dní");
+  it("declines entries in Czech", () => {
+    expect(i18n.t("common:counts.entries", { count: 1 })).toBe("1 záznam");
+    expect(i18n.t("common:counts.entries", { count: 3 })).toBe("3 záznamy");
+    expect(i18n.t("common:counts.entries", { count: 11 })).toBe("11 záznamů");
   });
   it("gives the week from Monday in the active language", () => {
     expect(weekdayLetters()).toEqual(["Po", "Út", "St", "Čt", "Pá", "So", "Ne"]);

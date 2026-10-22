@@ -3,7 +3,6 @@
     "add": "Add",
     "back": "Back",
     "cancel": "Cancel",
-    "close": "Close",
     "continue": "Continue",
     "delete": "Delete",
     "discard": "Discard",
@@ -28,21 +27,12 @@
   },
   "appName": "Lumi",
   "counts": {
-    "days_one": "{{count}} day",
-    "days_other": "{{count}} days",
     "entries_one": "{{count}} entry",
     "entries_other": "{{count}} entries",
     "minutes_one": "{{count}} min",
     "minutes_other": "{{count}} min",
-    "points_one": "{{count}} point",
-    "points_other": "{{count}} points",
     "questions_one": "{{count}} question",
     "questions_other": "{{count}} questions"
-  },
-  "dayparts": {
-    "afternoon": "afternoon",
-    "evening": "evening",
-    "morning": "morning"
   },
   "errors": {
     "databaseFailed": {
@@ -61,7 +51,6 @@
     "withName": "{{greeting}}, {{name}}"
   },
   "list": {
-    "last": " and ",
     "separator": ", "
   },
   "weekdays": {

@@ -36,6 +36,14 @@ updates:
       - dependency-name: "react-native-svg"
       - dependency-name: "react-native-safe-area-context"
       - dependency-name: "react-native-screens"
+      # The SDK also pins these native modules (`expo/bundledNativeModules.json`). PR #46 showed
+      # the risk: reanimated 4.7 and worklets 0.13 need React Native 0.86, so `npm ci` failed.
+      - dependency-name: "react-native-reanimated"
+      - dependency-name: "react-native-worklets"
+      - dependency-name: "react-native-gesture-handler"
+      - dependency-name: "@react-native-community/datetimepicker"
+      - dependency-name: "@react-native-community/slider"
+      - dependency-name: "@react-native-segmented-control/segmented-control"
       # Peer-coupled toolchain — majors break the build; patches/minors within the current major flow.
       - dependency-name: "eslint"
         update-types: ["version-update:semver-major"]

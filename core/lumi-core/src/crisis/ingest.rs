@@ -344,3 +344,47 @@ fn tel_normalize(num: &str) -> String {
         .filter(|c| c.is_ascii_digit() || *c == '+')
         .collect()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // 22 of the 31 lines in the seed have 2 scope tags, and both orders occur. Thus the tests
+    // also check the reverse order of each pair.
+    fn scope_of(tags: &[&str]) -> Scope {
+        let cats: Vec<String> = tags.iter().map(|t| t.to_string()).collect();
+        demux_categories(&cats).0
+    }
+
+    #[test]
+    fn national_wins_over_region_and_city() {
+        let cases: [&[&str]; 5] = [
+            &["Celorepublikové", "Praha"],
+            &["Praha", "Celorepublikové"],
+            &["Celorepublikové", "Jihomoravský kraj"],
+            &["Jihomoravský kraj", "Celorepublikové"],
+            &["Brno", "Jihomoravský kraj", "Celorepublikové"],
+        ];
+        for tags in cases {
+            assert_eq!(scope_of(tags), Scope::National, "{tags:?}");
+        }
+    }
+
+    #[test]
+    fn region_wins_over_city() {
+        let cases: [(&[&str], &str); 4] = [
+            (&["Blansko", "Jihomoravský kraj"], "Jihomoravský kraj"),
+            (&["Jihomoravský kraj", "Blansko"], "Jihomoravský kraj"),
+            (&["Moravskoslezský kraj", "Ostrava"], "Moravskoslezský kraj"),
+            (&["Ostrava", "Moravskoslezský kraj"], "Moravskoslezský kraj"),
+        ];
+        for (tags, kraj) in cases {
+            assert_eq!(scope_of(tags), Scope::Region(kraj.to_string()), "{tags:?}");
+        }
+    }
+
+    #[test]
+    fn city_tag_alone_resolves_to_city() {
+        assert_eq!(scope_of(&["Brno"]), Scope::City("Brno".to_string()));
+    }
+}

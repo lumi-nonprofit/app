@@ -30,6 +30,6 @@ export interface LumiCrypto extends HybridObject<{ ios: "c++"; android: "c++" }>
     intensity: number,
     note: string,
   ): string;
-  // -> { mood, intensity, note }; THROWS if the sealed blob can't be opened
+  // -> { mood, intensity, note }; THROWS if the sealed blob does not open
   openCheckin(handle: string, peerPublicB64: string, sealedB64: string): CheckinDraft;
 }

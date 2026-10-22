@@ -11,14 +11,14 @@
 //! - **§1:** secret/derived keys never leave Rust. They live in an in-process registry
 //!   behind an opaque [`VaultHandle`]; the API returns handles, plaintext domain records,
 //!   record ids, and errors — **never key bytes**. The PIN crosses *in* (it is user input,
-//!   not a key); Argon2id runs here and the derived keys stay here (ADR 0004 §1 reading).
+//!   not a key); Argon2id runs here and the derived keys stay here (the ADR 0004 §1 interpretation).
 //! - Pure-Rust RustCrypto only (musl-buildable); `#![forbid(unsafe_code)]`; no hand-rolled
-//!   crypto; secrets are wrapped in [`zeroize::Zeroizing`] and wiped on drop.
+//!   crypto; secrets live in [`zeroize::Zeroizing`], which wipes them on drop.
 //! - This crate **never logs** keys, the PIN, or plaintext.
 //!
-//! **Storage** is abstracted by [`VaultStore`] so SQLite can satisfy it later (lumi-store,
+//! [`VaultStore`] abstracts **storage**, so SQLite can satisfy it later (lumi-store,
 //! the next build step). [`memory::InMemoryStore`] is the in-process reference impl used by
-//! tests; there is **no SQLite / C-ABI / app wiring in this crate**.
+//! tests; there is **no SQLite / C-ABI / app integration in this crate**.
 
 #![forbid(unsafe_code)]
 
@@ -31,11 +31,12 @@ use chacha20poly1305::{
 };
 use zeroize::{Zeroize, Zeroizing};
 
-/// On-disk format version (bumping it is a migration). Bound into every AEAD AAD.
+/// On-disk format version (a bump is a migration). Bound into every AEAD AAD.
 pub const FORMAT_VERSION: u8 = 1;
 
 /// Argon2id cost floor (ADR 0001 §3): m = 64 MiB, t = 3, p = 1. Persisted *per vault* so a
-/// later cost bump never locks out an existing vault. On-device tuning lands in a later step.
+/// later cost bump never locks out a vault that already exists. On-device cost adjustment lands
+/// in a later step.
 pub const ARGON2_M_COST_KIB: u32 = 64 * 1024;
 /// Argon2id passes (t). See [`ARGON2_M_COST_KIB`].
 pub const ARGON2_T_COST: u32 = 3;
@@ -60,7 +61,7 @@ pub struct VaultHandle(u64);
 pub struct Checkin {
     pub record_id: RecordId,
     pub created_at: i64,
-    /// The opaque record payload (e.g. the serialized Entry JSON). `lumi-vault` does not parse it.
+    /// The opaque record payload (for example the serialized Entry JSON). `lumi-vault` does not parse it.
     pub payload: String,
 }
 
@@ -91,7 +92,7 @@ pub struct RecordRow {
     pub content_nonce: Vec<u8>,
     /// XChaCha20-Poly1305-sealed payload (ciphertext ‖ tag).
     pub ciphertext: Vec<u8>,
-    /// Plaintext index column for timeline ordering (slice-accepted per ADR 0004 (e);
+    /// Plaintext index column for the timeline order (slice-accepted per ADR 0004 (e);
     /// index hardening is a committed pre-ship follow-up).
     pub created_at: i64,
 }
@@ -115,7 +116,7 @@ pub type StoreResult<T> = std::result::Result<T, StoreError>;
 /// Implementations persist only the wrapped/ciphertext material in [`VaultRow`] / [`RecordRow`];
 /// no key derivation or AEAD happens here.
 pub trait VaultStore {
-    /// Load the singleton vault row, if a vault has been created.
+    /// Load the singleton vault row, if a vault exists.
     fn load_vault(&self) -> StoreResult<Option<VaultRow>>;
     /// Persist (create or replace) the singleton vault row.
     fn save_vault(&mut self, row: &VaultRow) -> StoreResult<()>;
@@ -126,7 +127,7 @@ pub trait VaultStore {
     /// Fetch one record row by id, if present.
     fn get_record(&self, id: &RecordId) -> StoreResult<Option<RecordRow>>;
     /// Crypto-shred: destroy the record's wrapped content key (its ciphertext becomes
-    /// permanently unrecoverable). The row may persist as a tombstone. Returns `true` iff a
+    /// permanently unrecoverable). The row can persist as a tombstone. Returns `true` iff a
     /// live record's key was actually destroyed (so callers can confirm a real Art. 17
     /// erasure); `false` if the id was absent or already shredded. (The SQLite impl maps a
     /// 0-rows-affected `UPDATE` to `false`.)
@@ -136,17 +137,17 @@ pub trait VaultStore {
 /// Vault errors. **Carry no secret material** (safe to `Debug`/surface).
 #[derive(Debug)]
 pub enum Error {
-    /// Handle not found / vault not unlocked.
+    /// Handle not found / vault still locked.
     BadHandle,
-    /// The vault key could not be unwrapped: **wrong PIN** or a tampered vault row. Fails closed.
+    /// The unwrap of the vault key failed: **wrong PIN** or a tampered vault row. Fails closed.
     WrongPinOrCorruptVault,
     /// A record failed AEAD authentication (tampered/truncated ciphertext, AAD, or wrapped key).
     RecordIntegrity,
     /// Record not found or already crypto-shredded.
     NotFoundOrShredded,
-    /// Argon2id failure (e.g. invalid parameters).
+    /// Argon2id failure (for example invalid parameters).
     Argon2,
-    /// Unexpected AEAD / encoding failure during sealing.
+    /// Unexpected AEAD / encoding failure during the seal step.
     Crypto,
     /// Storage backend error.
     Store(StoreError),
@@ -195,7 +196,7 @@ fn random_nonce() -> Result<[u8; NONCE_LEN]> {
 
 /// AAD operation-role tags. The content-key *wrap* and the payload *seal* already use
 /// different keys (vault key vs content key), so they are domain-separated; the explicit
-/// role tag is defense-in-depth + self-documenting, and guards a future refactor that might
+/// role tag is defense-in-depth + self-explanatory, and guards a future refactor that could
 /// unify the keys.
 const AAD_ROLE_WRAP: &[u8] = b"wrap";
 const AAD_ROLE_SEAL: &[u8] = b"seal";
@@ -238,7 +239,7 @@ fn aead_open(key: &[u8; KEY_LEN], nonce: &[u8], ct: &[u8], aad: &[u8]) -> std::r
         .map_err(|_| ())
 }
 
-/// Open a wrapped 32-byte key into a zeroizing buffer (neutral error).
+/// Open a wrapped 32-byte key into a `Zeroizing` buffer (neutral error).
 fn open_key32(
     kek: &[u8; KEY_LEN],
     nonce: &[u8],
@@ -277,8 +278,8 @@ fn derive_pin_key(pin: &str, salt: &[u8], m_cost_kib: u32, t_cost: u32, p_cost: 
 // ---------------------------------------------------------------------------
 
 /// Owns the storage backend and the in-process registry of unlocked vault keys. Keys live
-/// only here, behind opaque [`VaultHandle`]s, and are zeroized when the manager (or a
-/// [`VaultManager::lock`]ed handle) drops.
+/// only here, behind opaque [`VaultHandle`]s; the drop of the manager (or of a
+/// [`VaultManager::lock`]ed handle) zeroizes them.
 pub struct VaultManager<S: VaultStore> {
     store: S,
     registry: HashMap<u64, Zeroizing<[u8; KEY_LEN]>>,
@@ -286,7 +287,7 @@ pub struct VaultManager<S: VaultStore> {
 }
 
 impl<S: VaultStore> VaultManager<S> {
-    /// Build a manager over a storage backend. No vault is unlocked until [`Self::unlock_vault`].
+    /// Build a manager over a storage backend. All vaults stay locked until [`Self::unlock_vault`].
     pub fn new(store: S) -> Self {
         Self { store, registry: HashMap::new(), next: 1 }
     }
@@ -345,9 +346,9 @@ impl<S: VaultStore> VaultManager<S> {
     /// (ADR 0004 (e)); `lumi-vault` does not read the wall clock (keeps it deterministic and
     /// pure). `record_json` is opaque to this crate.
     pub fn put_checkin(&mut self, handle: VaultHandle, record_json: &str, created_at: i64) -> Result<RecordId> {
-        // Copy the vault key out so we don't hold a registry borrow across the &mut store borrow.
-        // The transient copy is moved straight into `Zeroizing` (its only persistent home) and is
-        // wiped on drop; the registry's copy is untouched, and nothing crosses the API (§1).
+        // Copy the vault key out so that we do not hold a registry borrow across the &mut store borrow.
+        // The transient copy goes straight into `Zeroizing` (its only persistent home), which wipes
+        // it on drop; the registry's copy stays as it is, and nothing crosses the API (§1).
         let vault_key: Zeroizing<[u8; KEY_LEN]> = Zeroizing::new(**self.require_key(handle)?);
 
         let mut record_id = [0u8; RECORD_ID_LEN];
@@ -384,7 +385,7 @@ impl<S: VaultStore> VaultManager<S> {
         Ok(record_id)
     }
 
-    /// Decrypt and return all live records (crypto-shredded rows are skipped), sorted by
+    /// Decrypt and return all live records (the call skips crypto-shredded rows), sorted by
     /// `created_at` then `record_id`. Any *tampered* record fails the whole call closed.
     pub fn list_checkins(&self, handle: VaultHandle) -> Result<Vec<Checkin>> {
         let vault_key = self.require_key(handle)?;
@@ -400,7 +401,7 @@ impl<S: VaultStore> VaultManager<S> {
     }
 
     /// Decrypt and return a single record by id. Returns [`Error::NotFoundOrShredded`] for a
-    /// missing or shredded record, [`Error::RecordIntegrity`] for a tampered one.
+    /// absent or shredded record, [`Error::RecordIntegrity`] for a tampered one.
     pub fn get_checkin(&self, handle: VaultHandle, id: RecordId) -> Result<Checkin> {
         let vault_key = self.require_key(handle)?;
         let row = self.store.get_record(&id)?.ok_or(Error::NotFoundOrShredded)?;
@@ -412,7 +413,7 @@ impl<S: VaultStore> VaultManager<S> {
     /// [`Error::NotFoundOrShredded`] if the record is absent or was already shredded, so the
     /// caller gets explicit confirmation that an erasure actually happened.
     pub fn shred_checkin(&mut self, handle: VaultHandle, id: RecordId) -> Result<()> {
-        self.require_key(handle)?; // must be unlocked; borrow ends here
+        self.require_key(handle)?; // needs an unlocked vault; borrow ends here
         if self.store.shred_record(&id)? {
             Ok(())
         } else {
@@ -470,8 +471,8 @@ pub mod memory {
         records: Vec<RecordRow>,
     }
 
-    /// Shared in-memory store. `clone()` shares the same backing data, so two managers can be
-    /// opened over the same "database" (used by the reopen test).
+    /// Shared in-memory store. `clone()` shares the same data, so 2 managers can
+    /// open the same "database" (the reopen test uses this).
     #[derive(Clone, Default)]
     pub struct InMemoryStore(Arc<Mutex<Inner>>);
 
@@ -485,7 +486,7 @@ pub mod memory {
             self.0.lock().expect("store mutex").records.clone()
         }
 
-        /// Replace all record rows (test helper — used to simulate on-disk tampering).
+        /// Replace all record rows (test helper to simulate a hostile change of the rows on disk).
         pub fn set_records(&self, rows: Vec<RecordRow>) {
             self.0.lock().expect("store mutex").records = rows;
         }
@@ -495,7 +496,7 @@ pub mod memory {
             self.0.lock().expect("store mutex").vault.clone()
         }
 
-        /// Replace the vault row (test helper — used to simulate on-disk tampering of the vault leg).
+        /// Replace the vault row (test helper to simulate a hostile change of the vault row on disk).
         pub fn set_vault(&self, row: VaultRow) {
             self.0.lock().expect("store mutex").vault = Some(row);
         }
@@ -631,7 +632,7 @@ mod kat {
     }
 
     /// The nonce source is fresh CSPRNG: many draws are 24 bytes, non-constant, and distinct.
-    /// (A constant/derived/counter-colliding nonce would surface here.)
+    /// (A constant, derived or counter-collision nonce would surface here.)
     #[test]
     fn random_nonce_is_fresh_and_distinct() {
         use std::collections::HashSet;

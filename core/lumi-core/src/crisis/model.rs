@@ -56,8 +56,8 @@ impl Weekday {
     }
 }
 
-/// A single opening interval within the local week. Overnight ranges are split at
-/// midnight into two intervals at ingestion time, so `start_min < end_min` always.
+/// A single service interval within the local week. Ingestion splits overnight ranges at
+/// midnight into 2 intervals, so `start_min < end_min` always.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Interval {
     pub day: Weekday,
@@ -138,7 +138,7 @@ pub enum Channel {
     Email { addresses: Vec<String> },
 }
 
-/// Where the data came from + whether it has been verified (see the release checklist).
+/// Where the data came from + whether a person verified it (see the release checklist).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Provenance {
     pub schema_version: String,

@@ -1,6 +1,6 @@
 // THROWAWAY spike #1b — hand-written C++ method bodies over the Rust C ABI.
 // Ported from reference/LumiCryptoImpl.cpp: same base64 helpers + Rust-C-ABI calls
-// and §1 discipline, but returning Nitro structs and throwing std::runtime_error
+// and §1 discipline, but it returns Nitro structs and throws std::runtime_error
 // (Nitro converts C++ exceptions to JS errors) instead of raw jsi.
 #include "HybridLumiCrypto.hpp"
 
@@ -134,7 +134,7 @@ CheckinDraft HybridLumiCrypto::openCheckin(
       h, peer.data(), peer.size(), sealed.data(), sealed.size(),
       &mood, &intensity, &note);
   if (rc != LUMI_OK) {
-    // The throwing path: wrong key / tampered / garbage sealed blob.
+    // The throw path: wrong key / tampered / garbage sealed blob.
     throw std::runtime_error("openCheckin failed (" + std::to_string(rc) + ")");
   }
   CheckinDraft d(std::string(mood), static_cast<double>(intensity), std::string(note));

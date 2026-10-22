@@ -1,6 +1,6 @@
 // Step 4a — Expo config plugin: wires the app-integrated LumiVault Nitro module at `expo prebuild`.
-// BEST-EFFORT starting point (could not be validated in-sandbox — no prebuild/device here). Iterate
-// on prebuild errors; if it fights the wiring, use the bare-workflow fallback in the RUNBOOK (commit
+// BEST-EFFORT start point (no validation in the sandbox — no prebuild/device here). Iterate
+// on prebuild errors; if it fights the setup, use the bare-workflow fallback in the RUNBOOK (commit
 // the generated android/ dir). Requires ANDROID_NDK_HOME in the prebuild environment.
 const { withGradleProperties, withDangerousMod } = require("@expo/config-plugins");
 const { execSync } = require("child_process");
@@ -22,8 +22,8 @@ const withLumiVault = (config) => {
   });
 
   // 2) Build the Rust staticlib (+ cbindgen header) into the local module's cpp/ before the native
-  //    build. The CMake wiring + module placement are done as explicit RUNBOOK steps (Step 3/5);
-  //    this only ensures the Rust artifacts exist when CMake links them.
+  //    build. The CMake setup + module placement are explicit RUNBOOK steps (Step 3/5);
+  //    this only makes sure that the Rust artifacts exist when CMake links them.
   config = withDangerousMod(config, [
     "android",
     (c) => {

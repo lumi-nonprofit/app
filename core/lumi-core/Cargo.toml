@@ -9,7 +9,7 @@ description = "Lumi shared core: data model, validation, crisis recommender (dep
 # None. The crate is intentionally dependency-free: a small in-house JSON reader
 # (src/crisis/json.rs) keeps the security-critical core lean and lets it build with
 # no C toolchain. Ingestion walks the parsed value by hand (boundary validators,
-# mirroring src/db/backup.ts asEntry/asMeasurement) so unknown input degrades.
+# which mirror src/db/backup.ts asEntry/asMeasurement) so unknown input degrades.
 
 [lints.rust]
 unsafe_code = "forbid"

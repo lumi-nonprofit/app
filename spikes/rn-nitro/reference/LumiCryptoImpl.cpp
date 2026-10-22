@@ -143,7 +143,7 @@ jsi::Object LumiCrypto::openCheckin(
       h, peer.data(), peer.size(), sealed.data(), sealed.size(),
       &mood, &intensity, &note);
   if (rc != LUMI_OK) {
-    // The throwing path: wrong key / tampered / garbage sealed blob.
+    // The throw path: wrong key / tampered / garbage sealed blob.
     throw jsi::JSError(rt, "openCheckin failed (" + std::to_string(rc) + ")");
   }
   jsi::Object o(rt);

@@ -3,7 +3,7 @@
 //! Kept zero-dependency on purpose: the security-critical core stays lean, and the
 //! crate builds with no C toolchain (no build scripts / proc-macros). Supports the
 //! full JSON grammar (objects, arrays, strings incl. all escapes + `\u` surrogate
-//! pairs, numbers, bool, null). Object key order is preserved; lookups are linear
+//! pairs, numbers, bool, null). The parser keeps the object key order; lookups are linear
 //! (the documents are tiny).
 
 #[derive(Debug, Clone, PartialEq)]
@@ -53,7 +53,7 @@ pub fn parse(s: &str) -> Result<Json, ()> {
     let v = p.value()?;
     p.ws();
     if p.i != p.b.len() {
-        return Err(()); // trailing garbage
+        return Err(()); // garbage after the value
     }
     Ok(v)
 }

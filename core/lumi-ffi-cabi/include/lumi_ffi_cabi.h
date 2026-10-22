@@ -24,7 +24,7 @@
 #define LUMI_ERR_UTF8 -2
 
 /**
- * The vault manager has not been opened (call `lumi_vault_open` first).
+ * The vault manager is not open (call `lumi_vault_open` first).
  */
 #define LUMI_ERR_NOT_OPEN -3
 
@@ -69,7 +69,7 @@
 #define LUMI_ERR_ENCODING -11
 
 /**
- * A panic was caught at the boundary (should never happen; backstop only).
+ * The boundary caught a panic (this must never happen; backstop only).
  */
 #define LUMI_ERR_PANIC -12
 
@@ -83,17 +83,17 @@ extern "C" {
 #endif // __cplusplus
 
 /**
- * Open (creating if needed) the vault DB at `db_path` (UTF-8) and initialise the process-global
- * manager over it. Call before unlocking. Returns [`LUMI_OK`] or an error code.
+ * Open (or create) the vault DB at `db_path` (UTF-8) and initialise the process-global manager
+ * over it. Call it before `lumi_unlock_vault`. Returns [`LUMI_OK`] or an error code.
  *
  * # Safety
- * `db_path` must be NULL (-> [`LUMI_ERR_NULL_ARG`]) or a valid, non-dangling, NUL-terminated C
- * string that stays readable and unmodified for the duration of the call.
+ * `db_path` must be NULL (-> [`LUMI_ERR_NULL_ARG`]) or a valid, live, NUL-terminated C string
+ * that stays readable and unmodified for the duration of the call.
  */
 int32_t lumi_vault_open(const char *db_path);
 
 /**
- * Drop the manager (zeroizing the in-memory vault keys) and forget all handles.
+ * Drop the manager (this zeroizes the in-memory vault keys) and forget all handles.
  *
  * # Safety
  * Takes no pointer arguments; always safe to call.
@@ -105,9 +105,9 @@ int32_t lumi_vault_close(void);
  * `*out_handle`. Wrong PIN -> [`LUMI_ERR_WRONG_PIN`] (fails closed).
  *
  * # Safety
- * `pin` must be a valid, non-dangling, NUL-terminated C string (or NULL -> [`LUMI_ERR_NULL_ARG`]),
+ * `pin` must be a valid, live, NUL-terminated C string (or NULL -> [`LUMI_ERR_NULL_ARG`]),
  * readable for the call. `out_handle` must be NULL or a valid, aligned, writable `uint64_t`.
- * `*out_handle` is written only on [`LUMI_OK`] (and defaulted to 0 otherwise).
+ * The call writes `*out_handle` only on [`LUMI_OK`] (and sets it to 0 otherwise).
  */
 int32_t lumi_unlock_vault(const char *pin, uint64_t *out_handle);
 
@@ -116,9 +116,9 @@ int32_t lumi_unlock_vault(const char *pin, uint64_t *out_handle);
  * caller-allocated [`LUMI_RECORD_ID_LEN`]-byte buffer, which receives the opaque record id.
  *
  * # Safety
- * `record_json` must be a valid, non-dangling, NUL-terminated C string (or NULL ->
+ * `record_json` must be a valid, live, NUL-terminated C string (or NULL ->
  * [`LUMI_ERR_NULL_ARG`]). `out_record_id` must be NULL or point to at least [`LUMI_RECORD_ID_LEN`]
- * writable, aligned bytes. `*out_record_id` is written only on [`LUMI_OK`].
+ * writable, aligned bytes. The call writes `*out_record_id` only on [`LUMI_OK`].
  */
 int32_t lumi_put_checkin(uint64_t handle,
                          const char *record_json,
@@ -139,7 +139,7 @@ int32_t lumi_list_checkins(uint64_t handle, char **out_json);
 
 /**
  * Crypto-shred a record. `record_id` must point to [`LUMI_RECORD_ID_LEN`] bytes. Writes to
- * `*out_destroyed`: `true` if a live record was destroyed, `false` if it was absent / already
+ * `*out_destroyed`: `true` if the call destroyed a live record, `false` if it was absent / already
  * shredded (both are [`LUMI_OK`]); real failures return an error code.
  *
  * # Safety
@@ -150,12 +150,12 @@ int32_t lumi_list_checkins(uint64_t handle, char **out_json);
 int32_t lumi_shred_checkin(uint64_t handle, const uint8_t *record_id, bool *out_destroyed);
 
 /**
- * Free a C string previously returned by this library (e.g. from [`lumi_list_checkins`]). Call
- * exactly once per returned pointer; never free it with C `free()`. NULL is ignored.
+ * Free a C string that this library returned earlier (for example from [`lumi_list_checkins`]).
+ * Call it exactly once per returned pointer; never free it with C `free()`. NULL is a no-op.
  *
  * # Safety
  * `s` must be NULL or a pointer previously returned by this library (from `CString::into_raw`),
- * not yet freed, and freed exactly once. Passing a foreign/`malloc`'d/double-freed pointer is UB.
+ * not yet freed, and freed exactly once. A foreign, `malloc`'d or double-freed pointer is UB.
  */
 void lumi_string_free(char *s);
 

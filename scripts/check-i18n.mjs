@@ -60,8 +60,8 @@ for (const locale of locales) {
 }
 
 const isMeta = (key) => key.split(".").includes("_meta");
-// Plural forms differ by locale (cs: one, few, many, other; en: one, other): the locales are
-// compared on the base key, and the plural forms are checked per locale below.
+// Plural forms differ by locale (cs: one, few, many, other; en: one, other): the comparison of
+// the locales uses the base key, and the check of the plural forms runs per locale below.
 const PLURAL_SUFFIX = /_(zero|one|two|few|many|other)$/;
 const baseKey = (key) => key.replace(PLURAL_SUFFIX, "");
 const baseKeys = (keys) => new Set([...keys.keys()].filter((k) => !isMeta(k)).map(baseKey));

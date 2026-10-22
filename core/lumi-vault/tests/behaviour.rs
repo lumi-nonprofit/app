@@ -1,4 +1,4 @@
-//! Behavioural tests for the vault, exercising the public API through the in-memory
+//! Behavioural tests for the vault; they exercise the public API through the in-memory
 //! reference store. All pure-Rust → also run under the musl loop.
 
 use lumi_vault::memory::InMemoryStore;
@@ -73,17 +73,17 @@ fn crypto_shred_makes_record_permanently_unreadable() {
 
     m.shred_checkin(h, id2).unwrap();
 
-    // id2 is gone from the listing; id1 still opens
+    // id2 no longer appears in the list; id1 still opens
     let list = m.list_checkins(h).unwrap();
     assert_eq!(list.len(), 1);
     assert_eq!(list[0].record_id, id1);
 
-    // opening the shredded record fails permanently...
+    // a read of the shredded record fails permanently...
     assert!(matches!(m.get_checkin(h, id2).unwrap_err(), Error::NotFoundOrShredded));
-    // ...even after re-unlock (the wrapped content key is gone for good)
+    // ...even after re-unlock (the wrapped content key no longer exists)
     let h2 = m.unlock_vault("pin").unwrap();
     assert!(matches!(m.get_checkin(h2, id2).unwrap_err(), Error::NotFoundOrShredded));
-    // the other record is unaffected
+    // the other record stays intact
     assert_eq!(m.get_checkin(h2, id1).unwrap().payload, checkin_json("klid", 2, "keep"));
 }
 
@@ -94,7 +94,7 @@ fn tampered_record_fails_closed_through_api() {
     let h = m.unlock_vault("pin").unwrap();
     m.put_checkin(h, &checkin_json("klid", 3, "intact"), 1).unwrap();
 
-    // Simulate on-disk tampering: flip a ciphertext byte.
+    // Simulate a hostile change on disk: flip a ciphertext byte.
     let mut rows = store.raw_records();
     rows[0].ciphertext[0] ^= 0x01;
     store.set_records(rows);
@@ -253,9 +253,9 @@ fn many_records_use_distinct_fresh_nonces() {
     assert_eq!(nonces.len(), 2 * N);
 }
 
-/// Nonce freshness for the vault-key wrap (site c): two freshly created vaults with the SAME PIN
-/// get distinct salt + distinct vault-wrap nonce (and thus distinct wrapped vault keys) — proving
-/// both are freshly drawn from the CSPRNG, never derived from the PIN or fixed.
+/// Nonce freshness for the vault-key wrap (site c): 2 freshly created vaults with the SAME PIN
+/// get distinct salt + distinct vault-wrap nonce (and thus distinct wrapped vault keys) — which
+/// proves that both come fresh from the CSPRNG, never derived from the PIN or fixed.
 #[test]
 fn fresh_vaults_use_distinct_salt_and_wrap_nonce() {
     let s1 = InMemoryStore::new();

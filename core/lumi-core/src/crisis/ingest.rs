@@ -1,9 +1,9 @@
-//! Boundary-validating ingestion of the ČAPLD JSON into [`CrisisLine`]s.
+//! Ingestion of the ČAPLD JSON into [`CrisisLine`]s, with validation at the boundary.
 //!
 //! Mirrors `src/db/backup.ts` asEntry/asMeasurement: walk the untyped value by
-//! hand, default missing fields, and **degrade rather than drop**. The only items
-//! not kept are non-objects (which are not lines at all); those are counted in
-//! `skipped` so nothing is silent. See spec §4.
+//! hand, give absent fields a default, and **degrade rather than drop**. The only items
+//! that the code drops are non-objects (which are not lines at all); `skipped` counts
+//! those, so nothing is silent. See spec §4.
 
 use std::collections::BTreeSet;
 
@@ -35,7 +35,7 @@ const KRAJS: &[&str] = &[
     "Moravskoslezský kraj",
 ];
 
-/// Known cities → [`Scope::City`] (extend via the release checklist as data grows).
+/// Known cities → [`Scope::City`] (extend through the release checklist as data grows).
 const CITIES: &[&str] = &[
     "Praha",
     "Brno",
@@ -272,7 +272,7 @@ fn build_channels(contacts: Option<&Json>) -> Vec<Channel> {
         None => return channels,
     };
 
-    // Phone — a line MAY have zero phones (then no phone channel).
+    // Phone — a line can have zero phones (then no phone channel).
     let phones: Vec<PhoneNumber> = c
         .get("phones")
         .and_then(Json::as_array)
@@ -337,7 +337,7 @@ fn parse_phone(v: &Json) -> Option<PhoneNumber> {
     })
 }
 
-/// Dial-safe form: keep digits and a leading `+`; drop spaces/separators. EU short
+/// Dial-safe form: keep digits and a `+` prefix; drop spaces/separators. EU short
 /// codes (`116 111`) become `116111`, still dialable, with `display` preserved.
 fn tel_normalize(num: &str) -> String {
     num.chars()

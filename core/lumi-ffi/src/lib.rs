@@ -7,7 +7,7 @@
 //! `spikes/rn-nitro/SPIKE-REPORT.md`. Per ADR 0004 the `unsafe` C ABI lives in its own
 //! crate, `core/lumi-ffi-cabi`; this crate stays safe and binding-generator-free.
 //! The FFI invariant (handles / plaintext only, **no raw key bytes across the
-//! boundary**, ADR 0001 §1) is enforced by what the boundary chooses to expose.
+//! boundary**, ADR 0001 §1) holds because of what the boundary chooses to expose.
 //!
 //! For now it simply re-exports the read-only surfaces, so the binding has a
 //! stable, narrow target.

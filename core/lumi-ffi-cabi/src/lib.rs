@@ -19,15 +19,15 @@
 //! lumi-vault), we keep a small C-side registry mapping our opaque `u64` to the `VaultHandle`.
 //!
 //! ## No panic across the boundary
-//! A Rust panic unwinding into C is UB. lumi-vault is built not to panic, but every entry point is
-//! wrapped in [`std::panic::catch_unwind`] as a **backstop** that converts any panic into
+//! A Rust panic that unwinds into C is UB. lumi-vault has a no-panic design, but every entry point
+//! runs inside [`std::panic::catch_unwind`] as a **backstop** that converts any panic into
 //! [`LUMI_ERR_PANIC`] (chosen over `panic = "abort"` so an unexpected internal panic surfaces as a
-//! recoverable error rather than crashing a mental-health app). This requires unwinding panics — do
+//! recoverable error and does not crash a mental-health app). This requires panics that unwind — do
 //! **not** set `panic = "abort"` for this crate.
 //!
 //! ## Memory ownership
-//! Strings returned by this library (e.g. from [`lumi_list_checkins`]) are Rust-allocated and MUST
-//! be freed by Rust via [`lumi_string_free`] — never with C `free()`. `record_id` uses a
+//! Strings that this library returns (for example from [`lumi_list_checkins`]) are Rust-allocated,
+//! and Rust MUST free them through [`lumi_string_free`] — never C `free()`. `record_id` uses a
 //! caller-provided 16-byte buffer (no allocation, nothing to free).
 
 #![deny(unsafe_op_in_unsafe_fn)]
@@ -48,7 +48,7 @@ pub const LUMI_OK: i32 = 0;
 pub const LUMI_ERR_NULL_ARG: i32 = -1;
 /// A C-string argument (PIN / JSON / path) was not valid UTF-8.
 pub const LUMI_ERR_UTF8: i32 = -2;
-/// The vault manager has not been opened (call `lumi_vault_open` first).
+/// The vault manager is not open (call `lumi_vault_open` first).
 pub const LUMI_ERR_NOT_OPEN: i32 = -3;
 /// Unknown / stale vault handle.
 pub const LUMI_ERR_BAD_HANDLE: i32 = -4;
@@ -66,7 +66,7 @@ pub const LUMI_ERR_CRYPTO: i32 = -9;
 pub const LUMI_ERR_STORE: i32 = -10;
 /// Decrypted payload was not valid UTF-8.
 pub const LUMI_ERR_ENCODING: i32 = -11;
-/// A panic was caught at the boundary (should never happen; backstop only).
+/// The boundary caught a panic (this must never happen; backstop only).
 pub const LUMI_ERR_PANIC: i32 = -12;
 
 /// Length of an opaque record id, in bytes.
@@ -74,7 +74,7 @@ pub const LUMI_RECORD_ID_LEN: usize = 16;
 
 /// Compile-time guard: this ABI constant MUST equal lumi-vault's `RecordId` size, or the fixed
 /// 16-byte `copy_nonoverlapping`s in put/shred would read/write out of bounds. lumi-vault's private
-/// `RECORD_ID_LEN` can't be imported, so any future divergence becomes a build error here, not UB.
+/// `RECORD_ID_LEN` has no public path, so any future divergence becomes a build error here, not UB.
 const _: () = assert!(LUMI_RECORD_ID_LEN == core::mem::size_of::<lumi_vault::RecordId>());
 
 // ---- process-global state ----
@@ -84,7 +84,7 @@ struct State {
     /// C-side opaque handle -> lumi-vault `VaultHandle`. **Invariant:** an entry exists only while
     /// `manager` is `Some` (inserted on unlock; cleared on open/close under this same lock). So a
     /// live handle implies the vault is open, which makes the `NOT_OPEN` arms in put/list/shred
-    /// effectively unreachable (a post-close handle is gone -> `BAD_HANDLE`). Handles persist for the
+    /// effectively unreachable (a post-close handle no longer exists -> `BAD_HANDLE`). Handles persist for the
     /// open session (no per-handle removal yet); ids are monotonic `u64` (no practical reuse/wrap).
     handles: HashMap<u64, VaultHandle>,
     next: u64,
@@ -111,7 +111,7 @@ fn map_err(e: &Error) -> i32 {
     }
 }
 
-/// Run an entry-point body, converting any panic into [`LUMI_ERR_PANIC`] (no unwind into C).
+/// Run an entry-point body and convert any panic into [`LUMI_ERR_PANIC`] (nothing unwinds into C).
 fn ffi_guard(f: impl FnOnce() -> i32) -> i32 {
     match catch_unwind(AssertUnwindSafe(f)) {
         Ok(code) => code,
@@ -130,7 +130,7 @@ fn hex16(b: &[u8; LUMI_RECORD_ID_LEN]) -> String {
 }
 
 /// Escape a string as a JSON string body (so an arbitrary payload embeds safely; also removes any
-/// interior NUL, keeping the result valid for `CString`).
+/// interior NUL, so the result stays valid for `CString`).
 fn escape_json(s: &str) -> String {
     let mut o = String::with_capacity(s.len() + 2);
     for ch in s.chars() {
@@ -169,12 +169,12 @@ fn build_list_json(checkins: &[Checkin]) -> String {
 
 // ---- entry points ----
 
-/// Open (creating if needed) the vault DB at `db_path` (UTF-8) and initialise the process-global
-/// manager over it. Call before unlocking. Returns [`LUMI_OK`] or an error code.
+/// Open (or create) the vault DB at `db_path` (UTF-8) and initialise the process-global manager
+/// over it. Call it before `lumi_unlock_vault`. Returns [`LUMI_OK`] or an error code.
 ///
 /// # Safety
-/// `db_path` must be NULL (-> [`LUMI_ERR_NULL_ARG`]) or a valid, non-dangling, NUL-terminated C
-/// string that stays readable and unmodified for the duration of the call.
+/// `db_path` must be NULL (-> [`LUMI_ERR_NULL_ARG`]) or a valid, live, NUL-terminated C string
+/// that stays readable and unmodified for the duration of the call.
 #[no_mangle]
 pub unsafe extern "C" fn lumi_vault_open(db_path: *const c_char) -> i32 {
     ffi_guard(|| {
@@ -196,7 +196,7 @@ pub unsafe extern "C" fn lumi_vault_open(db_path: *const c_char) -> i32 {
     })
 }
 
-/// Drop the manager (zeroizing the in-memory vault keys) and forget all handles.
+/// Drop the manager (this zeroizes the in-memory vault keys) and forget all handles.
 ///
 /// # Safety
 /// Takes no pointer arguments; always safe to call.
@@ -204,7 +204,7 @@ pub unsafe extern "C" fn lumi_vault_open(db_path: *const c_char) -> i32 {
 pub unsafe extern "C" fn lumi_vault_close() -> i32 {
     ffi_guard(|| {
         let mut st = lock_state();
-        st.manager = None; // dropping the VaultManager zeroizes its key registry
+        st.manager = None; // the drop of the VaultManager zeroizes its key registry
         st.handles.clear();
         LUMI_OK
     })
@@ -214,16 +214,16 @@ pub unsafe extern "C" fn lumi_vault_close() -> i32 {
 /// `*out_handle`. Wrong PIN -> [`LUMI_ERR_WRONG_PIN`] (fails closed).
 ///
 /// # Safety
-/// `pin` must be a valid, non-dangling, NUL-terminated C string (or NULL -> [`LUMI_ERR_NULL_ARG`]),
+/// `pin` must be a valid, live, NUL-terminated C string (or NULL -> [`LUMI_ERR_NULL_ARG`]),
 /// readable for the call. `out_handle` must be NULL or a valid, aligned, writable `uint64_t`.
-/// `*out_handle` is written only on [`LUMI_OK`] (and defaulted to 0 otherwise).
+/// The call writes `*out_handle` only on [`LUMI_OK`] (and sets it to 0 otherwise).
 #[no_mangle]
 pub unsafe extern "C" fn lumi_unlock_vault(pin: *const c_char, out_handle: *mut u64) -> i32 {
     ffi_guard(|| {
         if pin.is_null() || out_handle.is_null() {
             return LUMI_ERR_NULL_ARG;
         }
-        // Default the out-param so a contract-violating caller that reads it after an error sees 0.
+        // Default the out-param so that a caller that breaks the contract and reads it after an error sees 0.
         unsafe { *out_handle = 0 };
         let pin = match unsafe { CStr::from_ptr(pin) }.to_str() {
             Ok(s) => s,
@@ -252,9 +252,9 @@ pub unsafe extern "C" fn lumi_unlock_vault(pin: *const c_char, out_handle: *mut 
 /// caller-allocated [`LUMI_RECORD_ID_LEN`]-byte buffer, which receives the opaque record id.
 ///
 /// # Safety
-/// `record_json` must be a valid, non-dangling, NUL-terminated C string (or NULL ->
+/// `record_json` must be a valid, live, NUL-terminated C string (or NULL ->
 /// [`LUMI_ERR_NULL_ARG`]). `out_record_id` must be NULL or point to at least [`LUMI_RECORD_ID_LEN`]
-/// writable, aligned bytes. `*out_record_id` is written only on [`LUMI_OK`].
+/// writable, aligned bytes. The call writes `*out_record_id` only on [`LUMI_OK`].
 #[no_mangle]
 pub unsafe extern "C" fn lumi_put_checkin(
     handle: u64,
@@ -320,7 +320,7 @@ pub unsafe extern "C" fn lumi_list_checkins(handle: u64, out_json: *mut *mut c_c
                 Ok(c) => c,
                 Err(e) => return map_err(&e),
             }
-        }; // lock released before allocating the C string
+        }; // lock released before the C string allocation
         let json = build_list_json(&checkins);
         debug_assert!(!json.as_bytes().contains(&0), "escape_json must strip interior NUL");
         let cstr = match CString::new(json) {
@@ -334,7 +334,7 @@ pub unsafe extern "C" fn lumi_list_checkins(handle: u64, out_json: *mut *mut c_c
 }
 
 /// Crypto-shred a record. `record_id` must point to [`LUMI_RECORD_ID_LEN`] bytes. Writes to
-/// `*out_destroyed`: `true` if a live record was destroyed, `false` if it was absent / already
+/// `*out_destroyed`: `true` if the call destroyed a live record, `false` if it was absent / already
 /// shredded (both are [`LUMI_OK`]); real failures return an error code.
 ///
 /// # Safety
@@ -376,16 +376,16 @@ pub unsafe extern "C" fn lumi_shred_checkin(handle: u64, record_id: *const u8, o
     })
 }
 
-/// Free a C string previously returned by this library (e.g. from [`lumi_list_checkins`]). Call
-/// exactly once per returned pointer; never free it with C `free()`. NULL is ignored.
+/// Free a C string that this library returned earlier (for example from [`lumi_list_checkins`]).
+/// Call it exactly once per returned pointer; never free it with C `free()`. NULL is a no-op.
 ///
 /// # Safety
 /// `s` must be NULL or a pointer previously returned by this library (from `CString::into_raw`),
-/// not yet freed, and freed exactly once. Passing a foreign/`malloc`'d/double-freed pointer is UB.
+/// not yet freed, and freed exactly once. A foreign, `malloc`'d or double-freed pointer is UB.
 #[no_mangle]
 pub unsafe extern "C" fn lumi_string_free(s: *mut c_char) {
-    // Defense-in-depth: guard like the other entries so a future edit can never unwind into C. The
-    // result is discarded (the signature is `void`, so there is no error channel to surface).
+    // Defense-in-depth: guard like the other entries so that a future edit cannot unwind into C. We
+    // discard the result (the signature is `void`, so there is no error channel to surface).
     let _ = catch_unwind(AssertUnwindSafe(|| {
         if s.is_null() {
             return;

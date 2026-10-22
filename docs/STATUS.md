@@ -1,7 +1,7 @@
 # Lumi — project status
 
-**Last updated:** 2026-10-22 (Dependabot PR cleanup, PR #47). The last commit on `main` before the
-review of 2026-10-09 is from 2026-06-15.
+**Last updated:** 2026-10-22 (tests for the crisis scope precedence, issue #8). The last commit on
+`main` before the review of 2026-10-09 is from 2026-06-15.
 
 This file tells you where the project is and what comes next. Keep it short. Update it when a
 milestone changes state. Record decisions in ADRs (`docs/adr/`). Track work items as GitHub issues,
@@ -217,15 +217,14 @@ File each finding as an issue. Then delete it from this list.
 
 9. **One design document is absent.** ADR 0005 and the transport proposal cite the "M2 canonical
    data-model assessment (2026-06-15)". It is not in the repository. ADR 0005 states its conclusion.
-10. **Issue #8 is open** (test gap: crisis scope-tag precedence).
-11. **The APK declares permissions that the app code does not use** (added on 2026-10-10, from the
+10. **The APK declares permissions that the app code does not use** (added on 2026-10-10, from the
     APK that the runner built). The manifest has `RECORD_AUDIO`, `INTERNET`,
     `SYSTEM_ALERT_WINDOW`, `RECEIVE_BOOT_COMPLETED`, `USE_BIOMETRIC`, `READ_EXTERNAL_STORAGE` and
     `WRITE_EXTERNAL_STORAGE` (only up to Android 12L), and more. `app.json` lists 4 permissions,
     with `RECORD_AUDIO` among them. The Expo template and the libraries add the others. The code
     in `app/` and `src/` does not record audio and makes no network call. Check each permission
     before the pilot.
-12. **The release APK has parts of the development tools** (added on 2026-10-10, from the APK and
+11. **The release APK has parts of the development tools** (added on 2026-10-10, from the APK and
     the build log). The APK has the classes of expo-dev-client and the URL scheme `exp+lumi`.
     `expo-dev-client` is a normal dependency in `package.json`. The prebuild step prints a
     warning: `userInterfaceStyle` needs `expo-system-ui`, which is not installed. The effect of
@@ -271,7 +270,7 @@ changed on 2026-10-10.
 3. Update the dependencies (finding 8). The workflow `Android APK` checks each PR that
    changes `package.json` or `package-lock.json`. An open Dependabot PR needs a rebase first.
 4. Close the content blockers (finding 6). Check the permissions and the development tools in
-   the APK (findings 11 and 12).
+   the APK (findings 10 and 11).
 5. Run a small pilot with adult students. Give the build to an expert reviewer.
 
 **Proposed rule for real data:** do not put real user data into the Rust vault before the

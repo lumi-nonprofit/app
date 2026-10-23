@@ -225,14 +225,14 @@ jobs:
 
   # Dependency vulnerability scan. REPORT-ONLY (continue-on-error): the npm step fails on each
   # advisory of level high or above, and the JS tree has advisories without a fix in the pinned
-  # toolchain (checked 2026-10-18: 0 critical, 54 high, 21 moderate). The high ones are
-  # `braces` (the advisory covers every published version; it reaches jest, metro and expo through
-  # micromatch), `node-forge` (latest release flagged; @expo/cli) and `image-size` (metro 0.84
-  # pins 1.x). The moderate ones wait on the Expo SDK, jest 30 and the drizzle-kit majors.
+  # toolchain (checked 2026-10-22 on Expo SDK 58: 0 critical, 35 high, 23 moderate). The high ones
+  # are `braces` (the advisory covers every published version; it reaches jest, metro and expo
+  # through micromatch), `node-forge` (latest release flagged; @expo/cli) and `markdown-it`
+  # (markdownlint-cli2 0.23; release 0.24 has the fix). The moderate ones wait on the drizzle-kit
+  # major and on upstream releases.
   # Transitive packages with a published fix are current in package-lock.json (docs/STATUS.md,
-  # finding 8). `npm audit fix` cannot run here (ERESOLVE on react-native-reanimated and React
-  # Native 0.85); update the packages by name with `npm update`. Make the job block the merge when
-  # the Expo SDK upgrade and the upstream fixes land.
+  # finding 8). `npm audit fix` writes a large part of the tree again; update the packages by
+  # name with `npm update`. Make the job block the merge when the upstream fixes land.
   audit:
     name: Dependency audit (report-only)
     runs-on: ubuntu-latest

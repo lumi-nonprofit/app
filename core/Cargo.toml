@@ -7,5 +7,5 @@
 #   cargo test -p lumi-store -p lumi-ffi-cabi
 # The musl job in .github/workflows/ci.yml has the same note and the same exclusions.
 [workspace]
-resolver = "2"
+resolver = "3"
 members = ["lumi-core", "lumi-crdt", "lumi-sync-client", "lumi-ffi", "lumi-wasm", "lumi-vault", "lumi-store", "lumi-ffi-cabi"]

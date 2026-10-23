@@ -5,7 +5,7 @@
 [package]
 name = "lumi-vault"
 version = "0.0.0"
-edition = "2021"
+edition = "2024"
 publish = false
 description = "Lumi at-rest crypto: vault key hierarchy (Argon2id PIN-wrap), per-record content keys (XChaCha20-Poly1305), crypto-shredding. Persistence through a storage trait."
 

@@ -2,7 +2,7 @@
    note. The save writes the Entry to the database and leads to the confirmation. */
 import React from "react";
 import { View, TextInput } from "react-native";
-import { useNavigation, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { Button, Chip, Input, Text } from "../../ds";
 import { textStyle } from "../../ds/Text";
 import { LumiHeader } from "../../components/Header";
@@ -27,31 +27,18 @@ import { addCustomTag, deleteCustomTag, insertEntry, listCustomTags } from "../.
 import type { Tag } from "../../db/repo";
 import { confirmDelete } from "../../lib/dialogs";
 import { haptics } from "../../lib/haptics";
-import { useDiscardGuard } from "../../lib/useDiscardGuard";
 import { createThemedStyles, useTheme } from "../../theme";
-import { isDraftDirty, useCheckinDraft } from "./draft";
+import { useCheckinDraft } from "./draft";
 
 export default function Step2Screen() {
   const { t } = useTranslation(["checkin", "common"]);
   const router = useRouter();
   const theme = useTheme();
   const styles = useStyles();
-  const { draft, setDraft, saved, markSaved } = useCheckinDraft();
+  /* The guard of unsaved changes sits in app/checkin/_layout and covers the whole sheet. Back
+     inside the sheet only returns to step 1: the draft lives in the provider, nothing is lost. */
+  const { draft, setDraft, markSaved } = useCheckinDraft();
   const writeDb = useDbWriter();
-  const navigation = useNavigation();
-  /* The guard catches only the close of the whole sheet (swipe-down is a POP that targets the
-     root stack). Back (GO_BACK) and a pop inside the check-in stack only return to step 1: the
-     draft lives in the provider, nothing is lost. The save leaves through leave(). */
-  const { leave } = useDiscardGuard({
-    dirty: !saved && isDraftDirty(draft),
-    title: t("discard.title"),
-    message: t("discard.message"),
-    allow: (action) =>
-      action.type === "GO_BACK" ||
-      action.type === "REPLACE" ||
-      (action.type === "POP" &&
-        (action.target === undefined || action.target === navigation.getState()?.key)),
-  });
 
   /* draft.mood can be null: the fallback after `||` covers it; the cast serves only the index. */
   const mood = MOOD_BY_ID[draft.mood as MoodId] || MOOD_BY_ID.napeti;
@@ -122,7 +109,7 @@ export default function Step2Screen() {
     haptics.success();
     markSaved();
     /* replace, not push: the hardware back button from the confirmation does not return to the saved step. */
-    leave(() => router.replace("/checkin/confirm"));
+    router.replace("/checkin/confirm");
   };
 
   return (

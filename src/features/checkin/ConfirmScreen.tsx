@@ -28,14 +28,10 @@ export default function ConfirmScreen() {
     announce(t("confirm.announce"));
   }, [t]);
 
-  const goHome = () => {
-    router.dismissAll();
-    router.navigate("/");
-  };
-  const openTip = () => {
-    router.dismissAll();
-    router.navigate(tip.route as Href);
-  };
+  /* expo-router 58: `dismissTo` closes the sheet and opens the target. The old pair of
+     dismissAll() and navigate() kept the sheet in the stack, under a new copy of the tabs. */
+  const goHome = () => router.dismissTo("/");
+  const openTip = () => router.dismissTo(tip.route as Href);
 
   return (
     <Screen contentStyle={styles.center}>

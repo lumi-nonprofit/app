@@ -30,7 +30,13 @@ module.exports = {
       preset: "jest-expo/web",
       testMatch: ["<rootDir>/test/**/*.web.test.tsx"],
       setupFilesAfterEnv: ["<rootDir>/test/setup.web.ts"],
-      moduleNameMapper: lucideCommonJs,
+      moduleNameMapper: {
+        ...lucideCommonJs,
+        /* React Native 0.88 has no @react-native/assets-registry package, and react-native-svg
+           still imports it. The Expo CLI gives Metro the same alias on the web. */
+        "^@react-native/assets-registry/registry$":
+          "<rootDir>/node_modules/react-native-web/asset-registry.js",
+      },
     },
   ],
 };

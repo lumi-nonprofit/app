@@ -68,7 +68,7 @@ and the list in `scripts/check-english-source.mjs` mirror it.
 
 | Term                 | Meaning                                                                                         |
 | -------------------- | ----------------------------------------------------------------------------------------------- |
-| Expo                 | The React Native framework and toolchain of the app (SDK 56).                                   |
+| Expo                 | The React Native framework and toolchain of the app (SDK 58).                                   |
 | expo-router          | The file-based router of the app (`app/`), with typed routes.                                   |
 | Hermes               | The JavaScript engine of React Native. It lacks some `Intl` features.                           |
 | Reanimated           | The animation library (`react-native-reanimated`).                                              |

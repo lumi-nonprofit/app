@@ -175,7 +175,7 @@ fn build_list_json(checkins: &[Checkin]) -> String {
 /// # Safety
 /// `db_path` must be NULL (-> [`LUMI_ERR_NULL_ARG`]) or a valid, live, NUL-terminated C string
 /// that stays readable and unmodified for the duration of the call.
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn lumi_vault_open(db_path: *const c_char) -> i32 {
     ffi_guard(|| {
         if db_path.is_null() {
@@ -200,7 +200,7 @@ pub unsafe extern "C" fn lumi_vault_open(db_path: *const c_char) -> i32 {
 ///
 /// # Safety
 /// Takes no pointer arguments; always safe to call.
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn lumi_vault_close() -> i32 {
     ffi_guard(|| {
         let mut st = lock_state();
@@ -217,7 +217,7 @@ pub unsafe extern "C" fn lumi_vault_close() -> i32 {
 /// `pin` must be a valid, live, NUL-terminated C string (or NULL -> [`LUMI_ERR_NULL_ARG`]),
 /// readable for the call. `out_handle` must be NULL or a valid, aligned, writable `uint64_t`.
 /// The call writes `*out_handle` only on [`LUMI_OK`] (and sets it to 0 otherwise).
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn lumi_unlock_vault(pin: *const c_char, out_handle: *mut u64) -> i32 {
     ffi_guard(|| {
         if pin.is_null() || out_handle.is_null() {
@@ -255,7 +255,7 @@ pub unsafe extern "C" fn lumi_unlock_vault(pin: *const c_char, out_handle: *mut 
 /// `record_json` must be a valid, live, NUL-terminated C string (or NULL ->
 /// [`LUMI_ERR_NULL_ARG`]). `out_record_id` must be NULL or point to at least [`LUMI_RECORD_ID_LEN`]
 /// writable, aligned bytes. The call writes `*out_record_id` only on [`LUMI_OK`].
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn lumi_put_checkin(
     handle: u64,
     record_json: *const c_char,
@@ -298,7 +298,7 @@ pub unsafe extern "C" fn lumi_put_checkin(
 /// `out_json` must be NULL ( -> [`LUMI_ERR_NULL_ARG`]) or a valid, aligned, writable `char *` slot.
 /// `*out_json` receives an owned string ONLY on [`LUMI_OK`] (defaulted to NULL otherwise); free it
 /// exactly once with [`lumi_string_free`], never with C `free()`.
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn lumi_list_checkins(handle: u64, out_json: *mut *mut c_char) -> i32 {
     ffi_guard(|| {
         if out_json.is_null() {
@@ -341,7 +341,7 @@ pub unsafe extern "C" fn lumi_list_checkins(handle: u64, out_json: *mut *mut c_c
 /// `record_id` must be NULL ( -> [`LUMI_ERR_NULL_ARG`]) or point to at least [`LUMI_RECORD_ID_LEN`]
 /// readable, aligned bytes. `out_destroyed` must be NULL or a valid, aligned, writable `bool`.
 /// `*out_destroyed` is meaningful only on [`LUMI_OK`] (defaulted to `false` otherwise).
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn lumi_shred_checkin(handle: u64, record_id: *const u8, out_destroyed: *mut bool) -> i32 {
     ffi_guard(|| {
         if record_id.is_null() || out_destroyed.is_null() {
@@ -382,7 +382,7 @@ pub unsafe extern "C" fn lumi_shred_checkin(handle: u64, record_id: *const u8, o
 /// # Safety
 /// `s` must be NULL or a pointer previously returned by this library (from `CString::into_raw`),
 /// not yet freed, and freed exactly once. A foreign, `malloc`'d or double-freed pointer is UB.
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn lumi_string_free(s: *mut c_char) {
     // Defense-in-depth: guard like the other entries so that a future edit cannot unwind into C. We
     // discard the result (the signature is `void`, so there is no error channel to surface).

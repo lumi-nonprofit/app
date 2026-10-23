@@ -10,9 +10,9 @@
 #    upgrade, never independently — a standalone bump breaks the Expo/RN pairing and the verified
 #    Nitro module ABI. (Their security fixes arrive through an Expo SDK upgrade.)
 #  - eslint and jest/@types/jest: MAJORS ignored (peer-coupled — eslint-plugin-react-native-a11y
-#    peers eslint <=8; jest 30 depends on the RN jest-preset). Patches/minors within the current
-#    major still flow. Dependabot does NOT ignore esbuild/uuid/drizzle-kit and the other packages,
-#    so their advisories stay visible.
+#    peers eslint <=8; jest-expo decides the jest major, which is 30 since SDK 58). Patches/minors
+#    within the current major still flow. Dependabot does NOT ignore esbuild/uuid/drizzle-kit and
+#    the other packages, so their advisories stay visible.
 version: 2
 updates:
   - package-ecosystem: "npm"
@@ -30,6 +30,14 @@ updates:
           - "patch"
     ignore:
       # Expo-SDK-managed — pinned to the SDK; only move through `expo install` on an SDK upgrade.
+      # The Expo packages themselves are on this list too. PRs #48 to #57 moved 9 of them to SDK 58
+      # while `expo` and `expo-router` stayed on SDK 56, and `npm ci` failed on main (ERESOLVE).
+      - dependency-name: "expo"
+      - dependency-name: "expo-*"
+      - dependency-name: "@expo/*"
+      - dependency-name: "jest-expo"
+      - dependency-name: "eslint-config-expo"
+      - dependency-name: "react-native-web"
       - dependency-name: "react-native"
       - dependency-name: "react"
       - dependency-name: "react-dom"

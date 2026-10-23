@@ -1,7 +1,7 @@
 [package]
 name = "lumi-ffi"
 version = "0.0.0"
-edition = "2021"
+edition = "2024"
 publish = false
 description = "FFI facade over the Lumi core. M0 stub (dependency-free). The real binding — uniffi-bindgen-react-native (JSI) — is the subject of M1 spike #1 (ADR 0001 §13); it lands only if/when that GO/NO-GO gate passes."
 

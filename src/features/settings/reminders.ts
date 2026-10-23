@@ -71,7 +71,10 @@ const EVENING_ID = "lumi-evening";
 const WEEKLY_ID = "lumi-weekly-reflection";
 
 let handlerSet = false;
-function ensureHandler(): void {
+/** Shows a reminder that arrives while the app is open, without a sound and without a badge.
+    Until the app sets a handler, expo-notifications 58 adds the sound and the badge. Thus the
+    root layout calls this function at the start. It does not ask for the permission. */
+export function applyNotificationHandler(): void {
   if (handlerSet || Platform.OS === "web") return;
   handlerSet = true;
   Notifications.setNotificationHandler({
@@ -87,7 +90,7 @@ function ensureHandler(): void {
 /** Asks for the permission (call it only when the person turns the switch on). */
 export async function requestReminderPermission(): Promise<boolean> {
   if (Platform.OS === "web") return false;
-  ensureHandler();
+  applyNotificationHandler();
   try {
     const current = await Notifications.getPermissionsAsync();
     if (current?.granted) return true;

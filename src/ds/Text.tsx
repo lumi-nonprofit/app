@@ -220,14 +220,16 @@ export function textStyle(
   const cached = styleCache.get(key);
   if (cached) return cached;
   const m = metricsFor(spec);
-  const style: TextStyle = { fontSize: m.size, lineHeight: m.line };
-  if (spec.family === "display") {
-    style.fontFamily = w === "bold" || boldText ? DISPLAY_FONT.bold : DISPLAY_FONT.semibold;
-  } else {
-    style.fontWeight = SYSTEM_WEIGHT[w];
-  }
-  if (spec.tracking) style.letterSpacing = Math.round(spec.tracking * m.size * 100) / 100;
-  if (spec.uppercase) style.textTransform = "uppercase";
+  /* React Native 0.88 makes the style types read-only, so the style is 1 object literal. */
+  const style: TextStyle = {
+    fontSize: m.size,
+    lineHeight: m.line,
+    ...(spec.family === "display"
+      ? { fontFamily: w === "bold" || boldText ? DISPLAY_FONT.bold : DISPLAY_FONT.semibold }
+      : { fontWeight: SYSTEM_WEIGHT[w] }),
+    ...(spec.tracking ? { letterSpacing: Math.round(spec.tracking * m.size * 100) / 100 } : {}),
+    ...(spec.uppercase ? { textTransform: "uppercase" as const } : {}),
+  };
   styleCache.set(key, style);
   return style;
 }
